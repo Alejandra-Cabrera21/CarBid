@@ -372,6 +372,55 @@ if (auctionForm) {
   });
 }
 
+// === MOSTRAR PERFIL DEL VENDEDOR ===
+function cargarPerfilVendedor() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (user && user.role === "vendedor") {
+    document.getElementById("vendorEmail").innerText = user.email;
+    document.getElementById("vendorCode").innerText = user.vendorCode || "No asignado";
+  }
+}
+
+// === CAMBIO DE CONTRASEÑA ===
+const changePasswordForm = document.getElementById("changePasswordForm");
+if (changePasswordForm) {
+  changePasswordForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const newPassword = document.getElementById("newPassword").value;
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const res = await fetch(`${API_URL}/users/change-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: user.id, newPassword })
+    });
+
+    const data = await res.json();
+    if (data.message) {
+      alert(data.message);
+      changePasswordForm.reset();
+    } else {
+      alert("Error: " + data.error);
+    }
+  });
+}
+
+// === TABS DINÁMICAS ===
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+
+    tab.classList.add("active");
+    document.getElementById(tab.dataset.tab).classList.add("active");
+  });
+});
+
+// Cargar perfil si existe
+if (document.getElementById("perfil")) {
+  cargarPerfilVendedor();
+}
+
 
 // === LOGOUT ===
 function logout() {

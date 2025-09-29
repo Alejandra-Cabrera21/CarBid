@@ -2,19 +2,48 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Mi cuenta - Vendedor</title>
+  <title>Panel Vendedor - CarBid</title>
   <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+  <style>
+    .tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .tab { padding: 10px 20px; cursor: pointer; border: 1px solid #ccc; border-radius: 5px; }
+    .tab.active { background: #007BFF; color: white; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
 </head>
 <body>
   <header>
-    <h1>🚗 CarBid</h1>
+    <h1><a href="index.html">🚗 CarBid</a></h1>
     <nav id="menu"></nav>
   </header>
 
   <main>
-    <div class="card">
-      <h2>Nueva publicación</h2>
+    <h2>Panel del Vendedor</h2>
 
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-tab="perfil">Mi Perfil</div>
+      <div class="tab" data-tab="publicacion">Nueva Publicación</div>
+      <div class="tab" data-tab="historial">Historial de Subastas</div>
+    </div>
+
+    <!-- Perfil -->
+    <div id="perfil" class="tab-content active">
+      <h3>Datos del Vendedor</h3>
+      <p><strong>Correo:</strong> <span id="vendorEmail"></span></p>
+      <p><strong>Código de Vendedor:</strong> <span id="vendorCode"></span></p>
+
+      <h3>Cambiar Contraseña</h3>
+      <form id="changePasswordForm">
+        <input type="password" id="newPassword" placeholder="Nueva contraseña" required>
+        <button type="submit">Actualizar Contraseña</button>
+      </form>
+    </div>
+
+    <!-- Nueva Publicación -->
+    <div id="publicacion" class="tab-content">
       <form id="auctionForm" enctype="multipart/form-data" style="max-width:400px; margin:auto; display:flex; flex-direction:column; gap:12px;">
         
           <label for="modelo">Modelo del vehículo:</label>
@@ -34,29 +63,28 @@
 
           <button type="submit">Crear subasta</button>
       </form>
-
     </div>
 
-    <div class="card">
-      <h2>Mis subastas</h2>
-      <table>
+    <!-- Historial -->
+    <div id="historial" class="tab-content">
+      <h3>Mis Subastas</h3>
+      <table border="1" width="100%">
         <thead>
           <tr>
-            <th>Vehículo</th>
-            <th>Precio base</th>
-            <th>Oferta más alta</th>
+            <th>Modelo</th>
+            <th>Precio Base</th>
+            <th>Oferta Ganadora</th>
             <th>Estado</th>
+            <th>Imagen</th>
           </tr>
         </thead>
         <tbody id="sellerAuctions"></tbody>
       </table>
     </div>
   </main>
-
-  <footer>© 2025 CarBid</footer>
-  <script src="app.js"></script>
-  <script>
-    protegerRutaVendedor();
-  </script>
 </body>
 </html>
+
+
+
+
