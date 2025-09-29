@@ -7,7 +7,7 @@ const path = require("path");
 // === Configuración de multer para guardar imágenes en /uploads ===
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // carpeta donde se guardan
+    cb(null, path.join(__dirname, "../uploads")); // carpeta uploads dentro del backend
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname)); // nombre único
@@ -20,13 +20,16 @@ router.post("/create", upload.single("imagen"), async (req, res) => {
   try {
     const { modelo, descripcion, precioBase, fechaCierre, vendedorId } = req.body;
 
+    // Guardamos la ruta pública de la imagen
+    const imagen = req.file ? `/uploads/${req.file.filename}` : null;
+
     const auction = await Auction.create({
       modelo,
       descripcion,
       precioBase,
       fechaCierre,
       vendedorId,
-      imagen: req.file ? `/uploads/${req.file.filename}` : null
+      imagen
     });
 
     res.json({ message: "Subasta creada con éxito", auction });
