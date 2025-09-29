@@ -8,12 +8,12 @@
     "start": "node backend/server.js"
   },
   "dependencies": {
-      "cors": "^2.8.5",
-      "multer": "^1.4.5",
-      "express": "...",
-      "sequelize": "...",
-      "pg": "...",
-      "pg-hstore": "..."
+    "cors": "^2.8.5",
+    "express": "...",
+    "multer": "^1.4.5-lts.1",
+    "pg": "...",
+    "pg-hstore": "...",
+    "sequelize": "..."
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
