@@ -8,8 +8,10 @@ const Auction = sequelize.define("Auction", {
   precioBase: { type: DataTypes.FLOAT, allowNull: false },
   ofertaGanadora: { type: DataTypes.FLOAT, allowNull: true },
   estado: { type: DataTypes.STRING, defaultValue: "activa" },
-  fechaCierre: { type: DataTypes.DATE, allowNull: false }
+  fechaCierre: { type: DataTypes.DATE, allowNull: false },
+  imagen: { type: DataTypes.TEXT, allowNull: true } // 📸 nuevo campo
 });
+
 
 // Relación: un vendedor puede tener varias subastas
 Auction.belongsTo(User, { as: "Vendedor", foreignKey: "vendedorId" });

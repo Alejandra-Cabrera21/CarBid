@@ -14,11 +14,12 @@
   <main>
     <div class="card">
       <h2>Nueva publicación</h2>
-      <form id="auctionForm">
-        <input type="text" id="modelo" placeholder="Modelo del vehículo" required>
-        <input type="text" id="descripcion" placeholder="Descripción">
-        <input type="number" id="precioBase" placeholder="Precio base" required>
-        <input type="date" id="fechaCierre" required>
+      <form id="auctionForm" enctype="multipart/form-data">
+        <input type="text" id="modelo" name="modelo" placeholder="Modelo del vehículo" required>
+        <input type="text" id="descripcion" name="descripcion" placeholder="Descripción">
+        <input type="number" id="precioBase" name="precioBase" placeholder="Precio base" required>
+        <input type="date" id="fechaCierre" name="fechaCierre" required>
+        <input type="file" id="imagen" name="imagen" accept="image/*"> <!-- 📸 -->
         <button type="submit">Crear subasta</button>
       </form>
     </div>
