@@ -1,0 +1,347 @@
+// === HOME: cargar subastas ===
+async function cargarSubastas() {
+  const res = await fetch("http://localhost:3000/auctions");
+  const data = await res.json();
+  const container = document.getElementById("auctions");
+  if (!container) return;
+
+  container.innerHTML = "";
+  data.forEach(auction => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h2>${auction.modelo}</h2>
+      <p>${auction.descripcion || "Sin descripción"}</p>
+      <p><strong>Precio base:</strong> $${auction.precioBase}</p>
+      <p><strong>Oferta más alta:</strong> $${auction.ofertaGanadora || "-"}</p>
+      <p><strong>Estado:</strong> ${auction.estado}</p>
+      <button onclick="verSubasta(${auction.id})">Ver subasta</button>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function verSubasta(id) {
+  window.location.href = `auction-detail.html?id=${id}`;
+}
+
+// === DETALLE DE SUBASTA ===
+async function cargarDetalle() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+  if (!id) return;
+
+  const res = await fetch(`http://localhost:3000/auctions/${id}`);
+  const auction = await res.json();
+  const detail = document.getElementById("auctionDetail");
+
+  if (detail) {
+    detail.innerHTML = `
+      <h2>${auction.modelo}</h2>
+      <p>${auction.descripcion}</p>
+      <p><strong>Precio base:</strong> $${auction.precioBase}</p>
+      <p><strong>Oferta más alta:</strong> $${auction.ofertaGanadora || "-"}</p>
+      <p><strong>Estado:</strong> ${auction.estado}</p>
+      <p><strong>Cierre:</strong> ${new Date(auction.fechaCierre).toLocaleString()}</p>
+    `;
+    cargarPujas(id);
+  }
+}
+
+async function hacerOferta() {
+  const params = new URLSearchParams(window.location.search);
+  const auctionId = params.get("id");
+  const monto = document.getElementById("monto").value;
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) {
+    alert("Debes iniciar sesión para ofertar.");
+    return;
+  }
+
+  await fetch("http://localhost:3000/bids/ofertar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: user.id, auctionId, monto })
+  });
+
+  cargarPujas(auctionId);
+}
+
+async function cargarPujas(auctionId) {
+  const res = await fetch(`http://localhost:3000/bids/historial/${auctionId}`);
+  const data = await res.json();
+
+  const tbody = document.getElementById("bidsTable");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+  data.forEach(bid => {
+    const row = `<tr>
+      <td>${bid.userId}</td>
+      <td>$${bid.monto}</td>
+      <td>${new Date(bid.createdAt).toLocaleString()}</td>
+    </tr>`;
+    tbody.innerHTML += row;
+  });
+}
+
+// === REGISTRO COMPRADOR ===
+const registerForm = document.getElementById("registerForm");
+if (registerForm) {
+  registerForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const res = await fetch("http://localhost:3000/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    if (data.id) {
+      localStorage.setItem("user", JSON.stringify(data));
+      alert("Cuenta creada con éxito");
+      window.location.href = "account.html";
+    } else {
+      alert("Error: " + data.error);
+    }
+  });
+}
+
+// === LOGIN COMPRADOR ===
+const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const res = await fetch("http://localhost:3000/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    if (data.id) {
+      localStorage.setItem("user", JSON.stringify(data));
+      alert("Bienvenido " + data.email);
+      window.location.href = "account.html";
+    } else {
+      alert("Error: " + data.error);
+    }
+  });
+}
+
+// === REGISTRO VENDEDOR ===
+const registerVendorForm = document.getElementById("registerVendorForm");
+if (registerVendorForm) {
+  registerVendorForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const res = await fetch("http://localhost:3000/auth/register-vendedor", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    if (data.vendorCode) {
+      localStorage.setItem("user", JSON.stringify({ email, role: "vendedor", vendorCode: data.vendorCode }));
+      document.getElementById("vendorCodeMsg").innerText = "Tu código de vendedor: " + data.vendorCode;
+    } else {
+      alert("Error: " + data.error);
+    }
+  });
+}
+
+// === LOGIN VENDEDOR ===
+const loginVendorForm = document.getElementById("loginVendorForm");
+if (loginVendorForm) {
+  loginVendorForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const vendorCode = document.getElementById("vendorCode").value;
+
+    const res = await fetch("http://localhost:3000/auth/login-vendedor", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, vendorCode })
+    });
+
+    const data = await res.json();
+    if (data.id) {
+      localStorage.setItem("user", JSON.stringify(data));
+      alert("Bienvenido vendedor " + data.email);
+      window.location.href = "account-vendedor.html";
+    } else {
+      alert("Error: " + data.error);
+    }
+  });
+}
+
+// === HISTORIAL COMPRADOR ===
+async function cargarHistorialComprador() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "comprador") {
+    alert("Debes iniciar sesión como comprador.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  const res = await fetch(`http://localhost:3000/users/historial/${user.id}`);
+  const data = await res.json();
+
+  const tbody = document.getElementById("historyTable");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+  data.forEach(item => {
+    const row = `<tr>
+      <td>${item.Auction?.modelo || "Vehículo"}</td>
+      <td>$${item.monto}</td>
+      <td>$${item.Auction?.ofertaGanadora || "-"}</td>
+      <td>${item.ganada ? "Ganada" : "Perdida"}</td>
+      <td>${item.Auction?.estado}</td>
+      <td>${item.Auction?.fechaCierre ? new Date(item.Auction.fechaCierre).toLocaleDateString() : "-"}</td>
+    </tr>`;
+    tbody.innerHTML += row;
+  });
+}
+
+if (document.getElementById("historyTable")) {
+  cargarHistorialComprador();
+}
+
+// === VENDEDOR: crear subasta ===
+const auctionForm = document.getElementById("auctionForm");
+if (auctionForm) {
+  auctionForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || user.role !== "vendedor") {
+      alert("Debes iniciar sesión como vendedor.");
+      window.location.href = "login-vendedor.html";
+      return;
+    }
+
+    const modelo = document.getElementById("modelo").value;
+    const descripcion = document.getElementById("descripcion").value;
+    const precioBase = document.getElementById("precioBase").value;
+    const fechaCierre = document.getElementById("fechaCierre").value;
+
+    const res = await fetch("http://localhost:3000/auctions/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ modelo, descripcion, precioBase, fechaCierre, vendedorId: user.id })
+    });
+
+    const data = await res.json();
+    if (data.auction) {
+      alert("Subasta creada con éxito.");
+      cargarSubastasVendedor();
+      auctionForm.reset();
+    } else {
+      alert("Error: " + data.error);
+    }
+  });
+}
+
+// === VENDEDOR: listar mis subastas ===
+async function cargarSubastasVendedor() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "vendedor") return;
+
+  const res = await fetch("http://localhost:3000/auctions");
+  const data = await res.json();
+
+  const tbody = document.getElementById("sellerAuctions");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+  data
+    .filter(a => a.vendedorId === user.id) // solo sus subastas
+    .forEach(a => {
+      const row = `<tr>
+        <td>${a.modelo}</td>
+        <td>$${a.precioBase}</td>
+        <td>${a.ofertaGanadora || "-"}</td>
+        <td>${a.estado}</td>
+      </tr>`;
+      tbody.innerHTML += row;
+    });
+}
+
+if (document.getElementById("sellerAuctions")) {
+  cargarSubastasVendedor();
+}
+
+// === MENÚ DINÁMICO ===
+function actualizarMenu() {
+  const menu = document.getElementById("menu");
+  if (!menu) return;
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (user) {
+    if (user.role === "comprador") {
+      menu.innerHTML = `
+        <a href="index.html">Inicio</a>
+        <a href="account.html">Mi perfil</a>
+        <button onclick="logout()">Cerrar sesión</button>
+      `;
+    } else if (user.role === "vendedor") {
+      menu.innerHTML = `
+        <a href="index.html">Inicio</a>
+        <a href="account-vendedor.html">Mi perfil (Vendedor)</a>
+        <button onclick="logout()">Cerrar sesión</button>
+      `;
+    }
+  } else {
+    menu.innerHTML = `
+      <a href="login.html">Soy Comprador</a>
+      <a href="login-vendedor.html">Soy vendedor</a>
+    `;
+  }
+}
+
+// Ejecutar siempre
+actualizarMenu();
+
+
+// === PROTECCIÓN DE RUTAS ===
+function protegerRutaComprador() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "comprador") {
+    alert("Acceso denegado. Inicia sesión como comprador.");
+    window.location.href = "login.html";
+  }
+}
+
+function protegerRutaVendedor() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "vendedor") {
+    alert("Acceso denegado. Inicia sesión como vendedor.");
+    window.location.href = "login-vendedor.html";
+  }
+}
+
+
+
+// === LOGOUT ===
+function logout() {
+  localStorage.removeItem("user");
+  alert("Sesión cerrada");
+  window.location.href = "index.html";
+}
+
+// Ejecutar según página
+if (document.getElementById("auctions")) cargarSubastas();
+if (document.getElementById("auctionDetail")) cargarDetalle();
