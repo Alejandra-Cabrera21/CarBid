@@ -14,14 +14,27 @@
   <main>
     <div class="card">
       <h2>Nueva publicación</h2>
-      <form id="auctionForm" enctype="multipart/form-data">
-        <input type="text" id="modelo" name="modelo" placeholder="Modelo del vehículo" required>
-        <input type="text" id="descripcion" name="descripcion" placeholder="Descripción">
-        <input type="number" id="precioBase" name="precioBase" placeholder="Precio base" required>
-        <input type="date" id="fechaCierre" name="fechaCierre" required>
-        <input type="file" id="imagen" name="imagen" accept="image/*"> <!-- 📸 -->
-        <button type="submit">Crear subasta</button>
+
+      <form id="auctionForm" enctype="multipart/form-data" style="max-width:400px; margin:auto; display:flex; flex-direction:column; gap:12px;">
+        
+          <label for="modelo">Modelo del vehículo:</label>
+          <input type="text" id="modelo" name="modelo" placeholder="Ej: Toyota Yaris Hatchback 2024" required>
+
+          <label for="descripcion">Descripción:</label>
+          <textarea id="descripcion" name="descripcion" placeholder="Ej: Color plata, 0 km, transmisión automática, 5 puertas" rows="3" required></textarea>
+
+          <label for="precioBase">Precio base (USD):</label>
+          <input type="number" id="precioBase" name="precioBase" placeholder="Ej: 14500" required>
+
+          <label for="fechaCierre">Fecha de cierre (Día/Mes/Año):</label>
+          <input type="date" id="fechaCierre" name="fechaCierre" required>
+
+          <label for="imagen">Foto del vehículo:</label>
+          <input type="file" id="imagen" name="imagen" accept="image/*" required>
+
+          <button type="submit">Crear subasta</button>
       </form>
+
     </div>
 
     <div class="card">

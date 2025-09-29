@@ -108,3 +108,19 @@ header h1 a:hover,
 header h1 a:active {
   color: #fff;              /* mantener el mismo color en todos los estados */
 }
+
+form#auctionForm label {
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+form#auctionForm input,
+form#auctionForm textarea,
+form#auctionForm button {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
