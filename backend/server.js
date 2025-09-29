@@ -10,9 +10,9 @@ const bidRoutes = require("./routes/bids");
 const app = express();
 const PORT = 3000;
 
-// Habilitar CORS
+// 🔑 Habilitar CORS
 app.use(cors({
-  origin: ["https://alejandra-cabrera21.github.io"], // frontend en GitHub Pages
+  origin: ["https://alejandra-cabrera21.github.io"], // frontend
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type"]
 }));
@@ -39,4 +39,3 @@ sequelize.sync().then(() => {
 }).catch(err => {
   console.error("❌ Error al sincronizar la base de datos:", err);
 });
-
