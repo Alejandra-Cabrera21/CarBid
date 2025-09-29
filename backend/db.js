@@ -1,10 +1,16 @@
 const { Sequelize } = require("sequelize");
 
-// Usaremos SQLite (archivo carbid.sqlite en tu carpeta raíz)
-const sequelize = new Sequelize({
-  dialect: "sqlite",
-  storage: "carbid.sqlite", // aquí se guardará la base de datos
-  logging: false
+// Render te da la URL en las variables de entorno
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: "postgres",
+  protocol: "postgres",
+  logging: false,
+  dialectOptions: {
+    ssl: {
+      require: true, // Render usa SSL
+      rejectUnauthorized: false
+    }
+  }
 });
 
 module.exports = sequelize;
