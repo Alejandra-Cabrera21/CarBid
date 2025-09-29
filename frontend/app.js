@@ -1,6 +1,9 @@
+// === CONFIGURACIÓN DE API ===
+const API_URL = "https://carbid.onrender.com"; // tu URL en Render
+
 // === HOME: cargar subastas ===
 async function cargarSubastas() {
-  const res = await fetch("http://localhost:3000/auctions");
+  const res = await fetch(`${API_URL}/auctions`);
   const data = await res.json();
   const container = document.getElementById("auctions");
   if (!container) return;
@@ -31,7 +34,7 @@ async function cargarDetalle() {
   const id = params.get("id");
   if (!id) return;
 
-  const res = await fetch(`http://localhost:3000/auctions/${id}`);
+  const res = await fetch(`${API_URL}/auctions/${id}`);
   const auction = await res.json();
   const detail = document.getElementById("auctionDetail");
 
@@ -59,7 +62,7 @@ async function hacerOferta() {
     return;
   }
 
-  await fetch("http://localhost:3000/bids/ofertar", {
+  await fetch(`${API_URL}/bids/ofertar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: user.id, auctionId, monto })
@@ -69,7 +72,7 @@ async function hacerOferta() {
 }
 
 async function cargarPujas(auctionId) {
-  const res = await fetch(`http://localhost:3000/bids/historial/${auctionId}`);
+  const res = await fetch(`${API_URL}/bids/historial/${auctionId}`);
   const data = await res.json();
 
   const tbody = document.getElementById("bidsTable");
@@ -94,7 +97,7 @@ if (registerForm) {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
-    const res = await fetch("http://localhost:3000/auth/register", {
+    const res = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -119,7 +122,7 @@ if (loginForm) {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
-    const res = await fetch("http://localhost:3000/auth/login", {
+    const res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -144,7 +147,7 @@ if (registerVendorForm) {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
-    const res = await fetch("http://localhost:3000/auth/register-vendedor", {
+    const res = await fetch(`${API_URL}/auth/register-vendedor`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -169,7 +172,7 @@ if (loginVendorForm) {
     const password = document.getElementById("password").value;
     const vendorCode = document.getElementById("vendorCode").value;
 
-    const res = await fetch("http://localhost:3000/auth/login-vendedor", {
+    const res = await fetch(`${API_URL}/auth/login-vendedor`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, vendorCode })
@@ -195,7 +198,7 @@ async function cargarHistorialComprador() {
     return;
   }
 
-  const res = await fetch(`http://localhost:3000/users/historial/${user.id}`);
+  const res = await fetch(`${API_URL}/users/historial/${user.id}`);
   const data = await res.json();
 
   const tbody = document.getElementById("historyTable");
@@ -237,7 +240,7 @@ if (auctionForm) {
     const precioBase = document.getElementById("precioBase").value;
     const fechaCierre = document.getElementById("fechaCierre").value;
 
-    const res = await fetch("http://localhost:3000/auctions/create", {
+    const res = await fetch(`${API_URL}/auctions/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ modelo, descripcion, precioBase, fechaCierre, vendedorId: user.id })
@@ -259,7 +262,7 @@ async function cargarSubastasVendedor() {
   const user = JSON.parse(localStorage.getItem("user"));
   if (!user || user.role !== "vendedor") return;
 
-  const res = await fetch("http://localhost:3000/auctions");
+  const res = await fetch(`${API_URL}/auctions`);
   const data = await res.json();
 
   const tbody = document.getElementById("sellerAuctions");
@@ -315,7 +318,6 @@ function actualizarMenu() {
 // Ejecutar siempre
 actualizarMenu();
 
-
 // === PROTECCIÓN DE RUTAS ===
 function protegerRutaComprador() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -332,8 +334,6 @@ function protegerRutaVendedor() {
     window.location.href = "login-vendedor.html";
   }
 }
-
-
 
 // === LOGOUT ===
 function logout() {
