@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi cuenta - Comprador</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>🚗 CarBid</h1>
+    <nav id="menu"></nav>
+  </header>
+
+  <main>
+    <h2>Mi historial de subastas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Vehículo</th>
+          <th>Mi oferta</th>
+          <th>Oferta ganadora</th>
+          <th>Resultado</th>
+          <th>Estado</th>
+          <th>Fecha de cierre</th>
+        </tr>
+      </thead>
+      <tbody id="historyTable"></tbody>
+    </table>
+  </main>
+
+  <footer>© 2025 CarBid</footer>
+  <script src="app.js"></script>
+  <script>
+    protegerRutaComprador();
+  </script>
+</body>
+</html>

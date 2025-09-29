@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Detalle de Subasta - CarBid</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>🚗 CarBid</h1>
+    <nav id="menu"></nav>
+  </header>
+
+  <main>
+    <h2>Detalle de la Subasta</h2>
+    <div id="auctionDetail" class="card"></div>
+
+    <div class="card">
+      <h3>Ofertar</h3>
+      <input type="number" id="monto" placeholder="Monto de tu oferta" required>
+      <button onclick="hacerOferta()">Ofertar</button>
+    </div>
+
+    <div class="card">
+      <h3>Historial de pujas</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Monto</th>
+            <th>Hora</th>
+          </tr>
+        </thead>
+        <tbody id="bidsTable"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>© 2025 CarBid</footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

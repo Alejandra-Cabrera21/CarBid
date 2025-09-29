@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Historial de Subastas</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>🚗 CarBid</h1>
+    <nav id="menu"></nav>
+  </header>
+
+  <main>
+    <h2>Mi historial de subastas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Vehículo</th>
+          <th>Mi oferta</th>
+          <th>Oferta ganadora</th>
+          <th>Resultado</th>
+          <th>Estado</th>
+          <th>Fecha de cierre</th>
+        </tr>
+      </thead>
+      <tbody id="historyTable"></tbody>
+    </table>
+  </main>
+
+  <footer>© 2025 CarBid</footer>
+
+  <script src="app.js"></script>
+  <script>
+    // Proteger ruta: solo compradores pueden acceder
+    protegerRutaComprador();
+
+    // Cargar historial dinámico
+    async function cargarHistorial() {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) return;
+
+      const res = await fetch(`http://localhost:3000/users/historial/${user.id}`);
+      const data = await res.json();
+
+      const tbody = document.getElementById("historyTable");
+      tbody.innerHTML = "";
+
+      data.forEach(item => {
+        const row = `<tr>
+          <td>${item.Auction?.modelo || "Vehículo"}</td>
+          <td>$${item.monto}</td>
+          <td>$${item.Auction?.ofertaGanadora || "-"}</td>
+          <td>${item.ganada ? "Ganada" : "Perdida"}</td>
+          <td>${item.Auction?.estado}</td>
+          <td>${item.Auction?.fechaCierre ? new Date(item.Auction.fechaCierre).toLocaleDateString() : "-"}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    // Ejecutar
+    cargarHistorial();
+  </script>
+</body>
+</html>
