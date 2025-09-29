@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const sequelize = require("./db");
 
 const authRoutes = require("./routes/auth");
@@ -8,6 +9,13 @@ const bidRoutes = require("./routes/bids");
 
 const app = express();
 const PORT = 3000;
+
+// Habilitar CORS
+app.use(cors({
+  origin: ["https://alejandra-cabrera21.github.io"], // frontend en GitHub Pages
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type"]
+}));
 
 app.use(express.json());
 
