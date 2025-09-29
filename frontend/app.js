@@ -1,5 +1,5 @@
 // === CONFIGURACIÓN DE API ===
-const API_URL = "https://carbid.onrender.com"; // tu URL en Render
+const API_URL = "https://carbid-rvqj.onrender.com"; // tu URL en Render
 
 // === HOME: cargar subastas ===
 async function cargarSubastas() {
