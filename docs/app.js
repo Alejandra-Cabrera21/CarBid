@@ -155,7 +155,7 @@ if (registerVendorForm) {
 
     const data = await res.json();
     if (data.vendorCode) {
-      localStorage.setItem("user", JSON.stringify({ email, role: "vendedor", vendorCode: data.vendorCode }));
+      localStorage.setItem("user", JSON.stringify(data));
       document.getElementById("vendorCodeMsg").innerText = "Tu código de vendedor: " + data.vendorCode;
     } else {
       alert("Error: " + data.error);
@@ -235,27 +235,31 @@ if (auctionForm) {
       return;
     }
 
-    const modelo = document.getElementById("modelo").value;
-    const descripcion = document.getElementById("descripcion").value;
-    const precioBase = document.getElementById("precioBase").value;
-    const fechaCierre = document.getElementById("fechaCierre").value;
+    // Usamos FormData para enviar texto + archivo
+    const formData = new FormData(auctionForm);
+    formData.append("vendedorId", user.id);
 
-    const res = await fetch(`${API_URL}/auctions/create`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ modelo, descripcion, precioBase, fechaCierre, vendedorId: user.id })
-    });
+    try {
+      const res = await fetch(`${API_URL}/auctions/create`, {
+        method: "POST",
+        body: formData
+      });
 
-    const data = await res.json();
-    if (data.auction) {
-      alert("Subasta creada con éxito.");
-      cargarSubastasVendedor();
-      auctionForm.reset();
-    } else {
-      alert("Error: " + data.error);
+      const data = await res.json();
+      if (data.auction) {
+        alert("Subasta creada con éxito.");
+        cargarSubastasVendedor();
+        auctionForm.reset();
+      } else {
+        alert("Error: " + data.error);
+      }
+    } catch (err) {
+      console.error("Error al crear subasta:", err);
+      alert("Error en la conexión con el servidor");
     }
   });
 }
+
 
 // === VENDEDOR: listar mis subastas ===
 async function cargarSubastasVendedor() {
@@ -334,6 +338,40 @@ function protegerRutaVendedor() {
     window.location.href = "login-vendedor.html";
   }
 }
+
+
+
+//subir foto
+if (auctionForm) {
+  auctionForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || user.role !== "vendedor") {
+      alert("Debes iniciar sesión como vendedor.");
+      window.location.href = "login-vendedor.html";
+      return;
+    }
+
+    const formData = new FormData(auctionForm);
+    formData.append("vendedorId", user.id);
+
+    const res = await fetch(`${API_URL}/auctions/create`, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    if (data.auction) {
+      alert("Subasta creada con éxito.");
+      cargarSubastasVendedor();
+      auctionForm.reset();
+    } else {
+      alert("Error: " + data.error);
+    }
+  });
+}
+
 
 // === LOGOUT ===
 function logout() {
