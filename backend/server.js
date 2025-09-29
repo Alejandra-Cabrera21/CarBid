@@ -31,11 +31,12 @@ app.get("/", (req, res) => {
 });
 
 // Sincronizar DB y levantar servidor
-sequelize.sync().then(() => {
-  console.log("📦 Base de datos sincronizada");
+sequelize.sync({ force: true }).then(() => {
+  console.log("📦 Base de datos recreada con éxito (todas las tablas se reiniciaron)");
   app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
   });
 }).catch(err => {
   console.error("❌ Error al sincronizar la base de datos:", err);
 });
+
