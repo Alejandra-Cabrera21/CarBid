@@ -343,11 +343,28 @@ actualizarMenu();
 // === PROTECCIÓN DE RUTAS ===
 function protegerRutaComprador() {
   const user = JSON.parse(localStorage.getItem("user"));
-  if (!user || user.role !== "comprador") {
-    alert("Acceso denegado. Inicia sesión como comprador.");
-    window.location.href = "login.html";
-  }
+
+  // Espera a que el DOM esté listo antes de redirigir
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!user) {
+      alert("Debes iniciar sesión como comprador.");
+      window.location.href = "login.html";
+      return;
+    }
+
+    if (user.role !== "comprador") {
+      alert("Acceso denegado. Solo los compradores pueden ver esta página.");
+      window.location.href = "index.html";
+      return;
+    }
+
+    // Si el usuario es válido, carga su historial
+    if (document.getElementById("historyTable")) {
+      cargarHistorialComprador();
+    }
+  });
 }
+
 
 function protegerRutaVendedor() {
   const user = JSON.parse(localStorage.getItem("user"));
