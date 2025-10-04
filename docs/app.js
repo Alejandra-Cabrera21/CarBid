@@ -206,54 +206,7 @@ if (loginVendorForm) {
   });
 }
 
-// === HISTORIAL COMPRADOR ===
-async function cargarHistorialComprador() {
-  try {
-    const userData = localStorage.getItem("user");
-    if (!userData) return; // No redirige todavía
 
-    const user = JSON.parse(userData);
-    if (user.role !== "comprador") return;
-
-    const tbody = document.getElementById("historyTable");
-    if (!tbody) return;
-
-    // Mostrar mensaje de carga
-    tbody.innerHTML = `<tr><td colspan="6">Cargando historial...</td></tr>`;
-
-    const res = await fetch(`${API_URL}/users/historial/${user.id}`);
-    const data = await res.json();
-
-    // Si no hay pujas
-    if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6">Aún no has realizado ninguna puja.</td></tr>`;
-      return;
-    }
-
-    // Llenar tabla
-    tbody.innerHTML = "";
-    data.forEach(item => {
-      const row = `<tr>
-        <td>${item.Auction?.modelo || "Vehículo"}</td>
-        <td>$${item.monto}</td>
-        <td>$${item.Auction?.ofertaGanadora || "-"}</td>
-        <td>${item.ganada ? "Ganada" : "Perdida"}</td>
-        <td>${item.Auction?.estado}</td>
-        <td>${item.Auction?.fechaCierre ? new Date(item.Auction.fechaCierre).toLocaleDateString() : "-"}</td>
-      </tr>`;
-      tbody.innerHTML += row;
-    });
-  } catch (err) {
-    console.error("Error al cargar historial:", err);
-    const tbody = document.getElementById("historyTable");
-    if (tbody) tbody.innerHTML = `<tr><td colspan="6">Error al cargar el historial.</td></tr>`;
-  }
-}
-
-
-if (document.getElementById("historyTable")) {
-  cargarHistorialComprador();
-}
 
 // === VENDEDOR: crear subasta ===
 const auctionForm = document.getElementById("auctionForm");
@@ -356,47 +309,91 @@ function actualizarMenu() {
 // Ejecutar siempre
 actualizarMenu();
 
-// === PROTECCIÓN DE RUTA PARA COMPRADOR (versión final estable) ===
-function protegerRutaComprador() {
-  const userData = localStorage.getItem("user");
+// ====== HISTORIAL DE PUJAS (COMPRADOR) ======
 
-  if (!userData) {
-    // Esperar un poco para evitar parpadeo
-    setTimeout(() => {
-      alert("Debes iniciar sesión como comprador.");
-      window.location.href = "login.html";
-    }, 500);
-    return;
-  }
+// Utilidad segura para leer el usuario del localStorage
+function getUserFromStorage() {
+  try { return JSON.parse(localStorage.getItem("user")); }
+  catch { return null; }
+}
 
-  let user;
+// Pinta un mensaje en la tabla sin esconderla
+function paintHistoryMessage(msg) {
+  const tbody = document.getElementById("historyTable");
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:14px;">${msg}</td></tr>`;
+}
+
+// Carga y pinta el historial
+async function cargarHistorialComprador(idUsuario) {
+  const tbody = document.getElementById("historyTable");
+  if (!tbody) return;
+
+  paintHistoryMessage("Cargando historial…");
+
   try {
-    user = JSON.parse(userData);
-  } catch {
-    localStorage.removeItem("user");
-    alert("Error en los datos de sesión. Inicia sesión de nuevo.");
-    window.location.href = "login.html";
+    const res = await fetch(`${API_URL}/users/historial/${idUsuario}`, { cache: "no-store" });
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      paintHistoryMessage("Aún no has realizado pujas.");
+      return;
+    }
+
+    tbody.innerHTML = data.map(item => {
+      const a = item.Auction || {};
+      const modelo = a.modelo || "Vehículo";
+      const monto = typeof item.monto === "number" ? `$${item.monto}` : "-";
+      const ganadora = (typeof a.ofertaGanadora === "number") ? `$${a.ofertaGanadora}` : "-";
+      const resultado = item.ganada ? "Ganada" : "Perdida";
+      const estado = a.estado || "-";
+      const fecha = a.fechaCierre ? new Date(a.fechaCierre).toLocaleDateString() : "-";
+
+      return `<tr>
+        <td>${modelo}</td>
+        <td>${monto}</td>
+        <td>${ganadora}</td>
+        <td>${resultado}</td>
+        <td>${estado}</td>
+        <td>${fecha}</td>
+      </tr>`;
+    }).join("");
+  } catch (err) {
+    console.error("Error cargando historial:", err);
+    paintHistoryMessage("No se pudo cargar tu historial. Intenta de nuevo.");
+  }
+}
+
+// Protección estable para la página de historial
+async function initHistorialCompradorPage() {
+  const tbody = document.getElementById("historyTable");
+  if (!tbody) return; // No estamos en la página de historial
+
+  // Muestra algo desde el principio
+  paintHistoryMessage("Preparando página…");
+
+  const user = getUserFromStorage();
+  if (!user) {
+    paintHistoryMessage('⚠️ Debes iniciar sesión como comprador. <a href="login.html">Ir a iniciar sesión</a>');
+    // Si quieres redirigir después de mostrar el mensaje:
+    // setTimeout(() => location.href = "login.html", 1500);
     return;
   }
 
   if (user.role !== "comprador") {
-    alert("Acceso denegado. Solo los compradores pueden ver esta página.");
-    window.location.href = "index.html";
+    paintHistoryMessage('🚫 Esta vista es solo para compradores. <a href="index.html">Volver al inicio</a>');
     return;
   }
 
-  // ✅ Si todo está correcto, carga la tabla sin redirigir
-  if (document.getElementById("historyTable")) {
-    cargarHistorialComprador();
-  }
+  await cargarHistorialComprador(user.id);
 }
 
-// Ejecutar solo si hay tabla de historial
+// Ejecuta una única vez cuando el DOM está listo
 document.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("historyTable")) {
-    protegerRutaComprador();
-  }
+  initHistorialCompradorPage();
 });
+
+
 
 
 
