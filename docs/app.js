@@ -105,7 +105,15 @@ if (registerForm) {
 
     const data = await res.json();
     if (data.id) {
-      localStorage.setItem("user", JSON.stringify(data));
+      // 🔹 Aquí se guarda correctamente el rol
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: data.id,
+          email: data.email,
+          role: "comprador"
+        })
+      );
       alert("Cuenta creada con éxito");
       window.location.href = "account.html";
     } else {
@@ -130,7 +138,15 @@ if (loginForm) {
 
     const data = await res.json();
     if (data.id) {
-      localStorage.setItem("user", JSON.stringify(data));
+      // 🔹 Igual aquí
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: data.id,
+          email: data.email,
+          role: "comprador"
+        })
+      );
       alert("Bienvenido " + data.email);
       window.location.href = "account.html";
     } else {
@@ -138,6 +154,7 @@ if (loginForm) {
     }
   });
 }
+
 
 // === REGISTRO VENDEDOR ===
 const registerVendorForm = document.getElementById("registerVendorForm");
