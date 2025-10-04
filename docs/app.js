@@ -291,6 +291,7 @@ if (document.getElementById("sellerAuctions")) {
 }
 
 // === MENÚ DINÁMICO ===
+// === MENÚ DINÁMICO ===
 function actualizarMenu() {
   const menu = document.getElementById("menu");
   if (!menu) return;
@@ -301,23 +302,25 @@ function actualizarMenu() {
     if (user.role === "comprador") {
       menu.innerHTML = `
         <a href="index.html">Inicio</a>
-        <a href="account.html">Mi perfil</a>
+        <a href="historial.html">Historial de Pujes</a>
+        <a href="perfil-comprador.html">Mi Perfil</a>
         <button onclick="logout()">Cerrar sesión</button>
       `;
     } else if (user.role === "vendedor") {
       menu.innerHTML = `
         <a href="index.html">Inicio</a>
-        <a href="account-vendedor.html">Mi perfil (Vendedor)</a>
+        <a href="account-vendedor.html">Mi perfil</a>
         <button onclick="logout()">Cerrar sesión</button>
       `;
     }
   } else {
     menu.innerHTML = `
       <a href="login.html">Soy Comprador</a>
-      <a href="login-vendedor.html">Soy vendedor</a>
+      <a href="login-vendedor.html">Soy Vendedor</a>
     `;
   }
 }
+
 
 // Ejecutar siempre
 actualizarMenu();
