@@ -39,9 +39,14 @@ async function cargarDetalle() {
   const detail = document.getElementById("auctionDetail");
 
   if (detail) {
+    const imageUrl = auction.imagen
+      ? `${API_URL}${auction.imagen}`
+      : "https://via.placeholder.com/300x200?text=Sin+Imagen";
+
     detail.innerHTML = `
+      <img src="${imageUrl}" alt="Imagen del vehículo" style="max-width:300px; border-radius:10px; margin-bottom:10px;">
       <h2>${auction.modelo}</h2>
-      <p>${auction.descripcion}</p>
+      <p>${auction.descripcion || "Sin descripción"}</p>
       <p><strong>Precio base:</strong> $${auction.precioBase}</p>
       <p><strong>Oferta más alta:</strong> $${auction.ofertaGanadora || "-"}</p>
       <p><strong>Estado:</strong> ${auction.estado}</p>
