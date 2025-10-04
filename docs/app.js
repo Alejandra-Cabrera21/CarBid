@@ -34,27 +34,43 @@ async function cargarDetalle() {
   const id = params.get("id");
   if (!id) return;
 
-  const res = await fetch(`${API_URL}/auctions/${id}`);
-  const auction = await res.json();
-  const detail = document.getElementById("auctionDetail");
+  try {
+    const res = await fetch(`${API_URL}/auctions/${id}`);
+    const auction = await res.json();
 
-  if (detail) {
-    const imageUrl = auction.imagen
-      ? `${API_URL}${auction.imagen}`
-      : "https://via.placeholder.com/300x200?text=Sin+Imagen";
+    const detail = document.getElementById("auctionDetail");
+    if (!detail) return;
 
+    // Construimos la URL correcta de la imagen
+    let imageUrl;
+    if (auction.imagen) {
+      // Si Render la sirve correctamente desde /uploads
+      imageUrl = `${API_URL}${auction.imagen}`;
+    } else {
+      imageUrl = "https://via.placeholder.com/400x250?text=Sin+imagen";
+    }
+
+    // Mostramos el detalle con imagen incluida
     detail.innerHTML = `
-      <img src="${imageUrl}" alt="Imagen del vehículo" style="max-width:300px; border-radius:10px; margin-bottom:10px;">
-      <h2>${auction.modelo}</h2>
-      <p>${auction.descripcion || "Sin descripción"}</p>
-      <p><strong>Precio base:</strong> $${auction.precioBase}</p>
-      <p><strong>Oferta más alta:</strong> $${auction.ofertaGanadora || "-"}</p>
-      <p><strong>Estado:</strong> ${auction.estado}</p>
-      <p><strong>Cierre:</strong> ${new Date(auction.fechaCierre).toLocaleString()}</p>
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <img src="${imageUrl}" 
+             alt="Imagen del vehículo" 
+             style="width:400px; height:auto; border-radius:10px; margin-bottom:15px; box-shadow:0 2px 6px rgba(0,0,0,0.2)">
+        <h2>${auction.modelo}</h2>
+        <p>${auction.descripcion || "Sin descripción"}</p>
+        <p><strong>Precio base:</strong> $${auction.precioBase}</p>
+        <p><strong>Oferta más alta:</strong> $${auction.ofertaGanadora || "-"}</p>
+        <p><strong>Estado:</strong> ${auction.estado}</p>
+        <p><strong>Cierre:</strong> ${new Date(auction.fechaCierre).toLocaleString()}</p>
+      </div>
     `;
+
     cargarPujas(id);
+  } catch (err) {
+    console.error("Error al cargar detalle de subasta:", err);
   }
 }
+
 
 async function hacerOferta() {
   const params = new URLSearchParams(window.location.search);
