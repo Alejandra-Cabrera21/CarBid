@@ -1,27 +1,29 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
-const generateVendorCode = require("../utils/generateCode");
+const Vendor = require("../models/Vendor");
 
-// === REGISTRO COMPRADOR ===
+// === REGISTRO DE COMPRADOR ===
 router.post("/register", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Verificar si el correo ya existe
-    const existing = await User.findOne({ where: { email } });
-    if (existing) return res.status(400).json({ error: "El correo ya está registrado." });
+    // Verificar si ya existe comprador
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ error: "Ya existe un comprador con este correo." });
+    }
 
-    const user = await User.create({ email, password, role: "comprador" });
-
+    // Crear nuevo comprador
+    const newUser = await User.create({ email, password });
     res.json({
-      message: "Comprador registrado con éxito",
-      id: user.id,
-      email: user.email,
-      role: user.role
+      id: newUser.id,
+      email: newUser.email,
+      role: "comprador"
     });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error al registrar comprador:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -29,73 +31,79 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ where: { email, password, role: "comprador" } });
+    const user = await User.findOne({ where: { email } });
 
-    if (!user) return res.status(400).json({ error: "Credenciales inválidas" });
+    if (!user || user.password !== password) {
+      return res.status(400).json({ error: "Correo o contraseña incorrectos." });
+    }
 
     res.json({
-      message: "Login exitoso",
       id: user.id,
       email: user.email,
-      role: user.role
+      role: "comprador"
     });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error en login comprador:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// === REGISTRO VENDEDOR ===
+// === REGISTRO DE VENDEDOR ===
 router.post("/register-vendedor", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Evitar correos duplicados
-    const existing = await User.findOne({ where: { email } });
-    if (existing) return res.status(400).json({ error: "El correo ya está registrado." });
+    // Verificar si ya existe como vendedor
+    const existingVendor = await Vendor.findOne({ where: { email } });
+    if (existingVendor) {
+      return res.status(400).json({ error: "Ya existe un vendedor con este correo." });
+    }
 
-    // Generar código único
-    const vendorCode = generateVendorCode();
+    // Si ya existe como comprador, lo permitimos
+    const existingBuyer = await User.findOne({ where: { email } });
+    if (existingBuyer) {
+      console.log("Correo ya registrado como comprador, también se registrará como vendedor.");
+    }
 
-    const user = await User.create({
-      email,
-      password,
-      role: "vendedor",
-      vendorCode
-    });
+    // Crear nuevo vendedor con código único
+    const vendorCode = "V-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const newVendor = await Vendor.create({ email, password, vendorCode });
 
     res.json({
-      message: "Vendedor registrado con éxito",
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      vendorCode
+      id: newVendor.id,
+      email: newVendor.email,
+      vendorCode: newVendor.vendorCode,
+      role: "vendedor"
     });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error al registrar vendedor:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// === LOGIN VENDEDOR ===
+// === LOGIN DE VENDEDOR ===
 router.post("/login-vendedor", async (req, res) => {
   try {
     const { email, password, vendorCode } = req.body;
 
-    // Buscar coincidencia exacta de email + contraseña + código
-    const user = await User.findOne({
-      where: { email, password, vendorCode, role: "vendedor" }
-    });
+    const vendor = await Vendor.findOne({ where: { email, vendorCode } });
+    if (!vendor) {
+      return res.status(400).json({ error: "Correo o código de vendedor incorrecto." });
+    }
 
-    if (!user) return res.status(400).json({ error: "Credenciales o código incorrectos." });
+    if (vendor.password !== password) {
+      return res.status(400).json({ error: "Contraseña incorrecta." });
+    }
 
     res.json({
-      message: "Login exitoso",
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      vendorCode: user.vendorCode
+      id: vendor.id,
+      email: vendor.email,
+      vendorCode: vendor.vendorCode,
+      role: "vendedor"
     });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error en login vendedor:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
