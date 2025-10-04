@@ -44,11 +44,12 @@ router.post("/register-vendedor", async (req, res) => {
     const { email, password } = req.body;
     const vendorCode = generateVendorCode();
     const user = await User.create({ email, password, role: "vendedor", vendorCode });
+
     res.json({
       message: "Vendedor registrado con éxito",
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: "vendedor",
       vendorCode
     });
   } catch (err) {
@@ -68,7 +69,7 @@ router.post("/login-vendedor", async (req, res) => {
       message: "Login exitoso",
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: "vendedor",
       vendorCode: user.vendorCode
     });
   } catch (err) {
