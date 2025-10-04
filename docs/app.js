@@ -291,7 +291,6 @@ if (document.getElementById("sellerAuctions")) {
 }
 
 // === MENÚ DINÁMICO ===
-// === MENÚ DINÁMICO ===
 function actualizarMenu() {
   const menu = document.getElementById("menu");
   if (!menu) return;
@@ -302,7 +301,7 @@ function actualizarMenu() {
     if (user.role === "comprador") {
       menu.innerHTML = `
         <a href="index.html">Inicio</a>
-        <a href="historial.html">Historial de Pujes</a>
+        <a href="historial-comprador.html">Historial de Pujes</a>
         <a href="perfil-comprador.html">Mi Perfil</a>
         <button onclick="logout()">Cerrar sesión</button>
       `;
