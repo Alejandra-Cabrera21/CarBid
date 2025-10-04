@@ -6,19 +6,66 @@
   <link rel="stylesheet" href="styles.css" />
   <script defer src="app.js"></script>
   <style>
-    main.form-container {
-      max-width: 600px;
-      margin: 2rem auto;
-      background: #f9f9f9;
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #1a4dab;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    h1 a {
+      color: white;
+      text-decoration: none;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1rem auto;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: white;
+    }
+
+    .tab.active {
+      background: #1a4dab;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
       padding: 2rem;
       border-radius: 10px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
+
+    .tab-content.active {
+      display: block;
+    }
+
     form label {
       display: block;
       margin-top: 10px;
       font-weight: bold;
     }
+
     form input {
       width: 100%;
       padding: 8px;
@@ -26,6 +73,7 @@
       border-radius: 5px;
       border: 1px solid #ccc;
     }
+
     button {
       margin-top: 15px;
       background-color: #1a4dab;
@@ -35,8 +83,26 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
     button:hover {
       background-color: #0d3a8c;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #1a4dab;
+      color: white;
     }
   </style>
 </head>
@@ -47,25 +113,67 @@
     <nav id="menu"></nav>
   </header>
 
-  <main class="form-container">
-    <h2>Mi Perfil (Comprador)</h2>
+  <main>
+    <h2 style="text-align:center;">Panel del Comprador</h2>
 
-    <!-- Información del usuario -->
-    <div id="profileInfo">
-      <p><strong>Correo:</strong> <span id="userEmail"></span></p>   
+    <!-- Pestañas -->
+    <div class="tabs">
+      <div class="tab active" data-tab="perfil">Mi Perfil</div>
+      <div class="tab" data-tab="historial">Historial de Pujas</div>
     </div>
 
-    <!-- Cambiar contraseña -->
-    <h3>Cambiar Contraseña</h3>
-    <form id="changePasswordForm">
-      <label for="currentPassword">Contraseña actual:</label>
-      <input type="password" id="currentPassword" required>
+    <!-- PERFIL -->
+    <div id="perfil" class="tab-content active">
+      <h3>Información del Usuario</h3>
+      <p><strong>Correo:</strong> <span id="userEmail"></span></p>
 
-      <label for="newPassword">Nueva contraseña:</label>
-      <input type="password" id="newPassword" required>
+      <h3>Cambiar Contraseña</h3>
+      <form id="changePasswordForm">
+        <label for="currentPassword">Contraseña actual:</label>
+        <input type="password" id="currentPassword" required>
 
-      <button type="submit">Actualizar contraseña</button>
-    </form>
+        <label for="newPassword">Nueva contraseña:</label>
+        <input type="password" id="newPassword" required>
+
+        <button type="submit">Actualizar contraseña</button>
+      </form>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div id="historial" class="tab-content">
+      <h3>Historial de Pujas</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Vehículo</th>
+            <th>Mi oferta</th>
+            <th>Oferta ganadora</th>
+            <th>Resultado</th>
+            <th>Estado</th>
+            <th>Fecha de cierre</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable"></tbody>
+      </table>
+    </div>
   </main>
+
+  <footer style="text-align:center; margin-top:2rem;">© 2025 CarBid</footer>
+
+  <script>
+    // === Tabs ===
+    const tabs = document.querySelectorAll('.tab');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+  </script>
 </body>
 </html>
+
