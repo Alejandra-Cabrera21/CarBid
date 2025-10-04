@@ -290,17 +290,20 @@ async function cargarSubastasVendedor() {
 
   tbody.innerHTML = "";
   data
-    .filter(a => a.vendedorId === user.id) // solo sus subastas
+    .filter(a => a.vendedorId === user.id)
     .forEach(a => {
       const row = `<tr>
         <td>${a.modelo}</td>
         <td>$${a.precioBase}</td>
         <td>${a.ofertaGanadora || "-"}</td>
         <td>${a.estado}</td>
+        <td>${a.imagen ? `<img src="${a.imagen}" alt="${a.modelo}" width="100" style="border-radius:8px;">` : "Sin imagen"}</td>
+        <td><button onclick="verSubasta(${a.id})">Ver Detalle</button></td>
       </tr>`;
       tbody.innerHTML += row;
     });
 }
+
 
 if (document.getElementById("sellerAuctions")) {
   cargarSubastasVendedor();
