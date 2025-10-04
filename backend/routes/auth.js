@@ -7,7 +7,13 @@ const generateVendorCode = require("../utils/generateCode");
 router.post("/register", async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Verificar si el correo ya existe
+    const existing = await User.findOne({ where: { email } });
+    if (existing) return res.status(400).json({ error: "El correo ya está registrado." });
+
     const user = await User.create({ email, password, role: "comprador" });
+
     res.json({
       message: "Comprador registrado con éxito",
       id: user.id,
@@ -42,14 +48,26 @@ router.post("/login", async (req, res) => {
 router.post("/register-vendedor", async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Evitar correos duplicados
+    const existing = await User.findOne({ where: { email } });
+    if (existing) return res.status(400).json({ error: "El correo ya está registrado." });
+
+    // Generar código único
     const vendorCode = generateVendorCode();
-    const user = await User.create({ email, password, role: "vendedor", vendorCode });
+
+    const user = await User.create({
+      email,
+      password,
+      role: "vendedor",
+      vendorCode
+    });
 
     res.json({
       message: "Vendedor registrado con éxito",
       id: user.id,
       email: user.email,
-      role: "vendedor",
+      role: user.role,
       vendorCode
     });
   } catch (err) {
@@ -61,15 +79,19 @@ router.post("/register-vendedor", async (req, res) => {
 router.post("/login-vendedor", async (req, res) => {
   try {
     const { email, password, vendorCode } = req.body;
-    const user = await User.findOne({ where: { email, password, role: "vendedor", vendorCode } });
 
-    if (!user) return res.status(400).json({ error: "Credenciales inválidas" });
+    // Buscar coincidencia exacta de email + contraseña + código
+    const user = await User.findOne({
+      where: { email, password, vendorCode, role: "vendedor" }
+    });
+
+    if (!user) return res.status(400).json({ error: "Credenciales o código incorrectos." });
 
     res.json({
       message: "Login exitoso",
       id: user.id,
       email: user.email,
-      role: "vendedor",
+      role: user.role,
       vendorCode: user.vendorCode
     });
   } catch (err) {
