@@ -5,6 +5,7 @@
   <title>Panel del Vendedor - CarBid</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="app.js"></script>
+
   <style>
     .tabs {
       display: flex;
@@ -31,6 +32,40 @@
 
     .tab-content.active {
       display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background: #f3f3f3;
+    }
+
+    img {
+      border-radius: 8px;
+      max-width: 100px;
+    }
+
+    button.ver-detalle {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    button.ver-detalle:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
@@ -95,7 +130,7 @@
     <!-- Historial -->
     <div id="historial" class="tab-content">
       <h3>Mis Subastas</h3>
-      <table border="1" width="100%">
+      <table>
         <thead>
           <tr>
             <th>Modelo</th>
@@ -103,12 +138,15 @@
             <th>Oferta Ganadora</th>
             <th>Estado</th>
             <th>Imagen</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="sellerAuctions"></tbody>
       </table>
     </div>
   </main>
+
+  <footer>© 2025 CarBid</footer>
 
   <script>
     // === CAMBIO DE PESTAÑAS ===
