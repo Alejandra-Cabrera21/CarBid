@@ -28,47 +28,37 @@ function verSubasta(id) {
   window.location.href = `auction-detail.html?id=${id}`;
 }
 
-// === DETALLE DE SUBASTA ===
-async function cargarDetalle() {
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
-  if (!id) return;
+// === HOME: cargar subastas con imagen ===
+async function cargarSubastas() {
+  const res = await fetch(`${API_URL}/auctions`);
+  const data = await res.json();
+  const container = document.getElementById("auctions");
+  if (!container) return;
 
-  try {
-    const res = await fetch(`${API_URL}/auctions/${id}`);
-    const auction = await res.json();
+  container.innerHTML = "";
 
-    const detail = document.getElementById("auctionDetail");
-    if (!detail) return;
+  data.forEach(auction => {
+    const card = document.createElement("div");
+    card.className = "card";
 
-    // Construimos la URL correcta de la imagen
-    let imageUrl;
-    if (auction.imagen) {
-      // Si Render la sirve correctamente desde /uploads
-      imageUrl = `${API_URL}${auction.imagen}`;
-    } else {
-      imageUrl = "https://via.placeholder.com/400x250?text=Sin+imagen";
-    }
+    // URL completa de la imagen
+    const imageUrl = auction.imagen
+      ? `${API_URL}${auction.imagen}`
+      : "https://via.placeholder.com/300x200?text=Sin+imagen";
 
-    // Mostramos el detalle con imagen incluida
-    detail.innerHTML = `
-      <div style="display:flex; flex-direction:column; align-items:center;">
-        <img src="${imageUrl}" 
-             alt="Imagen del vehículo" 
-             style="width:400px; height:auto; border-radius:10px; margin-bottom:15px; box-shadow:0 2px 6px rgba(0,0,0,0.2)">
-        <h2>${auction.modelo}</h2>
+    card.innerHTML = `
+      <div style="border:1px solid #ddd; border-radius:10px; padding:15px; margin:10px; box-shadow:0 2px 6px rgba(0,0,0,0.15); max-width:300px;">
+        <img src="${imageUrl}" alt="Imagen del vehículo" style="width:100%; height:200px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
+        <h2 style="font-size:18px; color:#002060;">${auction.modelo}</h2>
         <p>${auction.descripcion || "Sin descripción"}</p>
         <p><strong>Precio base:</strong> $${auction.precioBase}</p>
         <p><strong>Oferta más alta:</strong> $${auction.ofertaGanadora || "-"}</p>
         <p><strong>Estado:</strong> ${auction.estado}</p>
-        <p><strong>Cierre:</strong> ${new Date(auction.fechaCierre).toLocaleString()}</p>
+        <button style="background-color:#1E40AF;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer" onclick="verSubasta(${auction.id})">Ver subasta</button>
       </div>
     `;
-
-    cargarPujas(id);
-  } catch (err) {
-    console.error("Error al cargar detalle de subasta:", err);
-  }
+    container.appendChild(card);
+  });
 }
 
 
