@@ -320,7 +320,6 @@ function actualizarMenu() {
   }
 }
 
-
 // Ejecutar siempre
 actualizarMenu();
 
@@ -374,14 +373,23 @@ if (auctionForm) {
   });
 }
 
-// === MOSTRAR PERFIL DEL VENDEDOR ===
-function cargarPerfilVendedor() {
+// === MOSTRAR PERFIL (COMPRADOR O VENDEDOR) ===
+document.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("user"));
-  if (user && user.role === "vendedor") {
-    document.getElementById("vendorEmail").innerText = user.email;
-    document.getElementById("vendorCode").innerText = user.vendorCode || "No asignado";
+  if (!user) return;
+
+  // PERFIL DEL COMPRADOR
+  if (document.getElementById("userEmail") && user.role === "comprador") {
+    document.getElementById("userEmail").textContent = user.email;
   }
-}
+
+  // PERFIL DEL VENDEDOR
+  if (document.getElementById("vendorEmail") && user.role === "vendedor") {
+    document.getElementById("vendorEmail").textContent = user.email;
+    document.getElementById("vendorCode").textContent = user.vendorCode || "No asignado";
+  }
+});
+
 
 // === CAMBIO DE CONTRASEÑA ===
 const changePasswordForm = document.getElementById("changePasswordForm");
