@@ -340,29 +340,48 @@ function actualizarMenu() {
 // Ejecutar siempre
 actualizarMenu();
 
-// === PROTECCIÓN DE RUTAS ===
-function protegerRutaComprador() {
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  // Espera a que el DOM esté listo antes de redirigir
-  document.addEventListener("DOMContentLoaded", () => {
-    if (!user) {
-      alert("Debes iniciar sesión como comprador.");
-      window.location.href = "login.html";
-      return;
-    }
-
-    if (user.role !== "comprador") {
-      alert("Acceso denegado. Solo los compradores pueden ver esta página.");
-      window.location.href = "index.html";
-      return;
-    }
-
-    // Si el usuario es válido, carga su historial
-    if (document.getElementById("historyTable")) {
-      cargarHistorialComprador();
-    }
+// === PROTECCIÓN DE RUTA PARA COMPRADOR (versión estable) ===
+async function protegerRutaComprador() {
+  // Esperar a que el DOM esté completamente cargado
+  await new Promise((resolve) => {
+    if (document.readyState === "complete") resolve();
+    else window.addEventListener("load", resolve, { once: true });
   });
+
+  // Obtener usuario del localStorage
+  const userData = localStorage.getItem("user");
+  if (!userData) {
+    console.warn("Usuario no encontrado en localStorage");
+    alert("Debes iniciar sesión como comprador.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  let user;
+  try {
+    user = JSON.parse(userData);
+  } catch (error) {
+    console.error("Error al leer usuario:", error);
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+    return;
+  }
+
+  // Verificar rol
+  if (user.role !== "comprador") {
+    alert("Acceso denegado. Solo los compradores pueden ver esta página.");
+    window.location.href = "index.html";
+    return;
+  }
+
+  // ✅ Si el usuario es válido y comprador, cargar historial
+  if (document.getElementById("historyTable")) {
+    console.log("Cargando historial del comprador...");
+    await cargarHistorialComprador();
+  }
+}
+if (document.getElementById("historyTable")) {
+  protegerRutaComprador();
 }
 
 
