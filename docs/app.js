@@ -208,32 +208,48 @@ if (loginVendorForm) {
 
 // === HISTORIAL COMPRADOR ===
 async function cargarHistorialComprador() {
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user || user.role !== "comprador") {
-    alert("Debes iniciar sesión como comprador.");
-    window.location.href = "login.html";
-    return;
+  try {
+    const userData = localStorage.getItem("user");
+    if (!userData) return; // No redirige todavía
+
+    const user = JSON.parse(userData);
+    if (user.role !== "comprador") return;
+
+    const tbody = document.getElementById("historyTable");
+    if (!tbody) return;
+
+    // Mostrar mensaje de carga
+    tbody.innerHTML = `<tr><td colspan="6">Cargando historial...</td></tr>`;
+
+    const res = await fetch(`${API_URL}/users/historial/${user.id}`);
+    const data = await res.json();
+
+    // Si no hay pujas
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6">Aún no has realizado ninguna puja.</td></tr>`;
+      return;
+    }
+
+    // Llenar tabla
+    tbody.innerHTML = "";
+    data.forEach(item => {
+      const row = `<tr>
+        <td>${item.Auction?.modelo || "Vehículo"}</td>
+        <td>$${item.monto}</td>
+        <td>$${item.Auction?.ofertaGanadora || "-"}</td>
+        <td>${item.ganada ? "Ganada" : "Perdida"}</td>
+        <td>${item.Auction?.estado}</td>
+        <td>${item.Auction?.fechaCierre ? new Date(item.Auction.fechaCierre).toLocaleDateString() : "-"}</td>
+      </tr>`;
+      tbody.innerHTML += row;
+    });
+  } catch (err) {
+    console.error("Error al cargar historial:", err);
+    const tbody = document.getElementById("historyTable");
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6">Error al cargar el historial.</td></tr>`;
   }
-
-  const res = await fetch(`${API_URL}/users/historial/${user.id}`);
-  const data = await res.json();
-
-  const tbody = document.getElementById("historyTable");
-  if (!tbody) return;
-
-  tbody.innerHTML = "";
-  data.forEach(item => {
-    const row = `<tr>
-      <td>${item.Auction?.modelo || "Vehículo"}</td>
-      <td>$${item.monto}</td>
-      <td>$${item.Auction?.ofertaGanadora || "-"}</td>
-      <td>${item.ganada ? "Ganada" : "Perdida"}</td>
-      <td>${item.Auction?.estado}</td>
-      <td>${item.Auction?.fechaCierre ? new Date(item.Auction.fechaCierre).toLocaleDateString() : "-"}</td>
-    </tr>`;
-    tbody.innerHTML += row;
-  });
 }
+
 
 if (document.getElementById("historyTable")) {
   cargarHistorialComprador();
@@ -341,41 +357,37 @@ function actualizarMenu() {
 actualizarMenu();
 
 // === PROTECCIÓN DE RUTA PARA COMPRADOR (versión final estable) ===
-async function protegerRutaComprador() {
-  // Esperar a que el DOM esté completamente cargado
-  await new Promise((resolve) => {
-    if (document.readyState === "complete" || document.readyState === "interactive") resolve();
-    else document.addEventListener("DOMContentLoaded", resolve, { once: true });
-  });
-
-  // Obtener usuario del localStorage
+function protegerRutaComprador() {
   const userData = localStorage.getItem("user");
+
   if (!userData) {
-    console.warn("⚠ No hay usuario en localStorage");
-    return; // ❌ Ya no redirige de inmediato
+    // Esperar un poco para evitar parpadeo
+    setTimeout(() => {
+      alert("Debes iniciar sesión como comprador.");
+      window.location.href = "login.html";
+    }, 500);
+    return;
   }
 
   let user;
   try {
     user = JSON.parse(userData);
-  } catch (error) {
-    console.error("Error al parsear usuario:", error);
+  } catch {
     localStorage.removeItem("user");
+    alert("Error en los datos de sesión. Inicia sesión de nuevo.");
+    window.location.href = "login.html";
     return;
   }
 
-  // Si es comprador, cargar historial una sola vez
-  if (user && user.role === "comprador" && document.getElementById("historyTable")) {
-    console.log("✅ Usuario comprador detectado. Cargando historial...");
-    await cargarHistorialComprador();
-  } else if (user && user.role !== "comprador") {
-    console.warn("🚫 Usuario no autorizado (no es comprador).");
+  if (user.role !== "comprador") {
     alert("Acceso denegado. Solo los compradores pueden ver esta página.");
     window.location.href = "index.html";
-  } else if (!user) {
-    console.warn("🚷 No hay sesión iniciada.");
-    alert("Debes iniciar sesión como comprador.");
-    window.location.href = "login.html";
+    return;
+  }
+
+  // ✅ Si todo está correcto, carga la tabla sin redirigir
+  if (document.getElementById("historyTable")) {
+    cargarHistorialComprador();
   }
 }
 
