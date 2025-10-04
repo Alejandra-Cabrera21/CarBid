@@ -386,27 +386,26 @@ function cargarPerfilVendedor() {
 
 // === CAMBIO DE CONTRASEÑA ===
 const changePasswordForm = document.getElementById("changePasswordForm");
+
 if (changePasswordForm) {
   changePasswordForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const newPassword = document.getElementById("newPassword").value;
+
     const user = JSON.parse(localStorage.getItem("user"));
+    const currentPassword = document.getElementById("currentPassword").value;
+    const newPassword = document.getElementById("newPassword").value;
 
     const res = await fetch(`${API_URL}/users/change-password`, {
-      method: "POST",
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: user.id, newPassword })
+      body: JSON.stringify({ id: user.id, currentPassword, newPassword })
     });
 
     const data = await res.json();
-    if (data.message) {
-      alert(data.message);
-      changePasswordForm.reset();
-    } else {
-      alert("Error: " + data.error);
-    }
+    alert(data.message || data.error);
   });
 }
+
 
 // === TABS DINÁMICAS ===
 document.querySelectorAll(".tab").forEach(tab => {
@@ -423,6 +422,7 @@ document.querySelectorAll(".tab").forEach(tab => {
 if (document.getElementById("perfil")) {
   cargarPerfilVendedor();
 }
+
 
 
 // === LOGOUT ===
