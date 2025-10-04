@@ -158,50 +158,65 @@ if (loginForm) {
 
 // === REGISTRO VENDEDOR ===
 const registerVendorForm = document.getElementById("registerVendorForm");
-if (registerVendorForm) {
-  registerVendorForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+  if (registerVendorForm) {
+    registerVendorForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    const res = await fetch(`${API_URL}/auth/register-vendedor`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      try {
+        const res = await fetch(`${API_URL}/auth/register-vendedor`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (data.vendorCode) {
+          localStorage.setItem("user", JSON.stringify(data));
+          document.getElementById("vendorCodeMsg").innerText =
+            `✅ Cuenta creada con éxito. Tu código de vendedor es: ${data.vendorCode}`;
+        } else {
+          alert("Error al registrar vendedor: " + (data.error || "Respuesta inválida"));
+        }
+      } catch (err) {
+        alert("Error al conectar con el servidor.");
+        console.error(err);
+      }
     });
-
-    const data = await res.json();
-    if (data.vendorCode) {
-      localStorage.setItem("user", JSON.stringify(data));
-      document.getElementById("vendorCodeMsg").innerText = "Tu código de vendedor: " + data.vendorCode;
-    } else {
-      alert("Error: " + data.error);
-    }
-  });
 }
+
 
 // === LOGIN VENDEDOR ===
 const loginVendorForm = document.getElementById("loginVendorForm");
 if (loginVendorForm) {
   loginVendorForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const vendorCode = document.getElementById("vendorCode").value;
 
-    const res = await fetch(`${API_URL}/auth/login-vendedor`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, vendorCode })
-    });
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const vendorCode = document.getElementById("vendorCode").value.trim();
 
-    const data = await res.json();
-    if (data.id) {
-      localStorage.setItem("user", JSON.stringify(data));
-      alert("Bienvenido vendedor " + data.email);
-      window.location.href = "account-vendedor.html";
-    } else {
-      alert("Error: " + data.error);
+    try {
+      const res = await fetch(`${API_URL}/auth/login-vendedor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, vendorCode })
+      });
+
+      const data = await res.json();
+      if (data.id) {
+        localStorage.setItem("user", JSON.stringify(data));
+        alert("Bienvenido vendedor " + data.email);
+        window.location.href = "account-vendedor.html";
+      } else {
+        alert("Error: " + (data.error || "Credenciales inválidas"));
+      }
+    } catch (err) {
+      alert("Error al conectar con el servidor.");
+      console.error(err);
     }
   });
 }
