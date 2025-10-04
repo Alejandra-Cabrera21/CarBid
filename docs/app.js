@@ -516,6 +516,40 @@ if (document.getElementById("perfil")) {
   cargarPerfilVendedor();
 }
 
+// === DETALLE DE SUBASTA (con imagen desde Cloudinary) ===
+async function cargarDetalle() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+  if (!id) return;
+
+  try {
+    const res = await fetch(`${API_URL}/auctions/${id}`);
+    const auction = await res.json();
+
+    const detail = document.getElementById("auctionDetail");
+    if (!detail) return;
+
+    const imgSrc = auction.imagen
+      ? auction.imagen
+      : "https://via.placeholder.com/800x600?text=Sin+imagen";
+
+    detail.innerHTML = `
+      <div class="auction-card">
+        <img src="${imgSrc}" alt="Imagen del vehículo" class="auction-image"/>
+        <h2>${auction.modelo}</h2>
+        <p>${auction.descripcion || "Sin descripción disponible"}</p>
+        <p><strong>Precio base:</strong> $${auction.precioBase}</p>
+        <p><strong>Oferta más alta:</strong> $${auction.ofertaGanadora || "-"}</p>
+        <p><strong>Estado:</strong> ${auction.estado}</p>
+        <p><strong>Cierre:</strong> ${new Date(auction.fechaCierre).toLocaleString()}</p>
+      </div>
+    `;
+
+    cargarPujas(id);
+  } catch (err) {
+    console.error("Error al cargar el detalle de la subasta:", err);
+  }
+}
 
 
 // === LOGOUT ===
