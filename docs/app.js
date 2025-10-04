@@ -340,58 +340,52 @@ function actualizarMenu() {
 // Ejecutar siempre
 actualizarMenu();
 
-// === PROTECCIÓN DE RUTA PARA COMPRADOR (versión estable) ===
+// === PROTECCIÓN DE RUTA PARA COMPRADOR (versión final estable) ===
 async function protegerRutaComprador() {
   // Esperar a que el DOM esté completamente cargado
   await new Promise((resolve) => {
-    if (document.readyState === "complete") resolve();
-    else window.addEventListener("load", resolve, { once: true });
+    if (document.readyState === "complete" || document.readyState === "interactive") resolve();
+    else document.addEventListener("DOMContentLoaded", resolve, { once: true });
   });
 
   // Obtener usuario del localStorage
   const userData = localStorage.getItem("user");
   if (!userData) {
-    console.warn("Usuario no encontrado en localStorage");
-    alert("Debes iniciar sesión como comprador.");
-    window.location.href = "login.html";
-    return;
+    console.warn("⚠ No hay usuario en localStorage");
+    return; // ❌ Ya no redirige de inmediato
   }
 
   let user;
   try {
     user = JSON.parse(userData);
   } catch (error) {
-    console.error("Error al leer usuario:", error);
+    console.error("Error al parsear usuario:", error);
     localStorage.removeItem("user");
-    window.location.href = "login.html";
     return;
   }
 
-  // Verificar rol
-  if (user.role !== "comprador") {
+  // Si es comprador, cargar historial una sola vez
+  if (user && user.role === "comprador" && document.getElementById("historyTable")) {
+    console.log("✅ Usuario comprador detectado. Cargando historial...");
+    await cargarHistorialComprador();
+  } else if (user && user.role !== "comprador") {
+    console.warn("🚫 Usuario no autorizado (no es comprador).");
     alert("Acceso denegado. Solo los compradores pueden ver esta página.");
     window.location.href = "index.html";
-    return;
+  } else if (!user) {
+    console.warn("🚷 No hay sesión iniciada.");
+    alert("Debes iniciar sesión como comprador.");
+    window.location.href = "login.html";
   }
+}
 
-  // ✅ Si el usuario es válido y comprador, cargar historial
+// Ejecutar solo si hay tabla de historial
+document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("historyTable")) {
-    console.log("Cargando historial del comprador...");
-    await cargarHistorialComprador();
+    protegerRutaComprador();
   }
-}
-if (document.getElementById("historyTable")) {
-  protegerRutaComprador();
-}
+});
 
-
-function protegerRutaVendedor() {
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user || user.role !== "vendedor") {
-    alert("Acceso denegado. Inicia sesión como vendedor.");
-    window.location.href = "login-vendedor.html";
-  }
-}
 
 
 
