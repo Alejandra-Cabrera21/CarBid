@@ -43,13 +43,13 @@ router.post("/register-vendedor", async (req, res) => {
   try {
     const { email, password } = req.body;
     const vendorCode = generateVendorCode();
-    const user = await User.create({ email, password, role: "vendedor", vendorCode });
 
+    const user = await User.create({ email, password, role: "vendedor", vendorCode });
     res.json({
       message: "Vendedor registrado con éxito",
       id: user.id,
       email: user.email,
-      role: "vendedor",
+      role: user.role,
       vendorCode
     });
   } catch (err) {
@@ -60,8 +60,10 @@ router.post("/register-vendedor", async (req, res) => {
 // === LOGIN VENDEDOR ===
 router.post("/login-vendedor", async (req, res) => {
   try {
-    const { email, password, vendorCode } = req.body;
-    const user = await User.findOne({ where: { email, password, role: "vendedor", vendorCode } });
+    const { email, password } = req.body;
+
+    // ✅ No exigimos vendorCode, lo buscamos en BD
+    const user = await User.findOne({ where: { email, password, role: "vendedor" } });
 
     if (!user) return res.status(400).json({ error: "Credenciales inválidas" });
 
@@ -69,7 +71,7 @@ router.post("/login-vendedor", async (req, res) => {
       message: "Login exitoso",
       id: user.id,
       email: user.email,
-      role: "vendedor",
+      role: user.role,
       vendorCode: user.vendorCode
     });
   } catch (err) {
