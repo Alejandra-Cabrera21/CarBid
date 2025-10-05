@@ -4,6 +4,91 @@
   <meta charset="UTF-8">
   <title>CarBid - Subastas de Vehículos</title>
   <link rel="stylesheet" href="styles.css">
+
+  <style>
+    /* 🔹 Centrar y mejorar el título */
+    h2 {
+      text-align: center;
+      font-size: 2rem;
+      color: #002b80;
+      margin-top: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* 🔹 Estilo del contenedor de subastas */
+    #auctions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 1rem;
+    }
+
+    /* 🔹 Tarjetas de subastas */
+    .card {
+      width: 300px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 1.2rem;
+      text-align: center;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .card h2 {
+      font-size: 1.2rem;
+      color: #103e8c;
+      margin-bottom: 0.3rem;
+    }
+
+    .card p {
+      margin: 0.4rem 0;
+      color: #333;
+    }
+
+    .card button {
+      background-color: #1d4ed8;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.3s;
+    }
+
+    .card button:hover {
+      background-color: #003cb3;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: #444;
+      font-size: 0.9rem;
+    }
+
+    header h1 a {
+      text-decoration: none;
+      color: white;
+    }
+
+    header h1 a:hover {
+      color: #cce0ff;
+    }
+  </style>
 </head>
 <body>
   <header>
