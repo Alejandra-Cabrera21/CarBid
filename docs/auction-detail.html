@@ -107,15 +107,15 @@
   <main>
     <h2>Detalle de la Subasta</h2>
 
-    <!-- 🔹 Aquí se cargará la subasta con imagen -->
-    <div id="auctionDetail" class="auction-card"></div>
+    <div id="auctionDetail" class="card"></div>
 
-    <!-- 🔹 Sección para ofertar (se ocultará si es vendedor) -->
-    <section id="bidsSection">
+    <div class="card">
       <h3>Ofertar</h3>
       <input type="number" id="monto" placeholder="Monto de tu oferta" required>
       <button onclick="hacerOferta()">Ofertar</button>
+    </div>
 
+    <div class="card">
       <h3>Historial de pujas</h3>
       <table>
         <thead>
@@ -127,25 +127,11 @@
         </thead>
         <tbody id="bidsTable"></tbody>
       </table>
-    </section>
+    </div>
   </main>
 
   <footer>© 2025 CarBid</footer>
 
   <script src="app.js"></script>
-
-  <script>
-    // 🔹 Verificación de rol del usuario
-    document.addEventListener("DOMContentLoaded", () => {
-      const userData = localStorage.getItem("user");
-      if (userData) {
-        const user = JSON.parse(userData);
-        if (user.role === "vendedor") {
-          const section = document.getElementById("bidsSection");
-          if (section) section.style.display = "none"; // Ocultar oferta
-        }
-      }
-    });
-  </script>
 </body>
 </html>
