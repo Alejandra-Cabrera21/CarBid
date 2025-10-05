@@ -62,43 +62,39 @@ async function cargarSubastas() {
 }
 
 
-async function hacerOferta() {
-  const params = new URLSearchParams(window.location.search);
-  const auctionId = params.get("id");
-  const monto = document.getElementById("monto").value;
+async function hacerOferta() { 
+  const params = new URLSearchParams(window.location.search); 
+  const auctionId = params.get("id"); 
+  const monto = document.getElementById("monto").value; 
+  const user = JSON.parse(localStorage.getItem("user")); 
+  if (!user) { 
+    alert("Debes iniciar sesión para ofertar."); 
+    return; 
+  } 
+  await fetch(`${API_URL}/bids/ofertar`, { 
+    method: "POST", 
+    headers: { "Content-Type": "application/json" }, 
+    body: JSON.stringify({ userId: user.id, auctionId, monto }) 
+  }); 
+  cargarPujas(auctionId); 
+} 
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user) {
-    alert("Debes iniciar sesión para ofertar.");
-    return;
-  }
-
-  await fetch(`${API_URL}/bids/ofertar`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: user.id, auctionId, monto })
-  });
-
-  cargarPujas(auctionId);
+async function cargarPujas(auctionId) { 
+  const res = await fetch(`${API_URL}/bids/historial/${auctionId}`); 
+  const data = await res.json(); 
+  const tbody = document.getElementById("bidsTable"); 
+  if (!tbody) return; 
+  tbody.innerHTML = ""; 
+  data.forEach(bid => { 
+    const row = `<tr> 
+      <td>${bid.userId}</td> 
+      <td>$${bid.monto}</td> 
+      <td>${new Date(bid.createdAt).toLocaleString()}</td> 
+    </tr>`; 
+    tbody.innerHTML += row; 
+  }); 
 }
 
-async function cargarPujas(auctionId) {
-  const res = await fetch(`${API_URL}/bids/historial/${auctionId}`);
-  const data = await res.json();
-
-  const tbody = document.getElementById("bidsTable");
-  if (!tbody) return;
-
-  tbody.innerHTML = "";
-  data.forEach(bid => {
-    const row = `<tr>
-      <td>${bid.userId}</td>
-      <td>$${bid.monto}</td>
-      <td>${new Date(bid.createdAt).toLocaleString()}</td>
-    </tr>`;
-    tbody.innerHTML += row;
-  });
-}
 
 // === REGISTRO COMPRADOR ===
 const registerForm = document.getElementById("registerForm");
