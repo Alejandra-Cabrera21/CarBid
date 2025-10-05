@@ -5,33 +5,94 @@
   <title>Panel del Vendedor - CarBid</title>
   <link rel="stylesheet" href="styles.css">
   <script defer src="app.js"></script>
-
   <style>
-    .tabs {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
     }
 
-    .tab {
-      padding: 10px 20px;
-      cursor: pointer;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background: #f0f0f0;
-    }
-
-    .tab.active {
-      background: #007BFF;
+    header {
+      background: #003366;
       color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header a {
+      color: white;
+      text-decoration: none;
+      font-size: 1.3rem;
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      margin: 2rem auto;
+      max-width: 1100px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      overflow: hidden;
+      min-height: 600px;
+    }
+
+    /* Panel lateral */
+    .sidebar {
+      background: #003366;
+      color: white;
+      width: 250px;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+    }
+
+    .sidebar h2 {
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .sidebar button {
+      background: none;
+      color: white;
+      border: none;
+      text-align: left;
+      padding: 0.8rem 1rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      font-size: 1rem;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+
+    .sidebar button:hover,
+    .sidebar button.active {
+      background: #0059b3;
+    }
+
+    /* Contenido */
+    .content {
+      flex-grow: 1;
+      padding: 2rem 3rem;
     }
 
     .tab-content {
       display: none;
+      animation: fadeIn 0.3s ease-in-out;
     }
 
     .tab-content.active {
       display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     table {
@@ -42,30 +103,42 @@
 
     th, td {
       padding: 10px;
+      border: 1px solid #ddd;
       text-align: center;
-      border-bottom: 1px solid #ddd;
     }
 
     th {
-      background: #f3f3f3;
+      background: #0059b3;
+      color: white;
     }
 
-    img {
-      border-radius: 8px;
-      max-width: 100px;
+    td img {
+      width: 90px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 5px;
     }
 
-    button.ver-detalle {
-      background-color: #007BFF;
+    form input, form textarea, form button {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    form button {
+      background: #0059b3;
       color: white;
       border: none;
-      border-radius: 5px;
-      padding: 6px 12px;
       cursor: pointer;
+      transition: 0.3s;
     }
 
-    button.ver-detalle:hover {
-      background-color: #0056b3;
+    form button:hover {
+      background: #004080;
     }
   </style>
 </head>
@@ -77,88 +150,86 @@
   </header>
 
   <main>
-    <h2>Panel del Vendedor</h2>
+    <!-- Panel lateral -->
+    <aside class="sidebar">
+      <h2>Panel de Control</h2>
+      <button class="active" onclick="mostrarSeccion('perfil')">👤 Mi Perfil</button>
+      <button onclick="mostrarSeccion('publicacion')">➕ Nueva Publicación</button>
+      <button onclick="mostrarSeccion('historial')">📜 Historial de Subastas</button>
+    </aside>
 
-    <!-- Pestañas -->
-    <div class="tabs">
-      <div class="tab active" data-tab="perfil">Mi Perfil</div>
-      <div class="tab" data-tab="publicacion">Nueva Publicación</div>
-      <div class="tab" data-tab="historial">Historial de Subastas</div>
-    </div>
+    <!-- Contenido principal -->
+    <section class="content">
+      <!-- PERFIL -->
+      <div id="perfil" class="tab-content active">
+        <h2>Datos del Vendedor</h2>
+        <p><strong>Correo:</strong> <span id="vendorEmail"></span></p>
+        <p><strong>Código de Vendedor:</strong> <span id="vendorCode"></span></p>
 
-    <!-- Perfil -->
-    <div id="perfil" class="tab-content active">
-      <h3>Datos del Vendedor</h3>
-      <p><strong>Correo:</strong> <span id="vendorEmail"></span></p>
-      <p><strong>Código de Vendedor:</strong> <span id="vendorCode"></span></p>
+        <h3>Cambiar Contraseña</h3>
+        <form id="changePasswordForm">
+          <label>Contraseña actual:</label>
+          <input type="password" id="currentPassword" required>
 
-      <h3>Cambiar Contraseña</h3>
-      <form id="changePasswordForm">
-        <label for="currentPassword">Contraseña actual:</label>
-        <input type="password" id="currentPassword" required>
+          <label>Nueva contraseña:</label>
+          <input type="password" id="newPassword" required>
 
-        <label for="newPassword">Nueva contraseña:</label>
-        <input type="password" id="newPassword" required>
+          <button type="submit">Actualizar Contraseña</button>
+        </form>
+      </div>
 
-        <button type="submit">Actualizar Contraseña</button>
-      </form>
-    </div>
+      <!-- NUEVA PUBLICACIÓN -->
+      <div id="publicacion" class="tab-content">
+        <h2>Crear Nueva Subasta</h2>
+        <form id="auctionForm" enctype="multipart/form-data">
+          <label>Modelo:</label>
+          <input type="text" id="modelo" name="modelo" required>
 
-    <!-- Nueva Publicación -->
-    <div id="publicacion" class="tab-content">
-      <h3>Crear Nueva Subasta</h3>
-      <form id="auctionForm" enctype="multipart/form-data">
-        <label>Modelo del vehículo:</label>
-        <input type="text" id="modelo" name="modelo" required><br>
+          <label>Descripción:</label>
+          <textarea id="descripcion" name="descripcion" required></textarea>
 
-        <label>Descripción:</label>
-        <textarea id="descripcion" name="descripcion" required></textarea><br>
+          <label>Precio Base (USD):</label>
+          <input type="number" id="precioBase" name="precioBase" required>
 
-        <label>Precio Base (USD):</label>
-        <input type="number" id="precioBase" name="precioBase" required><br>
+          <label>Fecha de Cierre:</label>
+          <input type="date" id="fechaCierre" name="fechaCierre" required>
 
-        <label>Fecha de Cierre (Día/Mes/Año):</label>
-        <input type="date" id="fechaCierre" name="fechaCierre" required><br>
+          <label>Foto del vehículo:</label>
+          <input type="file" id="imagen" name="imagen" accept="image/*">
 
-        <label>Foto del vehículo:</label>
-        <input type="file" id="imagen" name="imagen" accept="image/*"><br>
+          <button type="submit">Crear Subasta</button>
+        </form>
+      </div>
 
-        <button type="submit">Crear Subasta</button>
-      </form>
-    </div>
-
-    <!-- Historial -->
-    <div id="historial" class="tab-content">
-      <h3>Mis Subastas</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Modelo</th>
-            <th>Precio Base</th>
-            <th>Oferta Ganadora</th>
-            <th>Estado</th>
-            <th>Imagen</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="sellerAuctions"></tbody>
-      </table>
-    </div>
+      <!-- HISTORIAL -->
+      <div id="historial" class="tab-content">
+        <h2>Mis Subastas</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Modelo</th>
+              <th>Precio Base</th>
+              <th>Oferta Ganadora</th>
+              <th>Estado</th>
+              <th>Imagen</th>
+              <th>Ver Detalle</th>
+            </tr>
+          </thead>
+          <tbody id="sellerAuctions"></tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
-  <footer>© 2025 CarBid</footer>
-
   <script>
-    // === CAMBIO DE PESTAÑAS ===
-    document.querySelectorAll(".tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-        document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    // Cambio de pestañas
+    function mostrarSeccion(id) {
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
 
-        tab.classList.add("active");
-        document.getElementById(tab.dataset.tab).classList.add("active");
-      });
-    });
+      document.querySelectorAll(".sidebar button").forEach(b => b.classList.remove("active"));
+      event.target.classList.add("active");
+    }
   </script>
 </body>
 </html>
