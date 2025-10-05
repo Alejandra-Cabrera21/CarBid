@@ -62,36 +62,34 @@ async function cargarSubastas() {
 }
 
 
-// === HACER OFERTA (con validación de rol y errores manejados) ===
+// === HACER OFERTA (con restricción para vendedores) ===
 async function hacerOferta() {
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // 🔸 Verifica si hay usuario logueado
+  // 🔹 Si no hay usuario logueado
   if (!user) {
     alert("Debes iniciar sesión para ofertar.");
     window.location.href = "login.html";
     return;
   }
 
-  // 🔸 Restringir a los vendedores
+  // 🔹 Si el usuario es vendedor → no puede ofertar
   if (user.role === "vendedor") {
     alert("Los vendedores no pueden ofertar en las subastas.");
     return;
   }
 
-  // 🔸 Obtener ID de subasta y monto
+  // 🔹 Obtener datos
   const params = new URLSearchParams(window.location.search);
   const auctionId = params.get("id");
   const monto = document.getElementById("monto").value;
 
-  // 🔸 Validar monto
   if (!monto || monto <= 0) {
     alert("Por favor ingresa un monto válido para ofertar.");
     return;
   }
 
   try {
-    // 🔸 Enviar oferta al servidor
     const res = await fetch(`${API_URL}/bids/ofertar`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -123,13 +121,11 @@ async function cargarPujas(auctionId) {
 
     tbody.innerHTML = "";
 
-    // Si no hay pujas aún
     if (!data || data.length === 0) {
       tbody.innerHTML = `<tr><td colspan="3">No hay ofertas aún.</td></tr>`;
       return;
     }
 
-    // Mostrar pujas en la tabla
     data.forEach(bid => {
       const row = `
         <tr>
@@ -144,6 +140,20 @@ async function cargarPujas(auctionId) {
   }
 }
 
+// === DESHABILITAR CAMPO DE OFERTA SI ES VENDEDOR ===
+document.addEventListener("DOMContentLoaded", () => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const input = document.getElementById("monto");
+  const boton = document.querySelector("button[onclick='hacerOferta()']");
+
+  if (user && user.role === "vendedor" && input && boton) {
+    input.disabled = true;
+    boton.disabled = true;
+    input.placeholder = "Los vendedores no pueden ofertar";
+    boton.style.backgroundColor = "#ccc";
+    boton.style.cursor = "not-allowed";
+  }
+});
 
 // === REGISTRO COMPRADOR ===
 const registerForm = document.getElementById("registerForm");
