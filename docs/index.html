@@ -53,18 +53,20 @@
       margin-bottom: 1rem;
     }
 
-    /* 🔹 Contenedor en dos columnas */
+    /* 🔹 Contenedor de subastas en forma de galería */
     #auctionList {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 2rem;
-      max-width: 900px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 1.5rem;
     }
 
     /* 🔹 Tarjetas de subastas */
     .card {
+      width: 320px;
       background: white;
       border-radius: 15px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -134,7 +136,12 @@
     /* 🔹 Responsivo */
     @media (max-width: 768px) {
       #auctionList {
-        grid-template-columns: 1fr; /* solo una columna en móviles */
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .card {
+        width: 90%;
       }
     }
   </style>
