@@ -62,98 +62,43 @@ async function cargarSubastas() {
 }
 
 
-// === HACER OFERTA (con restricción para vendedores) ===
 async function hacerOferta() {
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  // 🔹 Si no hay usuario logueado
-  if (!user) {
-    alert("Debes iniciar sesión para ofertar.");
-    window.location.href = "login.html";
-    return;
-  }
-
-  // 🔹 Si el usuario es vendedor → no puede ofertar
-  if (user.role === "vendedor") {
-    alert("Los vendedores no pueden ofertar en las subastas.");
-    return;
-  }
-
-  // 🔹 Obtener datos
   const params = new URLSearchParams(window.location.search);
   const auctionId = params.get("id");
   const monto = document.getElementById("monto").value;
 
-  if (!monto || monto <= 0) {
-    alert("Por favor ingresa un monto válido para ofertar.");
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) {
+    alert("Debes iniciar sesión para ofertar.");
     return;
   }
 
-  try {
-    const res = await fetch(`${API_URL}/bids/ofertar`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user.id, auctionId, monto })
-    });
+  await fetch(`${API_URL}/bids/ofertar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: user.id, auctionId, monto })
+  });
 
-    const data = await res.json();
-
-    if (data.error) {
-      alert("Error: " + data.error);
-    } else {
-      alert("Oferta realizada con éxito.");
-      cargarPujas(auctionId);
-    }
-  } catch (error) {
-    console.error("Error al realizar oferta:", error);
-    alert("Error de conexión con el servidor.");
-  }
+  cargarPujas(auctionId);
 }
 
-// === CARGAR HISTORIAL DE PUJAS ===
 async function cargarPujas(auctionId) {
-  try {
-    const res = await fetch(`${API_URL}/bids/historial/${auctionId}`);
-    const data = await res.json();
+  const res = await fetch(`${API_URL}/bids/historial/${auctionId}`);
+  const data = await res.json();
 
-    const tbody = document.getElementById("bidsTable");
-    if (!tbody) return;
+  const tbody = document.getElementById("bidsTable");
+  if (!tbody) return;
 
-    tbody.innerHTML = "";
-
-    if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="3">No hay ofertas aún.</td></tr>`;
-      return;
-    }
-
-    data.forEach(bid => {
-      const row = `
-        <tr>
-          <td>${bid.userId}</td>
-          <td>$${bid.monto}</td>
-          <td>${new Date(bid.createdAt).toLocaleString()}</td>
-        </tr>`;
-      tbody.innerHTML += row;
-    });
-  } catch (error) {
-    console.error("Error al cargar historial de pujas:", error);
-  }
+  tbody.innerHTML = "";
+  data.forEach(bid => {
+    const row = `<tr>
+      <td>${bid.userId}</td>
+      <td>$${bid.monto}</td>
+      <td>${new Date(bid.createdAt).toLocaleString()}</td>
+    </tr>`;
+    tbody.innerHTML += row;
+  });
 }
-
-// === DESHABILITAR CAMPO DE OFERTA SI ES VENDEDOR ===
-document.addEventListener("DOMContentLoaded", () => {
-  const user = JSON.parse(localStorage.getItem("user"));
-  const input = document.getElementById("monto");
-  const boton = document.querySelector("button[onclick='hacerOferta()']");
-
-  if (user && user.role === "vendedor" && input && boton) {
-    input.disabled = true;
-    boton.disabled = true;
-    input.placeholder = "Los vendedores no pueden ofertar";
-    boton.style.backgroundColor = "#ccc";
-    boton.style.cursor = "not-allowed";
-  }
-});
 
 // === REGISTRO COMPRADOR ===
 const registerForm = document.getElementById("registerForm");
