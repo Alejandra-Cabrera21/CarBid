@@ -345,13 +345,13 @@ function actualizarMenu() {
         <a href="index.html">Inicio</a>
         <a href="historial-comprador.html">Historial de Pujes</a>
         <a href="perfil-comprador.html">Mi Perfil</a>
-        <button onclick="logout()">Cerrar sesión</button>
+        <a onclick="logout()">Cerrar sesión</a>
       `;
     } else if (user.role === "vendedor") {
       menu.innerHTML = `
         <a href="index.html">Inicio</a>
         <a href="account-vendedor.html">Mi perfil</a>
-        <button onclick="logout()">Cerrar sesión</button>
+        <a onclick="logout()">Cerrar sesión</a>
       `;
     }
   } else {
