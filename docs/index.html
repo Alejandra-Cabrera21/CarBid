@@ -6,63 +6,90 @@
   <link rel="stylesheet" href="styles.css">
 
   <style>
-    /* 🔹 Centrar y mejorar el título */
+    /* 🔹 Estilo general */
+    body {
+      background-color: #f4f6f9;
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #103e8c;
+      color: white;
+      padding: 15px 0;
+      text-align: center;
+    }
+
+    header h1 a {
+      color: white;
+      text-decoration: none;
+    }
+
+    header h1 a:hover {
+      color: #cce0ff;
+    }
+
+    /* 🔹 Título principal */
     h2 {
       text-align: center;
       font-size: 2rem;
       color: #002b80;
-      margin-top: 1.5rem;
-      margin-bottom: 1.5rem;
+      margin: 1.5rem 0;
     }
 
-    /* 🔹 Estilo del contenedor de subastas */
-    #auctions {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+    /* 🔹 Contenedor de subastas */
+    #auctionList {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 1.5rem;
-      padding: 1rem;
+      padding: 2rem;
+      justify-items: center;
     }
 
     /* 🔹 Tarjetas de subastas */
     .card {
-      width: 300px;
+      width: 100%;
+      max-width: 300px;
       background: #fff;
       border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      padding: 1.2rem;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      padding: 1rem;
       text-align: center;
       transition: transform 0.2s ease-in-out;
     }
 
     .card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-5px);
     }
 
     .card img {
+      display: block;
+      margin: 0 auto;
       width: 100%;
-      max-height: 200px;
+      height: 200px;
       object-fit: cover;
       border-radius: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 1rem;
     }
 
-    .card h2 {
+    .card h3 {
       font-size: 1.2rem;
       color: #103e8c;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.4rem;
     }
 
     .card p {
-      margin: 0.4rem 0;
+      margin: 0.3rem 0;
       color: #333;
+      font-size: 0.95rem;
     }
 
     .card button {
       background-color: #1d4ed8;
       color: white;
       border: none;
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 6px;
       cursor: pointer;
       margin-top: 10px;
@@ -78,27 +105,20 @@
       margin-top: 3rem;
       color: #444;
       font-size: 0.9rem;
-    }
-
-    header h1 a {
-      text-decoration: none;
-      color: white;
-    }
-
-    header h1 a:hover {
-      color: #cce0ff;
+      padding-bottom: 1rem;
     }
   </style>
 </head>
+
 <body>
   <header>
-    <h1>🚗 CarBid</h1>
+    <h1><a href="index.html">🚗 CarBid</a></h1>
     <nav id="menu"></nav>
   </header>
 
   <main>
-    <h2>Vehículos en subasta</h2>
-    <div id="auctions"></div>
+    <h2>Vehículos en Subasta</h2>
+    <div id="auctionList"></div>
   </main>
 
   <footer>
@@ -106,5 +126,8 @@
   </footer>
 
   <script src="app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", cargarSubastas);
+  </script>
 </body>
 </html>
