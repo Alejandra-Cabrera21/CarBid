@@ -16,7 +16,7 @@
     }
 
     /* 🔹 Estilo del contenedor de subastas */
-    #auctions {
+    #auctionList {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
@@ -92,13 +92,14 @@
 </head>
 <body>
   <header>
-    <h1>🚗 CarBid</h1>
+    <h1><a href="index.html">🚗 CarBid</a></h1>
     <nav id="menu"></nav>
   </header>
 
   <main>
     <h2>Vehículos en subasta</h2>
-    <div id="auctions"></div>
+    <!-- 🔹 Contenedor donde se mostrarán las subastas -->
+    <div id="auctionList" class="auction-container"></div>
   </main>
 
   <footer>
@@ -106,5 +107,9 @@
   </footer>
 
   <script src="app.js"></script>
+  <script>
+    // 🔹 Cargar las subastas automáticamente al abrir la página
+    document.addEventListener("DOMContentLoaded", cargarSubastas);
+  </script>
 </body>
 </html>

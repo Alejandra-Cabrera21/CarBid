@@ -1,28 +1,7 @@
 // === CONFIGURACIÓN DE API ===
 const API_URL = "https://carbid-rvqj.onrender.com"; // tu URL en Render
 
-// === HOME: cargar subastas ===
-async function cargarSubastas() {
-  const res = await fetch(`${API_URL}/auctions`);
-  const data = await res.json();
-  const container = document.getElementById("auctions");
-  if (!container) return;
 
-  container.innerHTML = "";
-  data.forEach(auction => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <h2>${auction.modelo}</h2>
-      <p>${auction.descripcion || "Sin descripción"}</p>
-      <p><strong>Precio base:</strong> $${auction.precioBase}</p>
-      <p><strong>Oferta más alta:</strong> $${auction.ofertaGanadora || "-"}</p>
-      <p><strong>Estado:</strong> ${auction.estado}</p>
-      <button onclick="verSubasta(${auction.id})">Ver subasta</button>
-    `;
-    container.appendChild(card);
-  });
-}
 
 function verSubasta(id) {
   window.location.href = `auction-detail.html?id=${id}`;
