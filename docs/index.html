@@ -6,14 +6,14 @@
   <link rel="stylesheet" href="styles.css">
 
   <style>
-    /* 🔹 Fondo general */
+    /* 🔹 General */
     body {
-      background-color: #f4f7fc;
+      background-color: #f5f7fb;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
+      color: #222;
     }
 
-    /* 🔹 Encabezado */
     header {
       background-color: #0b3b8c;
       color: white;
@@ -23,89 +23,91 @@
       align-items: center;
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 1.6rem;
+    header h1 a {
+      color: white;
+      text-decoration: none;
+      font-size: 1.5rem;
     }
 
     nav a, nav button {
       color: white;
       text-decoration: none;
       margin-left: 1rem;
-      font-weight: 500;
       background: none;
       border: none;
       cursor: pointer;
       font-size: 1rem;
-      transition: color 0.3s ease;
+      transition: color 0.3s;
     }
 
     nav a:hover, nav button:hover {
       color: #cce0ff;
     }
 
-    /* 🔹 Título principal */
+    /* 🔹 Título */
     h2 {
       text-align: center;
       font-size: 2rem;
       color: #002b80;
       margin-top: 2rem;
-      margin-bottom: 1rem;
+      margin-bottom: 2rem;
     }
 
-    /* 🔹 Contenedor de subastas en forma de galería */
+    /* 🔹 Contenedor de subastas */
     #auctionList {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* 2 columnas */
       gap: 2rem;
+      justify-content: center;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 1.5rem;
+      padding: 1rem 2rem;
     }
 
-    /* 🔹 Tarjetas de subastas */
+    /* 🔹 Card individual */
     .card {
-      width: 320px;
-      background: white;
+      background: #ffffff;
       border-radius: 15px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
       text-align: center;
-      padding: 1.2rem;
-      transition: all 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      transform: translateY(-5px);
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
     }
 
     .card img {
+      display: block;
       width: 100%;
-      height: 200px;
+      max-height: 220px;
       object-fit: cover;
       border-radius: 10px;
       margin-bottom: 1rem;
     }
 
     .card h3 {
-      font-size: 1.25rem;
+      font-size: 1.3rem;
       color: #0b3b8c;
-      font-weight: 700;
       margin-bottom: 0.5rem;
+      font-weight: bold;
     }
 
     .card p {
-      color: #444;
-      font-size: 0.95rem;
-      margin: 0.3rem 0;
+      font-size: 1rem;
+      color: #333;
+      margin: 0.4rem 0;
     }
 
     .card strong {
       color: #000;
     }
 
-    /* 🔹 Botón atractivo */
     .card button {
       background: linear-gradient(90deg, #1d4ed8, #103e8c);
       color: white;
@@ -114,8 +116,7 @@
       border-radius: 8px;
       cursor: pointer;
       margin-top: 10px;
-      transition: all 0.3s ease;
-      font-weight: 500;
+      transition: background 0.3s ease, transform 0.2s;
     }
 
     .card button:hover {
@@ -123,7 +124,6 @@
       transform: scale(1.05);
     }
 
-    /* 🔹 Pie de página */
     footer {
       text-align: center;
       margin-top: 3rem;
@@ -133,15 +133,10 @@
       font-size: 0.9rem;
     }
 
-    /* 🔹 Responsivo */
-    @media (max-width: 768px) {
+    /* 🔹 Responsive */
+    @media (max-width: 900px) {
       #auctionList {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .card {
-        width: 90%;
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -149,12 +144,12 @@
 
 <body>
   <header>
-    <h1><a href="index.html" style="text-decoration: none; color: white;">🚗 CarBid</a></h1>
+    <h1><a href="index.html">🚗 CarBid</a></h1>
     <nav id="menu"></nav>
   </header>
 
   <main>
-    <h2>Vehículos en Subasta</h2>
+    <h2>Vehículos en subasta</h2>
     <div id="auctionList"></div>
   </main>
 
