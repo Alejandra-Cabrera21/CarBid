@@ -5,59 +5,75 @@
   <title>Detalle de Subasta - CarBid</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* --- Estilos para la tarjeta con imagen --- */
-    .auction-card {
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 1.5rem;
+    /* 🔹 Estilos adicionales */
+    h2 {
+      text-align: center;
+      font-size: 2rem; /* Más grande */
+      margin-top: 1rem;
+      color: #002b80;
+    }
+
+    header h1 a {
+      text-decoration: none;
+      color: white;
+    }
+
+    header h1 a:hover {
+      color: #cce0ff;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .card {
       background: #fff;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      text-align: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
     }
-    .auction-card img {
+
+    table {
       width: 100%;
-      max-height: 400px;
-      object-fit: cover;
-      border-radius: 10px;
-      margin-bottom: 1rem;
+      border-collapse: collapse;
+      margin-top: 1rem;
     }
-    .auction-card h2 {
-      color: #103e8c;
-      margin-bottom: 0.5rem;
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      color: #000;
     }
-    .auction-card p {
-      margin: 0.3rem 0;
-      font-size: 1rem;
-    }
-    .card, section {
-      max-width: 800px;
-      margin: 1rem auto;
-      background: #fff;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+
+    th {
+      background: #e6eaf0;
+      font-weight: bold;
     }
   </style>
 </head>
+
 <body>
   <header>
-    <h1>🚗 CarBid</h1>
+    <h1><a href="index.html">🚗 CarBid</a></h1>
     <nav id="menu"></nav>
   </header>
 
   <main>
     <h2>Detalle de la Subasta</h2>
 
-    <!-- Aquí se cargará dinámicamente la subasta con imagen -->
-    <div id="auctionDetail"></div>
+    <div id="auctionDetail" class="card"></div>
 
-    <!-- Sección de pujas -->
-    <section id="bidsSection">
+    <div class="card">
       <h3>Ofertar</h3>
       <input type="number" id="monto" placeholder="Monto de tu oferta" required>
       <button onclick="hacerOferta()">Ofertar</button>
+    </div>
 
+    <div class="card">
       <h3>Historial de pujas</h3>
       <table>
         <thead>
@@ -69,7 +85,7 @@
         </thead>
         <tbody id="bidsTable"></tbody>
       </table>
-    </section>
+    </div>
   </main>
 
   <footer>© 2025 CarBid</footer>
