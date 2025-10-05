@@ -95,26 +95,29 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
+    /* Ajuste de color de texto en tablas */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  color: #000; /* 🔹 Esto asegura que todo el texto de las tablas sea negro */
+}
 
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      text-align: center;
-    }
+th, td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+  color: #000; /* 🔹 Forzamos el color negro en las celdas */
+  background-color: #fff; /* 🔹 Fondo blanco para mayor contraste */
+}
 
-    th {
-      background: #0059b3;
-      color: white;
-    }
-    td {
-      color: #000;
-      background: #fff;
-    }
+th {
+  background: #e6eaf0; /* 🔹 Gris claro para el encabezado */
+  font-weight: 600;
+}
+
+ 
+    
     td img {
       width: 90px;
       height: 60px;
