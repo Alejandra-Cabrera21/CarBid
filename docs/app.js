@@ -62,43 +62,88 @@ async function cargarSubastas() {
 }
 
 
+// === HACER OFERTA (con validación de rol y errores manejados) ===
 async function hacerOferta() {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  // 🔸 Verifica si hay usuario logueado
+  if (!user) {
+    alert("Debes iniciar sesión para ofertar.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  // 🔸 Restringir a los vendedores
+  if (user.role === "vendedor") {
+    alert("Los vendedores no pueden ofertar en las subastas.");
+    return;
+  }
+
+  // 🔸 Obtener ID de subasta y monto
   const params = new URLSearchParams(window.location.search);
   const auctionId = params.get("id");
   const monto = document.getElementById("monto").value;
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user) {
-    alert("Debes iniciar sesión para ofertar.");
+  // 🔸 Validar monto
+  if (!monto || monto <= 0) {
+    alert("Por favor ingresa un monto válido para ofertar.");
     return;
   }
 
-  await fetch(`${API_URL}/bids/ofertar`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: user.id, auctionId, monto })
-  });
+  try {
+    // 🔸 Enviar oferta al servidor
+    const res = await fetch(`${API_URL}/bids/ofertar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id, auctionId, monto })
+    });
 
-  cargarPujas(auctionId);
+    const data = await res.json();
+
+    if (data.error) {
+      alert("Error: " + data.error);
+    } else {
+      alert("Oferta realizada con éxito.");
+      cargarPujas(auctionId);
+    }
+  } catch (error) {
+    console.error("Error al realizar oferta:", error);
+    alert("Error de conexión con el servidor.");
+  }
 }
 
+// === CARGAR HISTORIAL DE PUJAS ===
 async function cargarPujas(auctionId) {
-  const res = await fetch(`${API_URL}/bids/historial/${auctionId}`);
-  const data = await res.json();
+  try {
+    const res = await fetch(`${API_URL}/bids/historial/${auctionId}`);
+    const data = await res.json();
 
-  const tbody = document.getElementById("bidsTable");
-  if (!tbody) return;
+    const tbody = document.getElementById("bidsTable");
+    if (!tbody) return;
 
-  tbody.innerHTML = "";
-  data.forEach(bid => {
-    const row = `<tr>
-      <td>${bid.userId}</td>
-      <td>$${bid.monto}</td>
-      <td>${new Date(bid.createdAt).toLocaleString()}</td>
-    </tr>`;
-    tbody.innerHTML += row;
-  });
+    tbody.innerHTML = "";
+
+    // Si no hay pujas aún
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="3">No hay ofertas aún.</td></tr>`;
+      return;
+    }
+
+    // Mostrar pujas en la tabla
+    data.forEach(bid => {
+      const row = `
+        <tr>
+          <td>${bid.userId}</td>
+          <td>$${bid.monto}</td>
+          <td>${new Date(bid.createdAt).toLocaleString()}</td>
+        </tr>`;
+      tbody.innerHTML += row;
+    });
+  } catch (error) {
+    console.error("Error al cargar historial de pujas:", error);
+  }
 }
+
 
 // === REGISTRO COMPRADOR ===
 const registerForm = document.getElementById("registerForm");
