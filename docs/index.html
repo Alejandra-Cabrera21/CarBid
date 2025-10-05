@@ -6,78 +6,45 @@
   <link rel="stylesheet" href="styles.css">
 
   <style>
-    /* 🔹 Fondo general */
     body {
-      background-color: #f4f7fc;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
+      padding: 0;
     }
 
-    /* 🔹 Encabezado */
-    header {
-      background-color: #0b3b8c;
-      color: white;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 1.6rem;
-    }
-
-    nav a, nav button {
-      color: white;
-      text-decoration: none;
-      margin-left: 1rem;
-      font-weight: 500;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: color 0.3s ease;
-    }
-
-    nav a:hover, nav button:hover {
-      color: #cce0ff;
-    }
-
-    /* 🔹 Título principal */
     h2 {
       text-align: center;
       font-size: 2rem;
-      color: #002b80;
+      color: #0b2c77;
       margin-top: 2rem;
-      margin-bottom: 1rem;
+      margin-bottom: 2rem;
     }
 
-    /* 🔹 Contenedor de subastas en forma de galería */
+    /* 🔹 Contenedor de las cards (grid de dos columnas) */
     #auctionList {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
       gap: 2rem;
+      justify-content: center;
+      padding: 0 2rem;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 1.5rem;
     }
 
-    /* 🔹 Tarjetas de subastas */
+    /* 🔹 Estilo de cada card */
     .card {
-      width: 320px;
-      background: white;
-      border-radius: 15px;
+      background-color: white;
+      border-radius: 16px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
       text-align: center;
-      padding: 1.2rem;
-      transition: all 0.3s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      transform: translateY(-5px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
     }
 
     .card img {
@@ -89,76 +56,54 @@
     }
 
     .card h3 {
-      font-size: 1.25rem;
-      color: #0b3b8c;
-      font-weight: 700;
+      font-size: 1.2rem;
+      color: #0b2c77;
       margin-bottom: 0.5rem;
     }
 
     .card p {
-      color: #444;
-      font-size: 0.95rem;
       margin: 0.3rem 0;
+      color: #333;
     }
 
-    .card strong {
-      color: #000;
-    }
-
-    /* 🔹 Botón atractivo */
     .card button {
-      background: linear-gradient(90deg, #1d4ed8, #103e8c);
+      background-color: #1d4ed8;
       color: white;
       border: none;
-      padding: 10px 18px;
+      padding: 0.6rem 1.2rem;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 10px;
-      transition: all 0.3s ease;
       font-weight: 500;
+      margin-top: 1rem;
+      transition: background-color 0.3s ease;
     }
 
     .card button:hover {
-      background: linear-gradient(90deg, #103e8c, #1d4ed8);
-      transform: scale(1.05);
+      background-color: #003cb3;
     }
 
-    /* 🔹 Pie de página */
     footer {
       text-align: center;
       margin-top: 3rem;
-      padding: 1.5rem;
-      background-color: #f0f2f7;
       color: #555;
       font-size: 0.9rem;
-    }
-
-    /* 🔹 Responsivo */
-    @media (max-width: 768px) {
-      #auctionList {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .card {
-        width: 90%;
-      }
     }
   </style>
 </head>
 
 <body>
   <header>
-    <h1><a href="index.html" style="text-decoration: none; color: white;">🚗 CarBid</a></h1>
-    <nav id="menu"></nav>
+    <h1 style="background:#0b2c77; color:white; padding:1rem; text-align:center;">🚗 CarBid</h1>
   </header>
 
   <main>
-    <h2>Vehículos en Subasta</h2>
+    <h2>Vehículos en subasta</h2>
     <div id="auctionList"></div>
   </main>
 
-  <footer>© 2025 CarBid. Todos los derechos reservados.</footer>
+  <footer>
+    © 2025 CarBid. Todos los derechos reservados.
+  </footer>
 
   <script src="app.js"></script>
   <script>

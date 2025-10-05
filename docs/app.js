@@ -576,6 +576,21 @@ async function cargarDetalle() {
     console.error("Error al cargar el detalle de la subasta:", err);
   }
 }
+const container = document.getElementById("auctionList");
+data.forEach(auction => {
+  const imagenURL = auction.imagen || "https://via.placeholder.com/300x200?text=Sin+imagen";
+  container.innerHTML += `
+    <div class="card">
+      <img src="${imagenURL}" alt="Imagen del vehículo">
+      <h3>${auction.modelo}</h3>
+      <p>${auction.descripcion}</p>
+      <p><strong>Precio base:</strong> $${auction.precioBase}</p>
+      <p><strong>Oferta más alta:</strong> $${auction.ofertaGanadora || '-'}</p>
+      <p><strong>Estado:</strong> ${auction.estado}</p>
+      <button onclick="verSubasta(${auction.id})">Ver subasta</button>
+    </div>
+  `;
+});
 
 
 // === LOGOUT ===
