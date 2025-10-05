@@ -67,15 +67,18 @@ async function hacerOferta() {
   const auctionId = params.get("id"); 
   const monto = document.getElementById("monto").value; 
   const user = JSON.parse(localStorage.getItem("user")); 
+
   if (!user) { 
     alert("Debes iniciar sesión para ofertar."); 
     return; 
   } 
+
   await fetch(`${API_URL}/bids/ofertar`, { 
     method: "POST", 
     headers: { "Content-Type": "application/json" }, 
     body: JSON.stringify({ userId: user.id, auctionId, monto }) 
   }); 
+
   cargarPujas(auctionId); 
 } 
 
@@ -84,6 +87,7 @@ async function cargarPujas(auctionId) {
   const data = await res.json(); 
   const tbody = document.getElementById("bidsTable"); 
   if (!tbody) return; 
+
   tbody.innerHTML = ""; 
   data.forEach(bid => { 
     const row = `<tr> 
@@ -94,6 +98,42 @@ async function cargarPujas(auctionId) {
     tbody.innerHTML += row; 
   }); 
 }
+
+async function cargarSubastas() {
+  try {
+    const res = await fetch(`${API_URL}/auctions`);
+    const data = await res.json();
+
+    const container = document.getElementById("auctionList");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    data.forEach(auction => {
+      const imagenURL = auction.imagen 
+        ? auction.imagen   // ✅ Usa la URL completa desde Cloudinary
+        : "https://via.placeholder.com/300x200?text=Sin+imagen"; // fallback
+
+      const card = `
+        <div class="auction-card">
+          <img src="${imagenURL}" alt="Imagen del vehículo">
+          <h3>${auction.modelo}</h3>
+          <p>${auction.descripcion}</p>
+          <p><strong>Precio base:</strong> $${auction.precioBase}</p>
+          <p><strong>Oferta más alta:</strong> $${auction.ofertaMasAlta || '-'}</p>
+          <p><strong>Estado:</strong> ${auction.estado}</p>
+          <button onclick="verSubasta(${auction.id})">Ver subasta</button>
+        </div>
+      `;
+
+      container.innerHTML += card;
+    });
+  } catch (error) {
+    console.error("Error al cargar subastas:", error);
+  }
+}
+
+
 
 
 // === REGISTRO COMPRADOR ===
