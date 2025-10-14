@@ -21,10 +21,10 @@ exports.crearUsuario = (usuario, callback) => {
 
   db.query(sql, [nombre, correo, contraseña, vendedorChar, compradorChar], (err, result) => {
     if (err) {
-      console.error("❌ Error al insertar usuario:", err.sqlMessage || err);
+      console.error("Error al insertar usuario:", err.sqlMessage || err);
       return callback(err);
     }
-    console.log("✅ Usuario insertado correctamente");
+    console.log("Registro Correcto");
     callback(null, result);
   });
 };
@@ -34,7 +34,7 @@ exports.buscarPorCorreo = (correo, callback) => {
   const sql = 'SELECT * FROM usuarios WHERE correo = ?';
   db.query(sql, [correo], (err, result) => {
     if (err) {
-      console.error("❌ Error al buscar usuario:", err.sqlMessage || err);
+      console.error("Error al buscar usuario:", err.sqlMessage || err);
       return callback(err);
     }
     callback(null, result);

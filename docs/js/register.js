@@ -40,20 +40,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Toast helper
-  const toast = (txt, ok=true) => {
-    Toastify({
-      text: txt,
-      duration: 3000,
-      gravity: 'top',
-      position: 'right',
-      close: true,
-      style: {
-        background: ok
-          ? 'linear-gradient(135deg,#00b09b,#96c93d)'
-          : 'linear-gradient(135deg,#ff5f6d,#ffc371)'
-      }
-    }).showToast();
-  };
+ const toast = (txt, ok = true) => {
+  Toastify({
+    text: txt,
+    duration: 3000,
+    gravity: 'top',
+    position: 'right',
+    close: true,
+    style: {
+      background: ok ? '#28a745' : '#b51f05ff',   // ✅ color sólido
+      color: '#fff',
+      fontWeight: '500',
+      borderRadius: '8px',
+      boxShadow: '0 3px 10px rgba(0,0,0,.25)',
+    },
+  }).showToast();
+};
+
 
   const setErr   = (id, msg) => document.getElementById(`error-${id}`).textContent = msg;
   const clearErr = () => document.querySelectorAll('.error').forEach(e => e.textContent = '');
@@ -88,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setErr('confirmar','Las contraseñas no coinciden.'); ok = false;
     }
     if (!rol) {
-      toast('Selecciona al menos Vender o Comprar', false); ok = false;
+      toast('Debe seleccionar vender o comprar', false); ok = false;
     }
 
     if (!ok) return;
@@ -102,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const chkJson = await chk.json();
       if (chk.ok && chkJson.encontrado) {
-        setErr('correo','Este correo ya está registrado.');
+        setErr('correo','Este correo ya se encuentras registrado.');
         return;
       }
 
@@ -123,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       if (res.ok) {
-        toast('Usuario registrado correctamente ✅', true);
+        toast('Registro correcto', true);
         form.reset();
         // volver a modo oculto los ojos
         document.querySelectorAll('.toggle-pass i').forEach(i=>{

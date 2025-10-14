@@ -14,7 +14,7 @@ router.post('/register', (req, res) => {
   // Validar y normalizar rol
   rol = (rol === 'v' || rol === 'c') ? rol : null;
   if (!rol) {
-    return res.status(400).json({ mensaje: 'Debes elegir Vender (v) o Comprar (c).' });
+    return res.status(400).json({ mensaje: 'Debe elegir Vender o Comprar.' });
   }
 
   // Derivar flags desde el rol (exclusivos)
@@ -25,7 +25,7 @@ router.post('/register', (req, res) => {
   Usuario.buscarPorCorreo(correo, (err, results) => {
     if (err) return res.status(500).json({ mensaje: 'Error en la base de datos.' });
     if (results.length > 0) {
-      return res.status(400).json({ mensaje: 'El correo ya está registrado.' });
+      return res.status(400).json({ mensaje: 'El correo ingresado yase encuentra registrado.' });
     }
 
     // Encriptar la contraseña antes de guardar
@@ -41,7 +41,7 @@ router.post('/register', (req, res) => {
 
     Usuario.crearUsuario(nuevoUsuario, (err2) => {
       if (err2) return res.status(500).json({ mensaje: 'Error al registrar usuario.' });
-      res.json({ mensaje: 'Usuario registrado correctamente ✅' });
+      res.json({ mensaje: 'Registro correcto' });
     });
   });
 });
@@ -56,7 +56,7 @@ router.post('/check', (req, res) => {
 
   Usuario.buscarPorCorreo(correo, (err, results) => {
     if (err) {
-      console.error('❌ Error al verificar correo:', err);
+      console.error('Error al verificar correo:', err);
       return res.status(500).json({ encontrado: false, mensaje: 'Error en la base de datos.' });
     }
 
