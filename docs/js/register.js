@@ -10,12 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const compEl   = document.getElementById('comprador');
 
   // 👁 Mostrar/ocultar contraseñas
-  setupToggle('#togglePassword',  passEl);
-  setupToggle('#toggleConfirm',   confEl);
+  setupToggle('#togglePassword', passEl);
+  setupToggle('#toggleConfirm', confEl);
 
-  function setupToggle(btnSelector, inputEl){
-    const btn   = document.querySelector(btnSelector);
-    const icon  = btn.querySelector('i');
+  function setupToggle(btnSelector, inputEl) {
+    const btn = document.querySelector(btnSelector);
+    const icon = btn.querySelector('i');
     const toggle = () => {
       const show = inputEl.type === 'password';
       inputEl.type = show ? 'text' : 'password';
@@ -28,35 +28,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ✅ Exclusividad visual: si marco uno, desmarco el otro
-  document.querySelectorAll('.rol-check').forEach(cb => {
-    cb.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        document.querySelectorAll('.rol-check').forEach(other => {
-          if (other !== e.target) other.checked = false;
-        });
-      }
-    });
-  });
-
   // Toast helper
- const toast = (txt, ok = true) => {
-  Toastify({
-    text: txt,
-    duration: 3000,
-    gravity: 'top',
-    position: 'right',
-    close: true,
-    style: {
-      background: ok ? '#28a745' : '#b51f05ff',   // ✅ color sólido
-      color: '#fff',
-      fontWeight: '500',
-      borderRadius: '8px',
-      boxShadow: '0 3px 10px rgba(0,0,0,.25)',
-    },
-  }).showToast();
-};
-
+  const toast = (txt, ok = true) => {
+    Toastify({
+      text: txt,
+      duration: 3000,
+      gravity: 'top',
+      position: 'right',
+      close: true,
+      style: {
+        background: ok ? '#28a745' : '#b51f05ff', // color sólido
+        color: '#fff',
+        fontWeight: '500',
+        borderRadius: '8px',
+        boxShadow: '0 3px 10px rgba(0,0,0,.25)',
+      },
+    }).showToast();
+  };
 
   const setErr   = (id, msg) => document.getElementById(`error-${id}`).textContent = msg;
   const clearErr = () => document.querySelectorAll('.error').forEach(e => e.textContent = '');
@@ -69,9 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const usuario   = usuarioEl.value.trim();
     const password  = passEl.value;
     const confirmar = confEl.value;
-
-    // Rol único
-    const rol = vendEl.checked ? 'v' : (compEl.checked ? 'c' : null);
 
     // Validaciones
     let ok = true;
@@ -90,14 +75,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (password !== confirmar) {
       setErr('confirmar','Las contraseñas no coinciden.'); ok = false;
     }
-    if (!rol) {
-      toast('Debe seleccionar vender o comprar', false); ok = false;
+
+    // Debe seleccionar al menos uno
+    if (!vendEl.checked && !compEl.checked) {
+      toast('Selecciona vender o comprar', false); ok = false;
     }
 
     if (!ok) return;
 
     try {
-      // 1) Verificar si el correo ya existe
+      // 1️⃣ Verificar si el correo ya existe
       const chk = await fetch('http://localhost:3000/api/users/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,11 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const chkJson = await chk.json();
       if (chk.ok && chkJson.encontrado) {
-        setErr('correo','Este correo ya se encuentras registrado.');
+        setErr('correo','Este correo ya se encuentra registrado.');
         return;
       }
 
-      // 2) Registrar usuario (enviamos SOLO 'rol')
+      // 2️⃣ Registrar usuario
       const btn = form.querySelector('button[type="submit"]');
       btn.disabled = true; btn.textContent = 'Guardando...';
 
@@ -120,7 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
           nombre: usuario,
           correo,
           contraseña: password, // el backend espera 'contraseña'
-          rol                     // 'v' o 'c'
+          es_vendedor: vendEl.checked ? 'S' : 'N',
+          es_comprador: compEl.checked ? 'S' : 'N'
         })
       });
       const data = await res.json();

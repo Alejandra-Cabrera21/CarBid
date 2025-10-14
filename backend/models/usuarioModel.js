@@ -1,16 +1,18 @@
 // backend/models/usuarioModel.js
-const db = require('../db');  // ← ruta correcta, relativo a /models
+const db = require('../db'); // ✅ ruta correcta, relativa a /models
 
-// Normaliza a 'S'/'N' solo si el valor realmente significa "sí"
+// 🔧 Función auxiliar para normalizar a 'S' o 'N'
 function toSN(v) {
-  return (v === 'S' || v === true || v === 1 || v === '1' || v === 'true') ? 'S' : 'N';
+  return (v === 'S' || v === true || v === 1 || v === '1' || v === 'true')
+    ? 'S'
+    : 'N';
 }
 
 // 🟢 Crear usuario nuevo
 exports.crearUsuario = (usuario, callback) => {
   const { nombre, correo, contraseña, es_vendedor, es_comprador } = usuario;
 
-  // Normalización estricta (evita que 'N' se trate como true en JS)
+  // Normalización estricta
   const vendedorChar  = toSN(es_vendedor);
   const compradorChar = toSN(es_comprador);
 
@@ -24,7 +26,7 @@ exports.crearUsuario = (usuario, callback) => {
       console.error("Error al insertar usuario:", err.sqlMessage || err);
       return callback(err);
     }
-    console.log("Registro Correcto");
+    console.log("Registro Correcto:", correo);
     callback(null, result);
   });
 };
