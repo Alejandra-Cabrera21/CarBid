@@ -28,6 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ✅ Exclusividad visual: si marco uno, desmarco el otro
+  document.querySelectorAll('.rol-check').forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        document.querySelectorAll('.rol-check').forEach(other => {
+          if (other !== e.target) other.checked = false;
+        });
+      }
+    });
+  });
+
   // Toast helper
   const toast = (txt, ok=true) => {
     Toastify({
@@ -56,9 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const password  = passEl.value;
     const confirmar = confEl.value;
 
-    // ✅ aquí corregimos: enviamos 'S' o 'N' según cada checkbox
-    const es_vendedor  = vendEl.checked ? 'S' : 'N';
-    const es_comprador = compEl.checked ? 'S' : 'N';
+    // Rol único
+    const rol = vendEl.checked ? 'v' : (compEl.checked ? 'c' : null);
 
     // Validaciones
     let ok = true;
@@ -77,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (password !== confirmar) {
       setErr('confirmar','Las contraseñas no coinciden.'); ok = false;
     }
-    if (es_vendedor === 'N' && es_comprador === 'N') {
+    if (!rol) {
       toast('Selecciona al menos Vender o Comprar', false); ok = false;
     }
 
@@ -96,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // 2) Registrar usuario
+      // 2) Registrar usuario (enviamos SOLO 'rol')
       const btn = form.querySelector('button[type="submit"]');
       btn.disabled = true; btn.textContent = 'Guardando...';
 
@@ -106,9 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({
           nombre: usuario,
           correo,
-          contraseña: password,      // tu backend espera 'contraseña'
-          es_vendedor,
-          es_comprador
+          contraseña: password, // el backend espera 'contraseña'
+          rol                     // 'v' o 'c'
         })
       });
       const data = await res.json();
@@ -116,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok) {
         toast('Usuario registrado correctamente ✅', true);
         form.reset();
-        // (opcional) volver a poner los ojos en estado "oculto"
+        // volver a modo oculto los ojos
         document.querySelectorAll('.toggle-pass i').forEach(i=>{
           i.classList.remove('fa-eye-slash');
           i.classList.add('fa-eye');
