@@ -87,3 +87,76 @@ button:hover { background-color: #e2e2e2; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { width: 100%; height: 100%; font-family: 'Poppins', sans-serif; }
+
+
+/* ===== MODO MÓVIL: fondo con imagen + form centrado ===== */
+@media (max-width: 900px){
+  /* El contenedor usa la imagen de fondo */
+  .register-container{
+    position: relative;
+    height: 100vh;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
+    background: url('img/auto.png') center center / cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Oscurecer un poco para legibilidad */
+  .register-container::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.65));
+    z-index: 0;
+  }
+
+  /* Ocultar la columna de imagen en móvil */
+  .image-side{
+    display: none;
+  }
+
+  /* El formulario ahora es una tarjeta centrada */
+  .form-side{
+    position: relative;
+    z-index: 1;
+    width: 92%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 22px 22px 26px;
+    background: rgba(17,17,17,.85);       /* semi-transparente */
+    backdrop-filter: blur(4px);            /* sutil (si el navegador lo soporta) */
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  }
+
+  .form-header{
+    margin-bottom: 12px;
+  }
+
+  /* El form ocupa todo el ancho de la tarjeta */
+  .form-side form{
+    width: 100%;
+    max-width: none;
+    gap: 12px;
+  }
+
+  /* Ajustes de tipografía/espacios en móvil */
+  .form-side form label{ font-size: .95rem; }
+  .form-side form input{ font-size: .95rem; }
+  .checkbox-group{
+    gap: 16px;
+    justify-content: space-between;
+  }
+
+  /* Botón ancho completo */
+  .form-side form button{
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+  }
+}
