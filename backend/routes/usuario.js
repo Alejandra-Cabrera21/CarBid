@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const Usuario = require('../models/usuarioModel');
 
-// 🟢 REGISTRO
+// 🟢 REGISTRO DE USUARIO
 router.post('/register', (req, res) => {
   const { nombre, correo, contraseña, es_vendedor, es_comprador } = req.body;
 
@@ -33,6 +33,28 @@ router.post('/register', (req, res) => {
       if (err2) return res.status(500).json({ mensaje: 'Error al registrar usuario.' });
       res.json({ mensaje: 'Usuario registrado correctamente ✅' });
     });
+  });
+});
+
+// 🔍 VERIFICAR SI UN CORREO YA EXISTE (para validación previa del frontend)
+router.post('/check', (req, res) => {
+  const { correo } = req.body;
+
+  if (!correo) {
+    return res.status(400).json({ encontrado: false, mensaje: 'Correo no proporcionado.' });
+  }
+
+  Usuario.buscarPorCorreo(correo, (err, results) => {
+    if (err) {
+      console.error('❌ Error al verificar correo:', err);
+      return res.status(500).json({ encontrado: false, mensaje: 'Error en la base de datos.' });
+    }
+
+    if (results.length > 0) {
+      return res.json({ encontrado: true });
+    } else {
+      return res.json({ encontrado: false });
+    }
   });
 });
 

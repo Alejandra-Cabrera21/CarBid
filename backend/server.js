@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 // Importamos las rutas
-const usuariosRoutes = require('./routes/usuarios');
+const usuariosRoutes = require('./routes/usuario');
 app.use('/api/users', usuariosRoutes);
 
 app.listen(PORT, () => {
