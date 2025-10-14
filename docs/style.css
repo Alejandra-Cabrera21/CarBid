@@ -12,16 +12,8 @@ body {
   padding: 10px 40px;
 }
 
-.logo span {
-  font-size: 22px;
-  margin-left: 8px;
-  font-weight: bold;
-}
-
-.menu {
-  display: flex;
-  gap: 20px;
-}
+.logo span { font-size: 22px; margin-left: 8px; font-weight: bold; }
+.menu { display: flex; gap: 20px; }
 
 button {
   background: transparent;
@@ -31,63 +23,23 @@ button {
   cursor: pointer;
   font-size: 16px;
 }
-
-button:hover {
-  background: white;
-  color: black;
-}
+button:hover { background: white; color: black; }
 
 /* Desplegable */
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
+.dropdown { position: relative; display: inline-block; }
 .dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: black;
-  min-width: 160px;
-  z-index: 1;
+  display: none; position: absolute; background-color: black; min-width: 160px; z-index: 1;
 }
+.dropdown-content a { color: white; padding: 10px 12px; text-decoration: none; display: block; }
+.dropdown-content a:hover { background-color: #444; }
+.dropdown:hover .dropdown-content { display: block; }
 
-.dropdown-content a {
-  color: white;
-  padding: 10px 12px;
-  text-decoration: none;
-  display: block;
-}
+.hero img { width: 100%; height: 90vh; object-fit: cover; }
 
-.dropdown-content a:hover {
-  background-color: #444;
-}
-
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-
-.hero img {
-  width: 100%;
-  height: 90vh;
-  object-fit: cover;
-}
 /* Fondo dividido */
-.register-container {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-}
-
-.image-side {
-  flex: 1;
-  overflow: hidden;
-}
-
-.image-side img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.register-container { display: flex; height: 100vh; width: 100%; }
+.image-side { flex: 1; overflow: hidden; }
+.image-side img { width: 100%; height: 100%; object-fit: cover; }
 
 .form-side {
   flex: 1;
@@ -99,99 +51,39 @@ button:hover {
   align-items: center;
 }
 
-.form-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
+.form-header { text-align: center; margin-bottom: 20px; }
+.form-header img { display: block; margin: 0 auto 10px; }
 
-.form-header img {
-  display: block;
-  margin: 0 auto 10px;
-}
+form { display: flex; flex-direction: column; width: 70%; gap: 10px; }
 
-form {
-  display: flex;
-  flex-direction: column;
-  width: 70%;
-  gap: 10px;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="password"] {
+input[type="text"], input[type="email"], input[type="password"] {
   padding: 8px;
   border: none;
   border-radius: 4px;
 }
 
-.checkbox-group {
-  display: flex;
-  justify-content: space-between;
-  margin: 10px 0;
+/* 👁 contenedor del ojo */
+.input-wrapper { position: relative; width: 100%; }
+.input-wrapper input { width: 100%; padding-right: 42px; }
+.toggle-pass {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  cursor: pointer; color: #888; font-size: 18px; z-index: 2;
 }
+.toggle-pass:hover { color: #ddd; }
+
+/* errores de campo en rojo */
+.form-side .error {
+  color: #ff4d4f !important;
+  font-size: 0.95rem; font-weight: 600; margin-top: 6px; line-height: 1.2;
+}
+
+.checkbox-group { display: flex; justify-content: space-between; margin: 10px 0; }
 
 button {
-  background-color: white;
-  color: black;
-  font-weight: bold;
-  padding: 10px;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: 0.2s;
+  background-color: white; color: black; font-weight: bold;
+  padding: 10px; border: none; cursor: pointer; border-radius: 4px; transition: 0.2s;
 }
+button:hover { background-color: #e2e2e2; }
 
-button:hover {
-  background-color: #e2e2e2;
-}
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  width: 100%;
-  height: 100%;
-  font-family: 'Poppins', sans-serif;
-}
-
-/* ---- Solo para los campos de contraseña (y confirmar) ---- */
-.input-wrapper{
-  position: relative;
-  width: 100%;               /* ocupa todo el ancho del form */
-}
-
-.input-wrapper input{
-  width: 100%;               /* el input se estira al 100% */
-  padding-right: 42px;       /* espacio para el icono ojo */
-}
-
-.toggle-pass{
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #888;
-  font-size: 18px;
-}
-
-.toggle-pass:hover{ color: #333; }
-/* Fuerza los mensajes de error a rojo, por encima del color blanco heredado */
-.form-side .error{
-  color: #ff4d4f !important;   /* rojo */
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin-top: 6px;
-  line-height: 1.2;
-}
-
-/* Opcional: resalta el input y label cuando hay error */
-.input-error{
-  border: 2px solid #ff4d4f !important;
-  outline: none;
-}
-.label-error{
-  color: #ff4d4f !important;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; font-family: 'Poppins', sans-serif; }
