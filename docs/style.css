@@ -155,3 +155,43 @@ html, body {
   height: 100%;
   font-family: 'Poppins', sans-serif;
 }
+
+/* ---- Solo para los campos de contraseña (y confirmar) ---- */
+.input-wrapper{
+  position: relative;
+  width: 100%;               /* ocupa todo el ancho del form */
+}
+
+.input-wrapper input{
+  width: 100%;               /* el input se estira al 100% */
+  padding-right: 42px;       /* espacio para el icono ojo */
+}
+
+.toggle-pass{
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #888;
+  font-size: 18px;
+}
+
+.toggle-pass:hover{ color: #333; }
+/* Fuerza los mensajes de error a rojo, por encima del color blanco heredado */
+.form-side .error{
+  color: #ff4d4f !important;   /* rojo */
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 6px;
+  line-height: 1.2;
+}
+
+/* Opcional: resalta el input y label cuando hay error */
+.input-error{
+  border: 2px solid #ff4d4f !important;
+  outline: none;
+}
+.label-error{
+  color: #ff4d4f !important;
+}
