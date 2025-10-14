@@ -8,14 +8,18 @@
     "start": "node backend/server.js"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
-    "express": "^4.18.2",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
     "multer": "^1.4.5-lts.1",
     "multer-storage-cloudinary": "^4.0.0",
-    "pg": "^8.11.5",
+    "mysql2": "^3.15.2",
+    "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.3"
+    "sequelize": "^6.37.3",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
