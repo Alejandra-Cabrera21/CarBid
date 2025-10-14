@@ -5,18 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Crear cuenta - CarBid</title>
 
-  <!-- Íconos FontAwesome -->
+  <!-- FontAwesome (icono ojo) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-  <!-- Toastify para mensajes -->
+  <!-- Toastify (toasts) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 
-  <!-- Tu hoja de estilos -->
+  <!-- Tus estilos -->
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-  <!-- 💡 Aquí va tu formulario (el bloque que pusiste) -->
   <div class="register-container">
     <div class="image-side">
       <img src="img/auto.png" alt="Fondo CarBid" />
@@ -40,7 +39,7 @@
         <label for="password">Contraseña:</label>
         <div class="input-wrapper">
           <input type="password" id="password" name="password" required />
-          <span class="toggle-pass" id="togglePassword">
+          <span class="toggle-pass" id="togglePassword" aria-label="Mostrar u ocultar contraseña" tabindex="0">
             <i class="fa fa-eye"></i>
           </span>
         </div>
@@ -49,15 +48,16 @@
         <label for="confirmar">Confirmar contraseña:</label>
         <div class="input-wrapper">
           <input type="password" id="confirmar" name="confirmar" required />
-          <span class="toggle-pass" id="toggleConfirm">
+          <span class="toggle-pass" id="toggleConfirm" aria-label="Mostrar u ocultar confirmación" tabindex="0">
             <i class="fa fa-eye"></i>
           </span>
         </div>
         <div id="error-confirmar" class="error"></div>
 
         <div class="checkbox-group">
-          <label><input type="checkbox" id="vendedor" /> Quiero Vender</label>
-          <label><input type="checkbox" id="comprador" /> Quiero Comprar</label>
+          <!-- IMPORTANTE: class="rol-check" en ambos -->
+          <label><input type="checkbox" id="vendedor" class="rol-check" /> Quiero Vender</label>
+          <label><input type="checkbox" id="comprador" class="rol-check" /> Quiero Comprar</label>
         </div>
 
         <button type="submit">SIGUIENTE</button>
@@ -67,27 +67,6 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-
-  <!-- 👁 Mostrar/Ocultar contraseñas -->
-  <script>
-    document.getElementById("togglePassword").onclick = () => {
-      const input = document.getElementById("password");
-      const icon = document.querySelector("#togglePassword i");
-      input.type = input.type === "password" ? "text" : "password";
-      icon.classList.toggle("fa-eye");
-      icon.classList.toggle("fa-eye-slash");
-    };
-
-    document.getElementById("toggleConfirm").onclick = () => {
-      const input = document.getElementById("confirmar");
-      const icon = document.querySelector("#toggleConfirm i");
-      input.type = input.type === "password" ? "text" : "password";
-      icon.classList.toggle("fa-eye");
-      icon.classList.toggle("fa-eye-slash");
-    };
-  </script>
-
-  <!-- JS de validación y registro -->
   <script src="js/register.js"></script>
 </body>
 </html>

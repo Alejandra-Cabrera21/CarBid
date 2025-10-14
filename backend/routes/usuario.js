@@ -3,13 +3,23 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const Usuario = require('../models/usuarioModel');
 
-// 🟢 REGISTRO DE USUARIO
+// 🟢 REGISTRO DE USUARIO (rol único)
 router.post('/register', (req, res) => {
-  const { nombre, correo, contraseña, es_vendedor, es_comprador } = req.body;
+  let { nombre, correo, contraseña, rol } = req.body;
 
   if (!nombre || !correo || !contraseña) {
     return res.status(400).json({ mensaje: 'Faltan datos.' });
   }
+
+  // Validar y normalizar rol
+  rol = (rol === 'v' || rol === 'c') ? rol : null;
+  if (!rol) {
+    return res.status(400).json({ mensaje: 'Debes elegir Vender (v) o Comprar (c).' });
+  }
+
+  // Derivar flags desde el rol (exclusivos)
+  const es_vendedor  = (rol === 'v') ? 'S' : 'N';
+  const es_comprador = (rol === 'c') ? 'S' : 'N';
 
   // Verificar si el correo ya existe
   Usuario.buscarPorCorreo(correo, (err, results) => {
