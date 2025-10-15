@@ -24,8 +24,8 @@
           Acceder <span class="caret">▼</span>
         </button>
         <div class="dropdown-content">
-          <a href="login_comprador.html">Comprador</a>
-          <a href="login_vendedor.html">Vendedor</a>
+          <a href="#">Comprador</a>
+          <a href="#">Vendedor</a>
         </div>
       </div>
       <button id="btnRegistro" class="home-btn">Crear una cuenta</button>
@@ -45,8 +45,8 @@
             Acceder <span class="caret">▼</span>
           </button>
           <div class="dropdown-content">
-            <a href="login_comprador.html">Comprador</a>
-            <a href="login_vendedor.html">Vendedor</a>
+            <a href="#">Comprador</a>
+            <a href="#">Vendedor</a>
           </div>
         </div>
 
@@ -56,5 +56,20 @@
       </div>
     </section>
   </main>
+
+  <!-- 🔹 Script para guardar elección y redirigir -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const enlaces = document.querySelectorAll(".dropdown-content a");
+      enlaces.forEach(link => {
+        link.addEventListener("click", e => {
+          e.preventDefault();
+          const tipo = link.textContent.trim().toLowerCase(); // "comprador" o "vendedor"
+          localStorage.setItem("tipoSeleccionado", tipo);
+          window.location.href = "login.html";
+        });
+      });
+    });
+  </script>
 </body>
 </html>

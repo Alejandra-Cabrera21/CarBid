@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Iniciar sesión - CarBid</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="js/app.js"></script>
+</head>
+<body>
+  <main class="login-container">
+    <div class="form-container">
+      <h1>🚗 CarBid</h1>
+      <h2 id="loginTitle">Iniciar sesión</h2>
+      
+      <form id="loginForm">
+        <input type="email" id="email" placeholder="Correo electrónico" required>
+        <input type="password" id="password" placeholder="Contraseña" required>
+        <div id="vendorField" style="display:none;">
+          <input type="text" id="vendorCode" placeholder="Código de vendedor">
+        </div>
+        <button type="submit">Ingresar</button>
+      </form>
+
+      <p id="textRegister"></p>
+    </div>
+  </main>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const tipo = localStorage.getItem("tipoSeleccionado");
+    const title = document.getElementById("loginTitle");
+    const vendorField = document.getElementById("vendorField");
+    const textRegister = document.getElementById("textRegister");
+
+    if (tipo === "vendedor") {
+      title.textContent = "Iniciar sesión (Vendedor)";
+      vendorField.style.display = "block";
+      textRegister.innerHTML = '¿No tienes cuenta? <a href="register.html">Crear cuenta de vendedor</a>';
+    } else {
+      title.textContent = "Iniciar sesión (Comprador)";
+      vendorField.style.display = "none";
+      textRegister.innerHTML = '¿No tienes cuenta? <a href="register.html">Crear cuenta de comprador</a>';
+    }
+
+    const form = document.getElementById("loginForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const vendorCode = document.getElementById("vendorCode")?.value;
+
+      const endpoint = tipo === "vendedor"
+        ? "http://localhost:4000/api/auth/login-vendedor"
+        : "http://localhost:4000/api/auth/login";
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, vendorCode })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(`✅ Bienvenido ${data.email} (${data.role})`);
+        localStorage.setItem("usuario", JSON.stringify(data));
+        localStorage.removeItem("tipoSeleccionado");
+        window.location.href = tipo === "vendedor" ? "account-vendedor.html" : "account.html";
+      } else {
+        alert(`❌ ${data.error}`);
+      }
+    });
+  });
+  </script>
+</body>
+</html>
