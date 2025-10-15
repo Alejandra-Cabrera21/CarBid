@@ -243,7 +243,7 @@ body {
     position: relative;
     z-index: 1;
     width: 92%;
-    max-width: 480px;
+    max-width: 380px;
     margin: 0 auto;
     padding: 22px 22px 26px;
     background: rgba(17, 17, 17, .85);
