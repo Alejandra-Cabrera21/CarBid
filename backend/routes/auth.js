@@ -1,69 +1,139 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
-const Vendor = require("../models/Vendor");
+const db = require("../db");
+const jwt = require("jsonwebtoken");
 
-// === REGISTRO DE COMPRADOR ===
-router.post("/register", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) return res.status(400).json({ error: "Ya existe un comprador con este correo." });
+const bcrypt = require("bcryptjs");
 
-    const newUser = await User.create({ email, password });
-    res.json({ id: newUser.id, email: newUser.email, role: "comprador" });
-  } catch (err) {
-    console.error("❌ Error al registrar comprador:", err);
-    res.status(500).json({ error: err.message });
-  }
+const SECRET_KEY = "carbid-secret";
+
+// 🕒 Función para sumar horas (para fecha_expiracion)
+function sumarHoras(horas) {
+  const fecha = new Date();
+  fecha.setHours(fecha.getHours() + horas);
+  return fecha;
+}
+
+/* ======================================================
+   🔹 LOGIN COMPRADOR
+====================================================== */
+router.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password)
+    return res.status(400).json({ message: "Correo y contraseña requeridos." });
+
+  const sql = "SELECT * FROM usuarios WHERE correo = ?";
+  db.query(sql, [email], (err, results) => {
+    if (err) {
+      console.error("❌ Error DB:", err);
+      return res.status(500).json({ message: "Error en el servidor." });
+    }
+
+    if (results.length === 0)
+      return res.status(401).json({ message: "Usuario no encontrado." });
+
+    const user = results[0];
+
+    // Validar que el usuario sea comprador
+    if (user.es_comprador !== "S") {
+      return res.status(403).json({
+        message: "Este usuario no tiene permisos de comprador.",
+      });
+    }
+
+    // ✅ Comparar contraseña cifrada
+    const esValida = bcrypt.compareSync(password, user.contraseña);
+    if (!esValida)
+      return res.status(401).json({ message: "Contraseña incorrecta." });
+
+    // Generar token
+    const token = jwt.sign({ id: user.id, correo: user.correo }, SECRET_KEY, {
+      expiresIn: "2h",
+    });
+
+    // Insertar sesión
+    const insert =
+      "INSERT INTO sesiones (id_usuario, token, tipo_vendedor, tipo_comprador, fecha_inicio, fecha_expiracion) VALUES (?, ?, ?, ?, NOW(), ?)";
+    db.query(insert, [user.id, token, "N", "S", sumarHoras(2)], (err2) => {
+      if (err2) {
+        console.error("❌ Error al registrar sesión:", err2);
+        return res.status(500).json({ message: "Error al registrar sesión." });
+      }
+
+      res.json({
+        message: "Inicio de sesión exitoso",
+        redirect: "indexcomprador.html",
+        token,
+        usuario: {
+          id: user.id,
+          correo: user.correo,
+          rol: "comprador",
+        },
+      });
+    });
+  });
 });
 
-// === LOGIN COMPRADOR ===
-router.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ where: { email } });
+/* ======================================================
+   🔹 LOGIN VENDEDOR
+====================================================== */
+router.post("/login-vendedor", (req, res) => {
+  const { email, password } = req.body;
 
-    if (!user || user.password !== password)
-      return res.status(400).json({ error: "Correo o contraseña incorrectos." });
+  if (!email || !password)
+    return res.status(400).json({ message: "Correo y contraseña requeridos." });
 
-    res.json({ id: user.id, email: user.email, role: "comprador" });
-  } catch (err) {
-    console.error("❌ Error en login comprador:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
+  const sql = "SELECT * FROM usuarios WHERE correo = ?";
+  db.query(sql, [email], (err, results) => {
+    if (err) {
+      console.error("❌ Error DB:", err);
+      return res.status(500).json({ message: "Error en el servidor." });
+    }
 
-// === REGISTRO DE VENDEDOR ===
-router.post("/register-vendedor", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const existingVendor = await Vendor.findOne({ where: { email } });
-    if (existingVendor) return res.status(400).json({ error: "Ya existe un vendedor con este correo." });
+    if (results.length === 0)
+      return res.status(401).json({ message: "Usuario no encontrado." });
 
-    const vendorCode = "V-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-    const newVendor = await Vendor.create({ email, password, vendorCode });
+    const user = results[0];
 
-    res.json({ id: newVendor.id, email: newVendor.email, vendorCode: newVendor.vendorCode, role: "vendedor" });
-  } catch (err) {
-    console.error("❌ Error al registrar vendedor:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
+    // Validar que el usuario sea vendedor
+    if (user.es_vendedor !== "S") {
+      return res.status(403).json({
+        message: "Este usuario no tiene permisos de vendedor.",
+      });
+    }
 
-// === LOGIN DE VENDEDOR ===
-router.post("/login-vendedor", async (req, res) => {
-  try {
-    const { email, password, vendorCode } = req.body;
-    const vendor = await Vendor.findOne({ where: { email, vendorCode } });
-    if (!vendor) return res.status(400).json({ error: "Correo o código de vendedor incorrecto." });
-    if (vendor.password !== password) return res.status(400).json({ error: "Contraseña incorrecta." });
+    // ✅ Comparar contraseña cifrada
+    const esValida = bcrypt.compareSync(password, user.contraseña);
+    if (!esValida)
+      return res.status(401).json({ message: "Contraseña incorrecta." });
 
-    res.json({ id: vendor.id, email: vendor.email, vendorCode: vendor.vendorCode, role: "vendedor" });
-  } catch (err) {
-    console.error("❌ Error en login vendedor:", err);
-    res.status(500).json({ error: err.message });
-  }
+    // Generar token
+    const token = jwt.sign({ id: user.id, correo: user.correo }, SECRET_KEY, {
+      expiresIn: "2h",
+    });
+
+    // Insertar sesión
+    const insert =
+      "INSERT INTO sesiones (id_usuario, token, tipo_vendedor, tipo_comprador, fecha_inicio, fecha_expiracion) VALUES (?, ?, ?, ?, NOW(), ?)";
+    db.query(insert, [user.id, token, "S", "N", sumarHoras(2)], (err2) => {
+      if (err2) {
+        console.error("❌ Error al registrar sesión:", err2);
+        return res.status(500).json({ message: "Error al registrar sesión." });
+      }
+
+      res.json({
+        message: "Inicio de sesión exitoso",
+        redirect: "indexvendedor.html",
+        token,
+        usuario: {
+          id: user.id,
+          correo: user.correo,
+          rol: "vendedor",
+        },
+      });
+    });
+  });
 });
 
 module.exports = router;

@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Iniciar sesión - CarBid</title>
 
-  <!-- FontAwesome para el ojo 👁 -->
+  <!-- FontAwesome para el icono de ojo 👁 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-  <!-- Tu CSS de login -->
+  <!-- Estilos -->
   <link rel="stylesheet" href="css/login.css" />
 
   <style>
-    /* ===== Errores (idéntico al register) ===== */
+    /* === Errores debajo de cada campo === */
     .error {
       color: #ff4d4f !important;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 600;
-      margin-top: 6px;
-      line-height: 1.2;
+      margin-top: 5px;
     }
 
+    /* === Contenedor del campo con ojo === */
     .input-wrapper {
       position: relative;
       width: 100%;
@@ -50,12 +50,12 @@
 
 <body>
   <div class="register-container">
-    <!-- Imagen lateral -->
+    <!-- Lado izquierdo con imagen -->
     <div class="image-side">
       <img src="img/auto.png" alt="Fondo CarBid" />
     </div>
 
-    <!-- Formulario -->
+    <!-- Lado derecho con formulario -->
     <div class="form-side">
       <div class="form-header">
         <img src="img/logo.png" alt="CarBid" width="70" />
@@ -85,6 +85,7 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
+    // === Obtener tipo de usuario seleccionado ===
     const tipo = localStorage.getItem("tipoSeleccionado");
     const title = document.getElementById("loginTitle");
 
@@ -94,16 +95,18 @@
       title.textContent = "INICIAR SESIÓN (COMPRADOR)";
     }
 
-    // === Mostrar/Ocultar contraseña ===
+    // === Mostrar / Ocultar contraseña ===
     const passInput = document.getElementById("password");
     const togglePass = document.getElementById("togglePassword");
     togglePass.addEventListener("click", () => {
       const show = passInput.type === "password";
       passInput.type = show ? "text" : "password";
-      togglePass.innerHTML = show ? '<i class="fa fa-eye-slash"></i>' : '<i class="fa fa-eye"></i>';
+      togglePass.innerHTML = show
+        ? '<i class="fa fa-eye-slash"></i>'
+        : '<i class="fa fa-eye"></i>';
     });
 
-    // === Validación de formulario ===
+    // === Validaciones ===
     const form = document.getElementById("loginForm");
     const email = document.getElementById("email");
     const errorEmail = document.getElementById("error-email");
@@ -111,7 +114,6 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-
       errorEmail.textContent = "";
       errorPassword.textContent = "";
 
@@ -132,10 +134,11 @@
 
       if (!ok) return;
 
+      // === Endpoint dinámico según tipo de usuario ===
       const endpoint =
         tipo === "vendedor"
-          ? "http://localhost:4000/api/auth/login-vendedor"
-          : "http://localhost:4000/api/auth/login";
+          ? "http://localhost:3000/api/auth/login-vendedor"
+          : "http://localhost:3000/api/auth/login";
 
       try {
         const res = await fetch(endpoint, {
@@ -150,13 +153,15 @@
         const data = await res.json();
 
         if (res.ok) {
-          alert(`✅ Bienvenido ${data.email}`);
-          localStorage.setItem("usuario", JSON.stringify(data));
+          // Guardar sesión local
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("usuario", JSON.stringify(data.usuario));
           localStorage.removeItem("tipoSeleccionado");
-          window.location.href =
-            tipo === "vendedor" ? "account-vendedor.html" : "account.html";
+
+          // Redirigir según tipo
+          window.location.href = data.redirect;
         } else {
-          errorPassword.textContent = "Correo o contraseña incorrectos.";
+          errorPassword.textContent = data.message || "Correo o contraseña incorrectos.";
         }
       } catch (err) {
         console.error(err);
