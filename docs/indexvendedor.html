@@ -2,26 +2,29 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Login Comprador - CarBid</title>
-  <link rel="stylesheet" href="styles.css">
-  <script defer src="app.js"></script>
+  <title>Panel del Vendedor - CarBid</title>
+  <link rel="stylesheet" href="css/panel-vendedor.css">
 </head>
+
 <body>
-  <header>
-    <h1><a href="index.html">🚗 CarBid</a></h1>
-    <nav id="menu"></nav>
+  <!-- 🔹 Header superior -->
+  <header class="navbar">
+    <div class="logo">
+      <img src="img/logo.png" alt="CarBid" />
+    </div>
+    <nav class="menu">
+      <a href="historial-pujas.html">Historial Pujas</a>
+      <a href="perfil.html">Mi perfil</a>
+      <a href="index.html">Salir</a>
+    </nav>
   </header>
 
-  <main>
-    <div class="form-container">
-      <h2>Iniciar sesión (Comprador)</h2>
-      <form id="loginForm">
-        <input type="email" id="email" placeholder="Correo electrónico" required>
-        <input type="password" id="password" placeholder="Contraseña" required>
-        <button type="submit">Ingresar</button>
-      </form>
-      <p>¿No tienes cuenta? <a href="register.html">Crear cuenta de comprador</a></p>
-      <p>¿Quieres vender? <a href="register-vendedor.html">Crear cuenta de vendedor</a></p>
+  <!-- 🔹 Contenido principal -->
+  <main class="panel-container">
+    <h2>Bienvenid@ <span id="nombreUsuario">angiepsc</span></h2>
+    <div class="botones">
+      <button onclick="window.location.href='crear-publicacion.html'">Crear publicación</button>
+      <button onclick="window.location.href='historial-subastas.html'">Listado de subastas creadas</button>
     </div>
   </main>
 </body>
