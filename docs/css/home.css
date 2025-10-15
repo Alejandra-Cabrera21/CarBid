@@ -189,7 +189,11 @@ body {
     transition: background 0.2s;
   }
 
-  .dropdown-content a:hover {
-    background: rgba(255,255,255,0.15);
-  }
+  .dropdown-content a:hover,
+.dropdown-content a:focus,
+.dropdown-content a:active {
+  background: #fff;
+  color: #000;
+}
+
 }
