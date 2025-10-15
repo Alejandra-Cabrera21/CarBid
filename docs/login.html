@@ -1,28 +1,81 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Iniciar sesión - CarBid</title>
-  <link rel="stylesheet" href="css/login.css">
+
+  <!-- FontAwesome para el ojo 👁 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Tu CSS de login -->
+  <link rel="stylesheet" href="css/login.css" />
+
+  <style>
+    /* ===== Errores (idéntico al register) ===== */
+    .error {
+      color: #ff4d4f !important;
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-top: 6px;
+      line-height: 1.2;
+    }
+
+    .input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding-right: 42px;
+    }
+
+    .toggle-pass {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #888;
+      font-size: 18px;
+      z-index: 2;
+    }
+
+    .toggle-pass:hover {
+      color: #ddd;
+    }
+  </style>
 </head>
+
 <body>
   <div class="register-container">
-    <!-- LADO IZQUIERDO: Imagen (solo visible en escritorio) -->
+    <!-- Imagen lateral -->
     <div class="image-side">
-      <img src="img/auto.png" alt="CarBid">
+      <img src="img/auto.png" alt="Fondo CarBid" />
     </div>
 
-    <!-- LADO DERECHO: Formulario -->
+    <!-- Formulario -->
     <div class="form-side">
       <div class="form-header">
-        <img src="img/logo.png" alt="CarBid" width="140">
-        <h2 id="loginTitle">Iniciar sesión</h2>
+        <img src="img/logo.png" alt="CarBid" width="70" />
+        <h2 id="loginTitle">INICIAR SESIÓN</h2>
       </div>
 
-      <form id="loginForm">
-        <input type="email" id="email" placeholder="Correo electrónico" required>
-        <input type="password" id="password" placeholder="Contraseña" required>
+      <form id="loginForm" novalidate>
+        <label for="email">Correo electrónico:</label>
+        <input type="email" id="email" required />
+        <div id="error-email" class="error"></div>
+
+        <label for="password">Contraseña:</label>
+        <div class="input-wrapper">
+          <input type="password" id="password" required />
+          <span class="toggle-pass" id="togglePassword" aria-label="Mostrar u ocultar contraseña" tabindex="0">
+            <i class="fa fa-eye"></i>
+          </span>
+        </div>
+        <div id="error-password" class="error"></div>
+
         <button type="submit">INGRESAR</button>
       </form>
 
@@ -35,48 +88,79 @@
     const tipo = localStorage.getItem("tipoSeleccionado");
     const title = document.getElementById("loginTitle");
 
-    // Cambiar el título según el tipo elegido
     if (tipo === "vendedor") {
       title.textContent = "INICIAR SESIÓN (VENDEDOR)";
     } else {
       title.textContent = "INICIAR SESIÓN (COMPRADOR)";
     }
 
+    // === Mostrar/Ocultar contraseña ===
+    const passInput = document.getElementById("password");
+    const togglePass = document.getElementById("togglePassword");
+    togglePass.addEventListener("click", () => {
+      const show = passInput.type === "password";
+      passInput.type = show ? "text" : "password";
+      togglePass.innerHTML = show ? '<i class="fa fa-eye-slash"></i>' : '<i class="fa fa-eye"></i>';
+    });
+
+    // === Validación de formulario ===
     const form = document.getElementById("loginForm");
+    const email = document.getElementById("email");
+    const errorEmail = document.getElementById("error-email");
+    const errorPassword = document.getElementById("error-password");
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      errorEmail.textContent = "";
+      errorPassword.textContent = "";
 
-      const endpoint = tipo === "vendedor"
-        ? "http://localhost:4000/api/auth/login-vendedor"
-        : "http://localhost:4000/api/auth/login";
+      let ok = true;
+
+      if (!email.value.trim()) {
+        errorEmail.textContent = "Ingresa un correo electrónico.";
+        ok = false;
+      } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value)) {
+        errorEmail.textContent = "Correo inválido.";
+        ok = false;
+      }
+
+      if (!passInput.value.trim()) {
+        errorPassword.textContent = "Ingresa tu contraseña.";
+        ok = false;
+      }
+
+      if (!ok) return;
+
+      const endpoint =
+        tipo === "vendedor"
+          ? "http://localhost:4000/api/auth/login-vendedor"
+          : "http://localhost:4000/api/auth/login";
 
       try {
         const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({
+            email: email.value,
+            password: passInput.value,
+          }),
         });
 
         const data = await res.json();
 
         if (res.ok) {
-          alert(`✅ Bienvenido ${data.email} (${data.role})`);
+          alert(`✅ Bienvenido ${data.email}`);
           localStorage.setItem("usuario", JSON.stringify(data));
           localStorage.removeItem("tipoSeleccionado");
-
-          // Redirigir según el tipo
-          window.location.href = tipo === "vendedor"
-            ? "account-vendedor.html"
-            : "account.html";
+          window.location.href =
+            tipo === "vendedor" ? "account-vendedor.html" : "account.html";
         } else {
-          alert(`❌ ${data.error}`);
+          errorPassword.textContent = "Correo o contraseña incorrectos.";
         }
       } catch (err) {
-        console.error("Error en el login:", err);
-        alert("⚠️ Error de conexión con el servidor.");
+        console.error(err);
+        errorPassword.textContent = "Error de conexión con el servidor.";
       }
     });
   });
