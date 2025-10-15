@@ -108,7 +108,7 @@ body {
     margin: auto;
     width: 92%;
     max-width: 480px;
-    padding: 26px 24px;
+    padding: 22px 24px;
     background: rgba(17,17,17,0.85);
     backdrop-filter: blur(4px);
     border-radius: 12px;
@@ -116,7 +116,9 @@ body {
     align-items: center;
     justify-content: center;
     height: auto;
-    max-height: 85vh;
+
+    /* 🔹 Ajuste clave: menor altura máxima */
+    max-height: 30vh; /* antes 85vh */
   }
 
   /* ✅ Sin logo en móvil */
