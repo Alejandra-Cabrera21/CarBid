@@ -91,6 +91,15 @@ body {
   background: #333;
 }
 
+/* ====== Rotación del caret ====== */
+.dropbtn .caret {
+  display: inline-block;
+  transition: transform .2s ease;
+}
+.dropbtn.open .caret {
+  transform: rotate(180deg);
+}
+
 /* ===== MODO MÓVIL ===== */
 @media (max-width: 900px) {
   .navbar { display: none; }
@@ -116,14 +125,7 @@ body {
     align-items: center;
     justify-content: center;
     height: auto;
-
-    /* 🔹 Ajuste clave: menor altura máxima */
-    max-height: 30vh; /* antes 85vh */
-  }
-
-  /* ✅ Sin logo en móvil */
-  .home-card-logo {
-    display: none !important;
+    max-height: 30vh;
   }
 
   .home-card-title {
@@ -190,10 +192,9 @@ body {
   }
 
   .dropdown-content a:hover,
-.dropdown-content a:focus,
-.dropdown-content a:active {
-  background: #fff;
-  color: #000;
-}
-
+  .dropdown-content a:focus,
+  .dropdown-content a:active {
+    background: #fff;
+    color: #000;
+  }
 }

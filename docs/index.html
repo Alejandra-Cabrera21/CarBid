@@ -20,7 +20,9 @@
     </div>
     <div class="menu">
       <div class="dropdown">
-        <button class="dropbtn home-btn">Acceder ▼</button>
+        <button class="dropbtn home-btn">
+          Acceder <span class="caret">▼</span>
+        </button>
         <div class="dropdown-content">
           <a href="login_comprador.html">Comprador</a>
           <a href="login_vendedor.html">Vendedor</a>
@@ -39,7 +41,9 @@
 
       <div class="home-actions">
         <div class="dropdown">
-          <button class="home-btn home-btn--full dropbtn">Acceder ▼</button>
+          <button class="home-btn home-btn--full dropbtn">
+            Acceder <span class="caret">▼</span>
+          </button>
           <div class="dropdown-content">
             <a href="login_comprador.html">Comprador</a>
             <a href="login_vendedor.html">Vendedor</a>
@@ -52,29 +56,5 @@
       </div>
     </section>
   </main>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const btns = [document.getElementById("btnRegistro"), document.getElementById("btnRegistroMobile")];
-      btns.forEach(btn => {
-        if (btn) btn.addEventListener("click", () => {
-          window.location.href = "register.html";
-        });
-      });
-
-      // Control del dropdown (abrir/cerrar)
-      document.querySelectorAll(".dropbtn").forEach(btn => {
-        btn.addEventListener("click", e => {
-          e.stopPropagation();
-          const dropdown = btn.nextElementSibling;
-          dropdown.classList.toggle("active");
-        });
-      });
-
-      document.addEventListener("click", () => {
-        document.querySelectorAll(".dropdown-content.active").forEach(menu => menu.classList.remove("active"));
-      });
-    });
-  </script>
 </body>
 </html>
