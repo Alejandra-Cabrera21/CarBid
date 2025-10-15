@@ -18,6 +18,7 @@
       font-size: 0.9rem;
       font-weight: 600;
       margin-top: 5px;
+      transition: all 0.3s ease;
     }
 
     /* === Contenedor del campo con ojo === */
@@ -161,7 +162,18 @@
           // Redirigir según tipo
           window.location.href = data.redirect;
         } else {
-          errorPassword.textContent = data.message || "Correo o contraseña incorrectos.";
+          // 👇 Mostrar el error en el lugar adecuado
+          if (
+            data.message.includes("comprador") ||
+            data.message.includes("vendedor") ||
+            data.message.includes("usuario") ||
+            data.message.includes("Usuario") ||
+            data.message.includes("correo")
+          ) {
+            errorEmail.textContent = data.message;
+          } else {
+            errorPassword.textContent = data.message;
+          }
         }
       } catch (err) {
         console.error(err);
