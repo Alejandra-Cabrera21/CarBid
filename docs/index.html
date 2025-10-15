@@ -1,31 +1,80 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CarBid</title>
-  <link rel="stylesheet" href="style.css">
+
+  <!-- CSS principal -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- CSS de la portada -->
+  <link rel="stylesheet" href="css/home.css">
+
   <script defer src="js/main.js"></script>
 </head>
 <body>
+  <!-- ✅ Barra visible solo en web -->
   <header class="navbar">
     <div class="logo">
-      <img src="img/logo.png" alt="CarBid" width="150">
-      
+      <img src="img/logo.png" alt="CarBid" class="logo-web" width="150">
     </div>
     <div class="menu">
       <div class="dropdown">
-        <button class="dropbtn">Acceder ▼</button>
+        <button class="dropbtn home-btn">Acceder ▼</button>
         <div class="dropdown-content">
           <a href="login_comprador.html">Comprador</a>
           <a href="login_vendedor.html">Vendedor</a>
         </div>
       </div>
-      <button id="btnRegistro">Crear una cuenta</button>
+      <button id="btnRegistro" class="home-btn">Crear una cuenta</button>
     </div>
   </header>
 
+  <!-- Fondo + tarjeta móvil -->
   <main class="hero">
     <img src="img/auto.png" alt="Car" class="background">
+
+    <section class="home-overlay-card" aria-label="Acciones rápidas">
+      <h1 class="home-card-title">Bienvenido a CarBid</h1>
+
+      <div class="home-actions">
+        <div class="dropdown">
+          <button class="home-btn home-btn--full dropbtn">Acceder ▼</button>
+          <div class="dropdown-content">
+            <a href="login_comprador.html">Comprador</a>
+            <a href="login_vendedor.html">Vendedor</a>
+          </div>
+        </div>
+
+        <button id="btnRegistroMobile" class="home-btn home-btn--full home-btn--primary">
+          Crear una cuenta
+        </button>
+      </div>
+    </section>
   </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btns = [document.getElementById("btnRegistro"), document.getElementById("btnRegistroMobile")];
+      btns.forEach(btn => {
+        if (btn) btn.addEventListener("click", () => {
+          window.location.href = "register.html";
+        });
+      });
+
+      // Control del dropdown (abrir/cerrar)
+      document.querySelectorAll(".dropbtn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          const dropdown = btn.nextElementSibling;
+          dropdown.classList.toggle("active");
+        });
+      });
+
+      document.addEventListener("click", () => {
+        document.querySelectorAll(".dropdown-content.active").forEach(menu => menu.classList.remove("active"));
+      });
+    });
+  </script>
 </body>
 </html>
