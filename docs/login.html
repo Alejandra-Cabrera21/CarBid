@@ -1,28 +1,209 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Login Comprador - CarBid</title>
-  <link rel="stylesheet" href="styles.css">
-  <script defer src="app.js"></script>
-</head>
-<body>
-  <header>
-    <h1><a href="index.html">🚗 CarBid</a></h1>
-    <nav id="menu"></nav>
-  </header>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iniciar sesión - CarBid</title>
 
-  <main>
-    <div class="form-container">
-      <h2>Iniciar sesión (Comprador)</h2>
-      <form id="loginForm">
-        <input type="email" id="email" placeholder="Correo electrónico" required>
-        <input type="password" id="password" placeholder="Contraseña" required>
-        <button type="submit">Ingresar</button>
-      </form>
-      <p>¿No tienes cuenta? <a href="register.html">Crear cuenta de comprador</a></p>
-      <p>¿Quieres vender? <a href="register-vendedor.html">Crear cuenta de vendedor</a></p>
+  <!-- FontAwesome para los iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/login.css" />
+
+  <style>
+    /* === Errores debajo de cada campo === */
+    .error {
+      color: #ff4d4f !important;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 5px;
+      transition: all 0.3s ease;
+    }
+
+    /* === Contenedor de inputs con iconos === */
+    .input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding: 10px 42px 10px 38px;
+      border: none;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+      font-size: 18px;
+      z-index: 2;
+    }
+
+    /* === Icono del ojo === */
+    .toggle-pass {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #888;
+      font-size: 18px;
+      z-index: 2;
+    }
+
+    .toggle-pass:hover {
+      color: #ddd;
+    }
+
+    input::placeholder {
+      color: #aaa;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="register-container">
+    <!-- Lado izquierdo con imagen -->
+    <div class="image-side">
+      <img src="img/auto.png" alt="Fondo CarBid" />
     </div>
-  </main>
+
+    <!-- Lado derecho con formulario -->
+    <div class="form-side">
+      <div class="form-header">
+        <img src="img/logo.png" alt="CarBid" width="70" />
+        <h2 id="loginTitle">INICIAR SESIÓN</h2>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <label for="email">Correo electrónico:</label>
+        <div class="input-wrapper">
+          <i class="fa fa-user input-icon"></i>
+          <input type="email" id="email" placeholder="Ingresa tu correo" required />
+        </div>
+        <div id="error-email" class="error"></div>
+
+        <label for="password">Contraseña:</label>
+        <div class="input-wrapper">
+          <i class="fa fa-lock input-icon"></i>
+          <input type="password" id="password" placeholder="Ingresa tu contraseña" required />
+          <span class="toggle-pass" id="togglePassword" aria-label="Mostrar u ocultar contraseña" tabindex="0">
+            <i class="fa fa-eye"></i>
+          </span>
+        </div>
+        <div id="error-password" class="error"></div>
+
+        <button type="submit">INGRESAR</button>
+      </form>
+
+      <p>¿No tienes cuenta? <a href="register.html">Crear una cuenta</a></p>
+    </div>
+  </div>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // === Obtener tipo de usuario seleccionado ===
+    const tipo = localStorage.getItem("tipoSeleccionado");
+    const title = document.getElementById("loginTitle");
+
+    if (tipo === "vendedor") {
+      title.textContent = "INICIAR SESIÓN (VENDEDOR)";
+    } else {
+      title.textContent = "INICIAR SESIÓN (COMPRADOR)";
+    }
+
+    // === Mostrar / Ocultar contraseña ===
+    const passInput = document.getElementById("password");
+    const togglePass = document.getElementById("togglePassword");
+    togglePass.addEventListener("click", () => {
+      const show = passInput.type === "password";
+      passInput.type = show ? "text" : "password";
+      togglePass.innerHTML = show
+        ? '<i class="fa fa-eye-slash"></i>'
+        : '<i class="fa fa-eye"></i>';
+    });
+
+    // === Validaciones ===
+    const form = document.getElementById("loginForm");
+    const email = document.getElementById("email");
+    const errorEmail = document.getElementById("error-email");
+    const errorPassword = document.getElementById("error-password");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorEmail.textContent = "";
+      errorPassword.textContent = "";
+
+      let ok = true;
+
+      if (!email.value.trim()) {
+        errorEmail.textContent = "Ingresa un correo electrónico.";
+        ok = false;
+      } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value)) {
+        errorEmail.textContent = "Correo inválido.";
+        ok = false;
+      }
+
+      if (!passInput.value.trim()) {
+        errorPassword.textContent = "Ingresa tu contraseña.";
+        ok = false;
+      }
+
+      if (!ok) return;
+
+      // === Endpoint dinámico según tipo de usuario ===
+      const endpoint =
+        tipo === "vendedor"
+          ? "http://localhost:3000/api/auth/login-vendedor"
+          : "http://localhost:3000/api/auth/login";
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email.value,
+            password: passInput.value,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          // Guardar sesión local
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("usuario", JSON.stringify(data.usuario));
+          localStorage.removeItem("tipoSeleccionado");
+
+          // Redirigir según tipo
+          window.location.href = data.redirect;
+        } else {
+          // 👇 Mostrar el error en el lugar adecuado
+          if (
+            data.message.includes("comprador") ||
+            data.message.includes("vendedor") ||
+            data.message.includes("usuario") ||
+            data.message.includes("Usuario") ||
+            data.message.includes("correo")
+          ) {
+            errorEmail.textContent = data.message;
+          } else {
+            errorPassword.textContent = data.message;
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        errorPassword.textContent = "Error de conexión con el servidor.";
+      }
+    });
+  });
+  </script>
 </body>
 </html>

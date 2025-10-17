@@ -3,23 +3,23 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const Usuario = require('../models/usuarioModel');
 
-// 🟢 REGISTRO DE USUARIO (rol único)
+// 🟢 REGISTRO DE USUARIO (permite ambos roles)
 router.post('/register', (req, res) => {
-  let { nombre, correo, contraseña, rol } = req.body;
+  let { nombre, correo, contraseña, es_vendedor, es_comprador } = req.body;
 
   if (!nombre || !correo || !contraseña) {
     return res.status(400).json({ mensaje: 'Faltan datos.' });
   }
 
-  // Validar y normalizar rol
-  rol = (rol === 'v' || rol === 'c') ? rol : null;
-  if (!rol) {
-    return res.status(400).json({ mensaje: 'Debes elegir Vender (v) o Comprar (c).' });
-  }
+  // Normalizar a 'S' o 'N'
+  const toS_N = (val) => (val === true || val === 'S' || val === '1' ? 'S' : 'N');
+  es_vendedor  = toS_N(es_vendedor);
+  es_comprador = toS_N(es_comprador);
 
-  // Derivar flags desde el rol (exclusivos)
-  const es_vendedor  = (rol === 'v') ? 'S' : 'N';
-  const es_comprador = (rol === 'c') ? 'S' : 'N';
+  // Debe tener al menos uno seleccionado
+  if (es_vendedor === 'N' && es_comprador === 'N') {
+    return res.status(400).json({ mensaje: 'Selecciona vender o comprar.' });
+  }
 
   // Verificar si el correo ya existe
   Usuario.buscarPorCorreo(correo, (err, results) => {
@@ -28,7 +28,7 @@ router.post('/register', (req, res) => {
       return res.status(400).json({ mensaje: 'El correo ya está registrado.' });
     }
 
-    // Encriptar la contraseña antes de guardar
+    // Encriptar la contraseña
     const hash = bcrypt.hashSync(contraseña, 10);
 
     const nuevoUsuario = {
@@ -41,7 +41,7 @@ router.post('/register', (req, res) => {
 
     Usuario.crearUsuario(nuevoUsuario, (err2) => {
       if (err2) return res.status(500).json({ mensaje: 'Error al registrar usuario.' });
-      res.json({ mensaje: 'Usuario registrado correctamente ✅' });
+      res.json({ mensaje: 'Registro correcto' });
     });
   });
 });
@@ -56,15 +56,11 @@ router.post('/check', (req, res) => {
 
   Usuario.buscarPorCorreo(correo, (err, results) => {
     if (err) {
-      console.error('❌ Error al verificar correo:', err);
+      console.error('Error al verificar correo:', err);
       return res.status(500).json({ encontrado: false, mensaje: 'Error en la base de datos.' });
     }
 
-    if (results.length > 0) {
-      return res.json({ encontrado: true });
-    } else {
-      return res.json({ encontrado: false });
-    }
+    res.json({ encontrado: results.length > 0 });
   });
 });
 
