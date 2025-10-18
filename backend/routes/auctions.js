@@ -44,10 +44,12 @@ function isValidFutureDatetime(s) {
   const d = new Date(s);
   return s && !isNaN(d) && d > new Date();
 }
+/** Año válido: >=1900 y <= año actual (si viene informado) */
 function isValidYear(y) {
   if (y === undefined || y === null || y === "") return true; // opcional
   const n = parseInt(y, 10);
-  return !isNaN(n) && n >= 1900 && n <= 2099;
+  const current = new Date().getFullYear();
+  return !isNaN(n) && n >= 1900 && n <= current;
 }
 
 /* ========== POST /api/subastas (crear) ========== */
@@ -69,18 +71,31 @@ router.post("/", authRequired, requireVendedor, (req, res) => {
       if (!marca || !modelo) {
         return res.status(400).json({ message: "Marca y modelo son obligatorios" });
       }
+
       const precio = Number(precio_base);
       if (!(precio > 0)) {
         return res.status(400).json({ message: "El precio base debe ser mayor a 0" });
       }
 
+      // Fin debe ser posterior a la hora del sistema
       fin = toMySQLDateTime(fin);
       if (!isValidFutureDatetime(fin)) {
         return res.status(400).json({ message: "La fecha de cierre debe ser posterior a ahora" });
       }
+
+      // Año del modelo: puede ser anterior, pero NO mayor al año actual
+      const currentYear = new Date().getFullYear();
       if (!isValidYear(anio)) {
-        return res.status(400).json({ message: "Año inválido (1900–2099)" });
+        return res
+          .status(400)
+          .json({ message: `Año inválido (1900–${currentYear})` });
       }
+      if (anio && parseInt(anio, 10) > currentYear) {
+        return res
+          .status(400)
+          .json({ message: "El año del modelo no puede ser superior al año actual" });
+      }
+
       if (!req.files?.length) {
         return res.status(400).json({ message: "Debes subir al menos una imagen" });
       }
