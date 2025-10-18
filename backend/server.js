@@ -11,10 +11,12 @@ app.use(express.json());
 // ✅ Importar rutas correctamente
 const usuarioRoutes = require('./routes/usuario'); // singular, igual al nombre del archivo
 const authRoutes = require('./routes/auth'); // login / autenticación
+const auctionsRoutes = require("./routes/auctions");
 
 // ✅ Usar rutas con prefijo correcto
 app.use('/api/usuario', usuarioRoutes);
 app.use('/api/auth', authRoutes);
+app.use("/api/subastas", auctionsRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
