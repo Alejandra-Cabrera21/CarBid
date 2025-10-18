@@ -4,26 +4,52 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Crear publicación - CarBid</title>
+
   <link rel="stylesheet" href="css/panel-vendedor.css"/>
+
+  <!-- Toastify -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
   <style>
-    .form-grid{max-width:880px;margin:30px auto;background:#111;padding:24px;border-radius:12px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    :root{
+      --border:#5bd3ff;
+      --border-focus:#8be9ff;
+      --error:#ff4d4f;
+    }
+    .form-grid{max-width:880px;margin:30px auto;background:#111;padding:28px;border-radius:12px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:24px}
     .row.full{grid-template-columns:1fr}
-    label{display:block;margin:8px 0 6px}
-    input,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #333;background:#1a1a1a;color:#fff}
-    .thumbs{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+    label{display:block;margin:6px 0 8px;color:#fff}
+    input,textarea{
+      width:100%;padding:12px;border-radius:10px;
+      border:1.5px solid var(--border);
+      background:#171717;color:#fff;outline:none;
+      transition:box-shadow .15s ease,border-color .15s ease;
+    }
+    input:focus,textarea:focus{
+      border-color:var(--border-focus);
+      box-shadow:0 0 0 3px rgba(139,233,255,.2);
+    }
+    .row>div{margin-bottom:8px}
+    .thumbs{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
     .thumbs img{width:110px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #333}
     .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:16px}
     .btn{padding:10px 16px;border-radius:10px;border:none;cursor:pointer}
     .btn-primary{background:#67c7d6}
     .btn-ghost{background:transparent;border:1px solid #444;color:#fff}
-    small.error{color:#ff4d4f}
+    small.error{color:var(--error)}
+
+    /* Toastify temas */
+    .toastify.success{background:linear-gradient(90deg,#00c853,#00e676)}
+    .toastify.error{background:linear-gradient(90deg,#ff5252,#ff1744)}
+    .toastify.info{background:linear-gradient(90deg,#2196f3,#42a5f5)}
   </style>
 </head>
 <body>
   <header style="padding:12px 20px;background:#0f0f0f;display:flex;align-items:center;justify-content:space-between">
     <a href="indexvendedor.html" style="color:#fff;text-decoration:none">← Regresar</a>
-    <strong>Crear publicación</strong>
+    <strong style="color:#fff">Crear publicación</strong>
     <div></div>
   </header>
 
@@ -82,74 +108,118 @@
   </main>
 
   <script>
-  // Previsualización
-  const inputFiles = document.getElementById('images');
-  const thumbs = document.getElementById('thumbs');
-  inputFiles.addEventListener('change', () => {
-    thumbs.innerHTML = '';
-    [...inputFiles.files].slice(0,6).forEach(f => {
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(f);
-      thumbs.appendChild(img);
-    });
-  });
-
-  // Crear
-  document.getElementById('btnCrear').addEventListener('click', async () => {
-    // Limpia errores
-    ['marca','modelo','anio','precio','fin','images'].forEach(id=>{
-      const e = document.getElementById('err-'+id); if(e) e.textContent='';
-    });
-
-    const marca = document.getElementById('marca').value.trim();
-    const modelo = document.getElementById('modelo').value.trim();
-    const anio = document.getElementById('anio').value.trim();
-    const precio = document.getElementById('precio').value.trim();
-    const descripcion = document.getElementById('descripcion').value.trim();
-    const fin = document.getElementById('fin').value;
-    const files = [...inputFiles.files];
-
-    let ok = true;
-    if(!marca){ document.getElementById('err-marca').textContent='Requerido'; ok=false; }
-    if(!modelo){ document.getElementById('err-modelo').textContent='Requerido'; ok=false; }
-    if(!precio || Number(precio) <= 0){ document.getElementById('err-precio').textContent='Monto inválido'; ok=false; }
-    if(!fin){ document.getElementById('err-fin').textContent='Define fecha/hora'; ok=false; }
-    if(!files.length){ document.getElementById('err-images').textContent='Sube al menos 1 imagen'; ok=false; }
-    if(!ok) return;
-
-    // Construye form-data
-    const fd = new FormData();
-    fd.append('marca', marca);
-    fd.append('modelo', modelo);
-    if(anio) fd.append('anio', anio);
-    fd.append('descripcion', descripcion);
-    fd.append('precio_base', precio);
-    fd.append('fin', fin);
-
-    files.slice(0,6).forEach(f => fd.append('images', f));
-
-    const token = localStorage.getItem('token');
-    if(!token){ alert('Sesión no válida'); return; }
-
-    try {
-      const res = await fetch('http://localhost:3000/api/subastas?principal=0', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + token },
-        body: fd
-      });
-      const json = await res.json();
-      if(res.ok){
-        alert('Publicación creada');
-        // Redirige al detalle o listado de creadas
-        window.location.href = 'indexvendedor.html';
-      }else{
-        alert(json.message || 'Error al crear');
-      }
-    } catch (e) {
-      console.error(e);
-      alert('Error de conexión con el servidor');
+    /* Toast helper */
+    function toast(msg,type="info"){
+      Toastify({text:msg,duration:3000,gravity:"top",position:"right",close:true,stopOnFocus:true,className:type}).showToast();
     }
-  });
+
+    /* Previsualización */
+    const inputFiles = document.getElementById('images');
+    const thumbs = document.getElementById('thumbs');
+    inputFiles.addEventListener('change', () => {
+      thumbs.innerHTML = '';
+      [...inputFiles.files].slice(0,6).forEach(f => {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(f);
+        thumbs.appendChild(img);
+      });
+    });
+
+    /* Min de fecha = ahora (redondeado a 5 min) */
+    const finInput = document.getElementById('fin');
+    (function setMinDatetime(){
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + (5 - (now.getMinutes()%5))%5);
+      const pad = n => String(n).padStart(2,'0');
+      const iso = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      finInput.min = iso;
+    })();
+
+    /* Crear */
+    document.getElementById('btnCrear').addEventListener('click', async () => {
+      // limpia errores
+      ['marca','modelo','anio','precio','fin','images'].forEach(id=>{
+        const e = document.getElementById('err-'+id); if(e) e.textContent='';
+      });
+
+      const marca = document.getElementById('marca').value.trim();
+      const modelo = document.getElementById('modelo').value.trim();
+      const anio = document.getElementById('anio').value.trim();
+      const precio = document.getElementById('precio').value.trim();
+      const descripcion = document.getElementById('descripcion').value.trim();
+      const fin = document.getElementById('fin').value;
+      const files = [...inputFiles.files];
+
+      let ok = true;
+      if(!marca){ document.getElementById('err-marca').textContent='Requerido'; ok=false; }
+      if(!modelo){ document.getElementById('err-modelo').textContent='Requerido'; ok=false; }
+
+      if(anio){
+        const a = parseInt(anio,10);
+        if(isNaN(a) || a < 1900 || a > 2099){
+          document.getElementById('err-anio').textContent='Año inválido (1900–2099)';
+          ok=false;
+        }
+      }
+      if(!precio || Number(precio) <= 0){
+        document.getElementById('err-precio').textContent='Debe ser mayor a 0';
+        ok=false;
+      }
+      if(!fin){
+        document.getElementById('err-fin').textContent='Define fecha/hora';
+        ok=false;
+      }else{
+        const finDate = new Date(fin);
+        if(finDate <= new Date()){
+          document.getElementById('err-fin').textContent='Debe ser posterior a ahora';
+          ok=false;
+        }
+      }
+      if(!files.length){ document.getElementById('err-images').textContent='Sube al menos 1 imagen'; ok=false; }
+
+      if(!ok){ toast("Revisa los campos marcados", "error"); return; }
+
+      // armamos form-data
+      const fd = new FormData();
+      fd.append('marca', marca);
+      fd.append('modelo', modelo);
+      if(anio) fd.append('anio', anio);
+      fd.append('descripcion', descripcion);
+      fd.append('precio_base', precio);
+
+      // normaliza 'YYYY-MM-DDTHH:MM' -> 'YYYY-MM-DD HH:MM:SS'
+      const finSQL = fin.replace('T',' ').padEnd(19, ':00');
+      fd.append('fin', finSQL);
+
+      files.slice(0,6).forEach(f => fd.append('images', f));
+
+      const token = localStorage.getItem('token');
+      if(!token){ toast('Sesión no válida','error'); return; }
+
+      try {
+        const res = await fetch('http://localhost:3000/api/subastas?principal=0', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token },
+          body: fd
+        });
+
+        // parseo seguro: si no es JSON, no romper
+        let data = null;
+        const text = await res.text();
+        try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+
+        if(res.ok){
+          toast((data && data.message) || "Publicación creada", "success");
+          setTimeout(()=>{ window.location.href = 'indexvendedor.html'; }, 900);
+        }else{
+          const msg = (data && data.message) || text || `Error ${res.status}`;
+          toast(msg, "error");
+        }
+      } catch (e) {
+        console.error(e);
+        toast("Error de conexión con el servidor", "error");
+      }
+    });
   </script>
 </body>
 </html>
