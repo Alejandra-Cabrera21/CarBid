@@ -32,18 +32,11 @@ const upload = multer({
 
 /* ====== Helpers ====== */
 function requireVendedor(req, res, next) {
-  if (!req.session?.vendedor)
-    return res.status(403).json({ message: "Requiere rol vendedor" });
+  if (!req.session?.vendedor) return res.status(403).json({ message: "Requiere rol vendedor" });
   next();
 }
-function toMySQLDateTime(s) {
-  if (!s) return s;
-  return s.replace("T", " ").padEnd(19, ":00"); // 'YYYY-MM-DD HH:MM:SS'
-}
-function isValidFutureDatetime(s) {
-  const d = new Date(s);
-  return s && !isNaN(d) && d > new Date();
-}
+function toMySQLDateTime(s) { if (!s) return s; return s.replace("T", " ").padEnd(19, ":00"); }
+function isValidFutureDatetime(s) { const d = new Date(s); return s && !isNaN(d) && d > new Date(); }
 /** Año válido: >=1900 y <= año actual (si viene informado) */
 function isValidYear(y) {
   if (y === undefined || y === null || y === "") return true; // opcional
@@ -58,9 +51,7 @@ router.post("/", authRequired, requireVendedor, (req, res) => {
     if (multerErr) {
       const msg = /File too large/i.test(multerErr.message)
         ? "Imagen supera 2MB"
-        : /Formato/i.test(multerErr.message)
-        ? "Formato no permitido (usa JPG/PNG)"
-        : "Error al procesar imágenes";
+        : /Formato/i.test(multerErr.message) ? "Formato no permitido (usa JPG/PNG)" : "Error al procesar imágenes";
       return res.status(400).json({ message: msg });
     }
 
@@ -68,37 +59,23 @@ router.post("/", authRequired, requireVendedor, (req, res) => {
       const { marca, modelo, anio, descripcion, precio_base } = req.body;
       let { fin } = req.body;
 
-      if (!marca || !modelo) {
-        return res.status(400).json({ message: "Marca y modelo son obligatorios" });
-      }
+      if (!marca || !modelo) return res.status(400).json({ message: "Marca y modelo son obligatorios" });
 
       const precio = Number(precio_base);
-      if (!(precio > 0)) {
-        return res.status(400).json({ message: "El precio base debe ser mayor a 0" });
-      }
+      if (!(precio > 0)) return res.status(400).json({ message: "El precio base debe ser mayor a 0" });
 
-      // Fin debe ser posterior a la hora del sistema
+      // Fin > ahora
       fin = toMySQLDateTime(fin);
-      if (!isValidFutureDatetime(fin)) {
-        return res.status(400).json({ message: "La fecha de cierre debe ser posterior a ahora" });
-      }
+      if (!isValidFutureDatetime(fin)) return res.status(400).json({ message: "La fecha de cierre debe ser posterior a ahora" });
 
-      // Año del modelo: puede ser anterior, pero NO mayor al año actual
+      // Año <= actual
       const currentYear = new Date().getFullYear();
-      if (!isValidYear(anio)) {
-        return res
-          .status(400)
-          .json({ message: `Año inválido (1900–${currentYear})` });
-      }
+      if (!isValidYear(anio)) return res.status(400).json({ message: `Año inválido (1900–${currentYear})` });
       if (anio && parseInt(anio, 10) > currentYear) {
-        return res
-          .status(400)
-          .json({ message: "El año del modelo no puede ser superior al año actual" });
+        return res.status(400).json({ message: "El año del modelo no puede ser superior al año actual" });
       }
 
-      if (!req.files?.length) {
-        return res.status(400).json({ message: "Debes subir al menos una imagen" });
-      }
+      if (!req.files?.length) return res.status(400).json({ message: "Debes subir al menos una imagen" });
 
       const qSub = `
         INSERT INTO subastas
@@ -107,42 +84,37 @@ router.post("/", authRequired, requireVendedor, (req, res) => {
       `;
       const anioNum = anio ? parseInt(anio, 10) : null;
 
-      db.query(
-        qSub,
-        [req.user.id, marca, modelo, anioNum, descripcion || null, precio, fin],
-        (err, result) => {
-          if (err) {
-            console.error("Error insert subasta:", err);
-            return res.status(500).json({ message: "Error al crear subasta" });
-          }
-          const subastaId = result.insertId;
+      db.query(qSub, [req.user.id, marca, modelo, anioNum, descripcion || null, precio, fin], (err, result) => {
+        if (err) {
+          console.error("Error insert subasta:", err);
+          return res.status(500).json({ message: "Error al crear subasta" });
+        }
+        const subastaId = result.insertId;
 
-          const principalIdx = Number.isInteger(Number(req.query.principal))
-            ? parseInt(req.query.principal, 10)
-            : 0;
-
-          const qImg = `
-            INSERT INTO imagenes_subasta (id_subasta, url, es_principal, size_bytes, mime)
-            VALUES ?
-          `;
-          const values = (req.files || []).map((f, idx) => [
-            subastaId,
-            `/uploads/${f.filename}`,
-            idx === principalIdx ? 1 : 0,
-            f.size,
-            f.mimetype,
-          ]);
-
-          if (!values.length) {
-            return res.status(201).json({ message: "Publicación creada", id_subasta: subastaId });
-          }
-
-          db.query(qImg, [values], (err2) => {
-            if (err2) console.error("Error insert imágenes:", err2);
-            return res.status(201).json({ message: "Publicación creada", id_subasta: subastaId });
+        // EMITIR evento de creación
+        const io = req.app.get('io');
+        if (io) {
+          io.emit('auction:created', {
+            id: subastaId, marca, modelo, anio: anioNum, precio_base: precio, estado: 'ABIERTA', fin
           });
         }
-      );
+
+        const principalIdx = Number.isInteger(Number(req.query.principal)) ? parseInt(req.query.principal, 10) : 0;
+        const qImg = `
+          INSERT INTO imagenes_subasta (id_subasta, url, es_principal, size_bytes, mime)
+          VALUES ?
+        `;
+        const values = (req.files || []).map((f, idx) => [
+          subastaId, `/uploads/${f.filename}`, idx === principalIdx ? 1 : 0, f.size, f.mimetype,
+        ]);
+
+        if (!values.length) return res.status(201).json({ message: "Publicación creada", id_subasta: subastaId });
+
+        db.query(qImg, [values], (err2) => {
+          if (err2) console.error("Error insert imágenes:", err2);
+          return res.status(201).json({ message: "Publicación creada", id_subasta: subastaId });
+        });
+      });
     } catch (e) {
       console.error(e);
       return res.status(500).json({ message: "Error al crear publicación" });
@@ -150,7 +122,34 @@ router.post("/", authRequired, requireVendedor, (req, res) => {
   });
 });
 
-/* ========== GET /api/subastas/mias/listado (vendedor autenticado) ========== */
+/* ========== PATCH /api/subastas/:id/cerrar (cierre manual) ========== */
+router.patch("/:id/cerrar", authRequired, requireVendedor, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  // (opcional) verificar propiedad: que la subasta sea del vendedor logueado
+  const qGet = "SELECT id_vendedor, estado FROM subastas WHERE id=? LIMIT 1";
+  db.query(qGet, [id], (e, r) => {
+    if (e) return res.status(500).json({ message: "Error DB" });
+    if (!r.length) return res.status(404).json({ message: "No encontrada" });
+    const sub = r[0];
+    if (sub.estado === 'CERRADA') return res.json({ message: "Ya estaba cerrada" });
+
+    // Si quieres forzar propiedad: if (sub.id_vendedor !== req.user.id) return res.status(403).json({message:'No autorizado'});
+
+    const qUpd = "UPDATE subastas SET estado='CERRADA', fin=IF(fin<NOW(), fin, NOW()), updated_at=NOW() WHERE id=?";
+    db.query(qUpd, [id], (e2) => {
+      if (e2) return res.status(500).json({ message: "Error al cerrar" });
+
+      // EMITIR cierre en tiempo real
+      const io = req.app.get('io');
+      if (io) io.emit('auction:closed', { ids: [id] });
+
+      res.json({ message: "Subasta cerrada", id });
+    });
+  });
+});
+
+/* ========== GET /api/subastas/mias/listado ========== */
 router.get("/mias/listado", authRequired, requireVendedor, (req, res) => {
   const q = `
     SELECT id, marca, modelo, anio, precio_base, estado, fin, created_at
@@ -181,11 +180,7 @@ router.get("/:id", (req, res) => {
 
       db.query(qTop, [id], (e3, top) => {
         if (e3) return res.status(500).json({ message: "Error DB" });
-        res.json({
-          subasta: sub,
-          imagenes: imgs,
-          oferta_actual: top.length ? top[0].monto : null,
-        });
+        res.json({ subasta: sub, imagenes: imgs, oferta_actual: top.length ? top[0].monto : null });
       });
     });
   });
