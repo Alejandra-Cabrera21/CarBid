@@ -11,44 +11,105 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-  <style>
-    :root{
-      --border:#5bd3ff;
-      --border-focus:#8be9ff;
-      --error:#ff4d4f;
-    }
-    .form-grid{max-width:880px;margin:30px auto;background:#111;padding:28px;border-radius:12px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-    .row.full{grid-template-columns:1fr}
-    label{display:block;margin:6px 0 8px;color:#fff}
-    input,textarea{
-      width:100%;padding:12px;border-radius:10px;
-      border:1.5px solid var(--border);
-      background:#171717;color:#fff;outline:none;
-      transition:box-shadow .15s ease,border-color .15s ease;
-    }
-    input:focus,textarea:focus{
-      border-color:var(--border-focus);
-      box-shadow:0 0 0 3px rgba(139,233,255,.2);
-    }
-    .row>div{margin-bottom:8px}
-    .thumbs{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
-    .thumbs img{width:110px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #333}
-    .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:16px}
-    .btn{padding:10px 16px;border-radius:10px;border:none;cursor:pointer}
-    .btn-primary{background:#67c7d6}
-    .btn-ghost{background:transparent;border:1px solid #444;color:#fff}
-    small.error{color:var(--error)}
+ <style>
+  :root{
+    /* tonos suaves en gris */
+    --border:#cbd5e1;        /* gris claro para borde */
+    --border-focus:#94a3b8;  /* gris medio al enfocar */
+    --field-bg:#f2f4f7;      /* gris claro de fondo */
+    --field-text:#0f172a;
+    --placeholder:#9aa4b2;
+    --error:#ff4d4f;
+  }
 
-    /* Toastify temas */
-    .toastify.success{background:linear-gradient(90deg,#00c853,#00e676)}
-    .toastify.error{background:linear-gradient(90deg,#ff5252,#ff1744)}
-    .toastify.info{background:linear-gradient(90deg,#2196f3,#42a5f5)}
-  </style>
+  /* contenedor un poco más aireado */
+  .form-grid{
+    max-width:920px;
+    margin:40px auto;
+    background:#111;
+    padding:36px;
+    border-radius:14px;
+  }
+
+  /* MÁS separación entre columnas y filas */
+  .row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    column-gap:32px; /* espacio entre columnas */
+    row-gap:24px;    /* espacio entre filas */
+  }
+  .row.full{ grid-template-columns:1fr; }
+  .row>div{ margin-bottom:8px; }
+
+  /* labels y asterisco obligatorio */
+  label{display:block;margin:4px 0 10px;color:#fff}
+  .req::after{content:" *"; color:var(--error); font-weight:600}
+
+  /* CAMPOS en gris claro, sin azul eléctrico */
+  input,textarea,select{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:1.5px solid var(--border);
+    background:var(--field-bg);
+    color:var(--field-text);
+    outline:none;
+    box-shadow:none;
+    transition:box-shadow .15s ease,border-color .15s ease;
+  }
+  input::placeholder,textarea::placeholder{ color:var(--placeholder); }
+
+  input:focus,textarea:focus,select:focus{
+    border-color:var(--border-focus);
+    box-shadow:0 0 0 3px rgba(148,163,184,.18); /* halo gris suave */
+  }
+
+  /* dar un poco más de alto al textarea */
+  textarea{ min-height:120px; }
+
+  /* file input en claro */
+  input[type="file"]{
+    background:var(--field-bg);
+    color:var(--field-text);
+    border:1.5px solid var(--border);
+  }
+
+  /* quitar outlines azules del navegador */
+  input:focus-visible,textarea:focus-visible,select:focus-visible{ outline:none; }
+
+  /* evitar autocompletado amarillo en Chrome */
+  input:-webkit-autofill,textarea:-webkit-autofill,select:-webkit-autofill{
+    -webkit-box-shadow:0 0 0 1000px var(--field-bg) inset !important;
+    -webkit-text-fill-color:var(--field-text) !important;
+  }
+
+  .thumbs{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+  .thumbs img{width:110px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #333}
+
+  .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:20px}
+  .btn{padding:10px 16px;border-radius:10px;border:none;cursor:pointer}
+  .btn-primary{background:#67c7d6}
+  .btn-ghost{background:transparent;border:1px solid #444;color:#fff}
+  small.error{color:var(--error)}
+
+  /* Toastify temas */
+  .toastify.success{background:linear-gradient(90deg,#00c853,#00e676)}
+  .toastify.error{background:linear-gradient(90deg,#ff5252,#ff1744)}
+  .toastify.info{background:linear-gradient(90deg,#2196f3,#42a5f5)}
+
+  @media (max-width:900px){
+    .row{grid-template-columns:1fr; column-gap:0; row-gap:18px}
+  }
+</style>
+
 </head>
 <body>
-  <header style="padding:12px 20px;background:#0f0f0f;display:flex;align-items:center;justify-content:space-between">
-    <a href="indexvendedor.html" style="color:#fff;text-decoration:none">← Regresar</a>
+  <header style="padding:12px 20px;background:#0f0f0f;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="indexvendedor.html" style="color:#fff;text-decoration:none">← Regresar</a>
+      <!-- Logo (ajusta la ruta si es necesario) -->
+      <img src="img/logo.png" alt="CarBid" style="height:36px;display:block"/>
+    </div>
     <strong style="color:#fff">Crear publicación</strong>
     <div></div>
   </header>
@@ -56,12 +117,12 @@
   <main class="form-grid">
     <div class="row">
       <div>
-        <label>Marca</label>
+        <label class="req">Marca</label>
         <input id="marca" placeholder="Toyota" />
         <small class="error" id="err-marca"></small>
       </div>
       <div>
-        <label>Modelo</label>
+        <label class="req">Modelo</label>
         <input id="modelo" placeholder="Corolla" />
         <small class="error" id="err-modelo"></small>
       </div>
@@ -74,7 +135,7 @@
         <small class="error" id="err-anio"></small>
       </div>
       <div>
-        <label>Precio base (USD)</label>
+        <label class="req">Precio base (USD)</label>
         <input id="precio" type="number" step="0.01" min="0.01" placeholder="5000.00" />
         <small class="error" id="err-precio"></small>
       </div>
@@ -89,12 +150,12 @@
 
     <div class="row">
       <div>
-        <label>Fecha y hora de cierre</label>
+        <label class="req">Fecha y hora de cierre</label>
         <input id="fin" type="datetime-local" />
         <small class="error" id="err-fin"></small>
       </div>
       <div>
-        <label>Imágenes (JPG/PNG, hasta 6, máx 2MB c/u)</label>
+        <label class="req">Imágenes (JPG/PNG, hasta 6, máx 2MB c/u)</label>
         <input id="images" type="file" accept=".jpg,.jpeg,.png" multiple />
         <div class="thumbs" id="thumbs"></div>
         <small class="error" id="err-images"></small>
