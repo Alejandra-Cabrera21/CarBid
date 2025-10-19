@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mis subastas - CarBid</title>
+
+  <link rel="stylesheet" href="css/panel-vendedor.css"/>
+
+  <!-- Toastify -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+  <!-- (Opcional) Socket.IO si tu backend lo sirve -->
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+
+  <style>
+    :root{
+      --ok:#a3e635; --err:#ef4444;
+      --card:#111; --fg:#fff; --muted:#9ca3af; --border:#1f2937;
+    }
+    html,body{margin:0;background:#0b0b0b;color:var(--fg)}
+    header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0f0f0f}
+    header a{color:#fff;text-decoration:none;font-size:20px}
+    header img{height:32px}
+
+    .wrap{max-width:920px;margin:24px auto;padding:0 12px}
+    h1{text-align:center;margin:18px 0 22px}
+
+    .list{display:flex;flex-direction:column;gap:16px}
+    .item{
+      display:grid;grid-template-columns:1fr auto;align-items:center;gap:18px;
+      background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;
+    }
+    .item-title{font-size:1.05rem;font-weight:600}
+    .meta{font-size:.9rem;color:var(--muted);margin-top:4px}
+
+    .estado{display:flex;align-items:center;gap:12px}
+
+    /* Chip de estado (solo ícono) */
+    .badge{
+      padding:4px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      display:inline-flex;align-items:center;justify-content:center;
+      width:26px;height:26px;
+    }
+    .badge.abierta{background:rgba(163,230,53,.15);border-color:rgba(163,230,53,.35)}
+    .badge.cerrada{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.35)}
+    .icon{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:18px;height:18px;border-radius:50%;
+      font-size:12px;font-weight:700; line-height:1;
+    }
+    .icon.ok{background:rgba(163,230,53,.25)}
+    .icon.err{background:rgba(239,68,68,.25)}
+
+    /* Selector con caret ▾ */
+    .sel-wrap{position:relative;display:inline-block}
+    .sel-wrap .caret{
+      position:absolute;right:10px;top:50%;transform:translateY(-50%);
+      pointer-events:none;opacity:.8
+    }
+    .select{
+      appearance:none;-webkit-appearance:none;-moz-appearance:none;
+      border:1px solid var(--border);background:#0f0f0f;color:#fff;border-radius:10px;
+      padding:8px 30px 8px 10px;cursor:pointer;min-width:140px;
+    }
+    .select.abierta{box-shadow:0 0 0 2px rgba(163,230,53,.25) inset}
+    .select.cerrada{box-shadow:0 0 0 2px rgba(239,68,68,.25) inset}
+
+    #empty{opacity:.8;text-align:center;margin:28px 0}
+    @media (max-width:700px){.item{grid-template-columns:1fr;gap:12px}}
+  </style>
+</head>
+<body>
+  <header>
+    <a href="indexvendedor.html" aria-label="Regresar">←</a>
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="img/logo.png" alt="CarBid"><strong>Mis subastas</strong>
+    </div>
+    <div></div>
+  </header>
+
+  <main class="wrap">
+    <h1>Subastas creadas</h1>
+
+    <section id="list" class="list"></section>
+    <p id="empty" style="display:none">No tienes subastas aún.</p>
+  </main>
+
+<script>
+  const API = 'http://localhost:3000/api';
+
+  function toast(msg,type='info'){
+    Toastify({text:msg,duration:3000,gravity:'top',position:'right',close:true,className:type}).showToast();
+  }
+
+  // === Solo ícono (✓ o ✕) sin texto ===
+  function badgeHTML(estado){
+    const abierta = estado === 'ABIERTA';
+    const icon = abierta ? '<span class="icon ok">✓</span>' : '<span class="icon err">✕</span>';
+    const cls = abierta ? 'abierta' : 'cerrada';
+    return `<span class="badge ${cls}">${icon}</span>`;
+  }
+
+ function renderItem(sub){
+  const li = document.createElement('article');
+  li.className = 'item';
+
+  const title = document.createElement('div');
+  title.innerHTML = `
+    <div class="item-title">${sub.marca} ${sub.modelo}${sub.anio ? ' ' + sub.anio : ''}</div>
+    <div class="meta">
+      Precio base: $${Number(sub.precio_base).toLocaleString('en-US')}
+      &nbsp;•&nbsp; Oferta más alta: <strong>$${Number(sub.oferta_max || 0).toLocaleString('en-US')}</strong>
+      &nbsp;•&nbsp; Cierra: ${sub.fin ? new Date(sub.fin).toLocaleString() : '—'}
+    </div>
+  `;
+
+  const estadoBox = document.createElement('div');
+  estadoBox.className = 'estado';
+
+  // Icono de estado
+  const badge = document.createElement('span');
+  badge.innerHTML = badgeHTML(sub.estado);
+
+  // Selector con caret ▾
+  const wrap = document.createElement('span');
+  wrap.className = 'sel-wrap';
+  const sel = document.createElement('select');
+  sel.className = 'select ' + (sub.estado === 'ABIERTA' ? 'abierta' : 'cerrada');
+  sel.innerHTML = `
+    <option value="ABIERTA" ${sub.estado==='ABIERTA'?'selected':''}>Abierta</option>
+    <option value="CERRADA" ${sub.estado==='CERRADA'?'selected':''}>Cerrada</option>
+  `;
+  const caret = document.createElement('span');
+  caret.className = 'caret';
+  caret.textContent = '▾';
+  wrap.appendChild(sel);
+  wrap.appendChild(caret);
+
+  sel.addEventListener('change', async () => {
+    const nuevo = sel.value;
+    const ok = await changeStatus(sub.id, nuevo);
+    if(ok){
+      badge.innerHTML = badgeHTML(nuevo);
+      sel.className = 'select ' + (nuevo === 'ABIERTA' ? 'abierta' : 'cerrada');
+      sub.estado = nuevo;
+    }else{
+      sel.value = sub.estado;
+    }
+  });
+
+  estadoBox.append(badge, wrap);
+  li.append(title, estadoBox);
+  return li;
+}
+
+
+  async function changeStatus(id, estado){
+    const token = localStorage.getItem('token');
+    if(!token){ toast('Sesión inválida','error'); return false; }
+    try{
+      const res = await fetch(`${API}/subastas/${id}/estado`, {
+        method:'PUT',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization':'Bearer '+token,
+          'Cache-Control':'no-store'
+        },
+        body: JSON.stringify({ estado })
+      });
+      const text = await res.text();
+      let data=null; try{ data = text?JSON.parse(text):null; }catch{}
+      if(res.ok){
+        toast('Estado actualizado','success');
+        return true;
+      }else{
+        toast(data?.message || text || 'No se pudo actualizar','error');
+        return false;
+      }
+    }catch(e){
+      console.error(e);
+      toast('Error de conexión','error');
+      return false;
+    }
+  }
+
+  async function loadMyAuctions(){
+    const token = localStorage.getItem('token');
+    const list = document.getElementById('list');
+    const empty = document.getElementById('empty');
+    list.innerHTML = '';
+    empty.style.display = 'none';
+
+    if(!token){
+      empty.textContent = 'Necesitas iniciar sesión como vendedor.';
+      empty.style.display = 'block';
+      return;
+    }
+
+    try{
+      const res = await fetch(`${API}/subastas/mias/listado?ts=${Date.now()}`, {
+        headers: { 'Authorization':'Bearer '+token, 'Cache-Control':'no-store' },
+        cache: 'no-store'
+      });
+      const text = await res.text();
+      let data=null; try{ data = text?JSON.parse(text):null; }catch{}
+
+      if(res.ok){
+        if(!data || !data.length){
+          empty.textContent = 'No tienes subastas aún.';
+          empty.style.display = 'block';
+          return;
+        }
+        data.forEach(sub => list.appendChild(renderItem(sub)));
+      }else{
+        empty.textContent = (data?.message || text || `Error ${res.status}`);
+        empty.style.display = 'block';
+      }
+    }catch(e){
+      console.error(e);
+      empty.textContent = 'Error de conexión';
+      empty.style.display = 'block';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadMyAuctions);
+  window.addEventListener('pageshow', (ev) => { if(ev.persisted) loadMyAuctions(); });
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible') loadMyAuctions();
+  });
+
+  // (Opcional) refrescar por sockets si otro evento cambia estados
+    // 🔌 Refrescar automáticamente por eventos WebSocket
+  try {
+    const socket = io('http://localhost:3000', { transports: ['websocket'] });
+
+    // Si cambia el estado de una subasta (ej: abierta/cerrada)
+    socket.on('auction:updated', () => loadMyAuctions());
+
+    // 🔥 Si alguien hace una nueva puja en tiempo real
+    socket.on('auction:bid', (data) => {
+      console.log('Nueva puja detectada:', data);
+      loadMyAuctions(); // Refresca el listado con la nueva oferta más alta
+    });
+  } catch (_) {
+    console.warn('No se pudo conectar con Socket.IO');
+  }
+
+</script>
+</body>
+</html>
