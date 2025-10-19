@@ -201,4 +201,75 @@ router.get("/", (req, res) => {
   });
 });
 
+/* ========== PATCH /api/subastas/:id/estado (abrir/cerrar) ========== */
+router.patch("/:id/estado", authRequired, requireVendedor, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const { estado } = req.body;
+
+  if (!["ABIERTA", "CERRADA"].includes((estado || "").toUpperCase())) {
+    return res.status(400).json({ message: "Estado inválido (ABIERTA/CERRADA)" });
+  }
+  const nuevoEstado = estado.toUpperCase();
+
+  const q = `UPDATE subastas SET estado = ? WHERE id = ? AND id_vendedor = ?`;
+  db.query(q, [nuevoEstado, id, req.user.id], (err, result) => {
+    if (err) {
+      console.error("Error actualizando estado:", err);
+      return res.status(500).json({ message: "Error DB" });
+    }
+    if (result.affectedRows === 0) {
+      // no existe o no pertenece al vendedor logueado
+      return res.status(404).json({ message: "Subasta no encontrada" });
+    }
+
+    // OK
+    res.json({ message: "Estado actualizado", id, estado: nuevoEstado });
+
+    // Broadcast por WebSocket
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("subasta:estado", { id, estado: nuevoEstado }); // todos los clientes reciben el cambio
+    }
+  });
+});
+
+
+/* ========== PUT /api/subastas/:id/estado (abrir/cerrar) ========== */
+router.put("/:id/estado", authRequired, requireVendedor, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const { estado } = req.body || {};
+
+  // Validación del nuevo estado
+  if (!["ABIERTA", "CERRADA"].includes(estado)) {
+    return res.status(400).json({ message: "Estado inválido" });
+  }
+
+  // Solo puede cambiar el dueño de la subasta
+  const q = `
+    UPDATE subastas
+    SET estado = ?, updated_at = NOW()
+    WHERE id = ? AND id_vendedor = ?
+  `;
+
+  db.query(q, [estado, id, req.user.id], (err, result) => {
+    if (err) {
+      console.error("Error update estado:", err);
+      return res.status(500).json({ message: "Error al actualizar estado" });
+    }
+    if (result.affectedRows === 0) {
+      // No existe o no eres el dueño
+      return res.status(404).json({ message: "Subasta no encontrada" });
+    }
+
+    // Aviso por WebSocket (si está habilitado)
+    try {
+      const io = req.app.get("io");
+      if (io) io.emit("auction:updated", { id, estado });
+    } catch (_) {}
+
+    return res.json({ message: "Estado actualizado", id, estado });
+  });
+});
+
+
 module.exports = router;
