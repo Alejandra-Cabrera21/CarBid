@@ -137,7 +137,6 @@
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    // 🛎️ Manejador de notificaciones
     function addNotif(msg){
       notifs.unshift(msg);
       bellCount.textContent = notifs.length;
@@ -158,9 +157,30 @@
       });
     }
 
+    // 🔔 Cargar notificaciones reales desde la API
+    async function loadNotificaciones() {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const r = await fetch(`${API}/notificaciones`, {
+          headers: { "Authorization": "Bearer " + token }
+        });
+        if (!r.ok) throw new Error("Error al cargar notificaciones");
+        const data = await r.json();
+        notifs = data.map(
+          n => `🏁 Ganaste la subasta ${n.marca} ${n.modelo} por Q${n.monto.toLocaleString()}`
+        );
+        bellCount.textContent = notifs.length;
+        renderNotifs();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
     // Mostrar/ocultar notificaciones
-    bell.addEventListener('click', ()=>{
+    bell.addEventListener('click', () => {
       notifBox.style.display = notifBox.style.display === 'flex' ? 'none' : 'flex';
+      if (notifBox.style.display === 'flex') loadNotificaciones();
     });
 
     function createSlider(imagenes){

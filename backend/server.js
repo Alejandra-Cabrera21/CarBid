@@ -23,6 +23,9 @@ const usuarioRoutes  = require('./routes/usuario');
 const authRoutes     = require('./routes/auth');
 const auctionsRoutes = require('./routes/auctions');
 const bidsRoutes     = require('./routes/bids');
+const notificacionesRoutes = require('./routes/notificaciones');
+app.use('/api/notificaciones', notificacionesRoutes);
+
 
 app.use('/api/usuario', usuarioRoutes);
 app.use('/api/auth',    authRoutes);
@@ -99,13 +102,27 @@ function closeExpiredAuctionsOnce() {
             console.error(`❌ Error buscando ganador subasta ${id}:`, err3);
             return;
           }
-          if (rows.length) {
-            const ganador = rows[0];
-            io.emit('auction:won', { id_subasta: id, id_postor: ganador.id_postor });
-            console.log(`🏁 Notificado ganador subasta ${id} → usuario ${ganador.id_postor}`);
-          } else {
-            console.log(`⚠️ Subasta ${id} cerrada sin pujas.`);
-          }
+      if (rows.length) {
+  const ganador = rows[0];
+
+  // 🧠 Guardar en tabla ganadores si aún no existe
+  const qInsert = `
+    INSERT INTO ganadores (id_subasta, id_postor, monto)
+    SELECT ?, ?, ?
+    WHERE NOT EXISTS (
+      SELECT 1 FROM ganadores WHERE id_subasta = ?
+    )
+  `;
+  db.query(qInsert, [id, ganador.id_postor, ganador.monto, id], (err4) => {
+    if (err4) console.error("⚠️ Error insertando ganador:", err4);
+  });
+
+  // 🔔 Emitir evento al frontend
+  const io = app.get('io');
+  io.emit('auction:won', { id_subasta: id, id_postor: ganador.id_postor });
+  console.log(`🏁 Notificado ganador subasta ${id} → usuario ${ganador.id_postor}`);
+}
+
         });
       });
     });
