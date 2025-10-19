@@ -31,20 +31,50 @@
       padding-bottom:2px;
     }
 
-    /* Modal */
+    /* ===== Modal ===== */
     .modal-backdrop{
       position:fixed;inset:0;background:rgba(0,0,0,.6);
       display:none;align-items:center;justify-content:center;z-index:9999
     }
-    .modal{background:#121212;color:#fff;border:1px solid #2a2a2a;border-radius:12px;max-width:420px;width:92vw;padding:18px}
-    .modal h3{margin:0 0 10px}
-    .modal input{width:100%;padding:10px;border-radius:8px;border:1px solid #2a2a2a;background:#0f0f0f;color:#fff}
-    .modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
-    .btn{background:#2563eb;border:none;color:#fff;border-radius:8px;padding:10px 14px;cursor:pointer}
-    .btn.secondary{background:#2a2a2a}
-    .hint{font-size:.9rem;color:#cbd5e1;margin-top:6px;min-height:18px}
-    .ok{color:#a3e635}
-    .bad{color:#ef4444}
+
+    /* MODAL BLANCO */
+    .modal{
+      background:#ffffff;           /* <— blanco */
+      color:#111;                   /* texto oscuro */
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      max-width:420px;width:92vw;
+      padding:20px 18px;
+      box-shadow:0 20px 50px rgba(0,0,0,.25);
+    }
+    .modal h3{margin:0 0 12px}
+
+    /* Inputs blancos dentro del modal */
+    .modal input{
+      width:100%;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #cfd4dc;
+      background:#ffffff;          /* <— blanco */
+      color:#111;
+      outline:none;
+    }
+    .modal input::placeholder{color:#6b7280}
+    .modal input:focus{
+      border-color:#2563eb;
+      box-shadow:0 0 0 3px rgba(37,99,235,.15);
+    }
+
+    .modal .actions{
+      display:flex;gap:10px;justify-content:flex-end;
+      margin-top:14px;flex-wrap:wrap
+    }
+    .btn{background:#2563eb;border:none;color:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .btn.secondary{background:#e5e7eb;color:#111}
+    .btn:hover{filter:brightness(.95)}
+    .hint{font-size:.9rem;color:#374151;margin-top:6px;min-height:18px}
+    .ok{color:#16a34a}
+    .bad{color:#dc2626}
   </style>
 </head>
 <body>
@@ -224,8 +254,9 @@
         });
         const data = await r.json();
         if(r.ok){
-          // En dev te mando el código en el JSON como devHint
-          fpHint1.innerHTML = `Si el correo existe, enviamos un código.${data.devHint?`<br><small class="hint">Código dev: <b>${data.devHint}</b></small>`:''}`;
+          // SIN mostrar devHint ni código en pantalla
+          fpHint1.textContent = "Si el correo existe, te enviamos un código.";
+          fpHint1.className = 'hint';
           step1.style.display='none'; step2.style.display='block';
           fpCode.focus();
         }else{
