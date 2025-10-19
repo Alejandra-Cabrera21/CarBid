@@ -19,10 +19,10 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 /* ===== Rutas API ===== */
-const usuarioRoutes  = require('./routes/usuario');   // si no existen, comenta
-const authRoutes     = require('./routes/auth');      // si no existen, comenta
-const auctionsRoutes = require('./routes/auctions');  // importante
-const bidsRoutes     = require('./routes/bids');      // asegúrate que exista este archivo
+const usuarioRoutes  = require('./routes/usuario');
+const authRoutes     = require('./routes/auth');
+const auctionsRoutes = require('./routes/auctions');
+const bidsRoutes     = require('./routes/bids');
 
 app.use('/api/usuario', usuarioRoutes);
 app.use('/api/auth',    authRoutes);
@@ -50,41 +50,64 @@ io.on('connection', (socket) => {
 /* ===== Servir frontend (carpeta docs) ===== */
 app.use(express.static(path.join(__dirname, 'docs')));
 
-/* ===== Cierre automático de subastas vencidas ===== */
 /* ====== Cierre automático de subastas vencidas ====== */
 function closeExpiredAuctionsOnce() {
-  const qSel = "SELECT id FROM subastas WHERE estado='ABIERTA' AND fin <= NOW()";
-  db.query(qSel, [], (e, rows) => {
-    if (e || !rows.length) return;
-    const ids = rows.map(r => r.id);
+  const qSel = `
+    SELECT id 
+    FROM subastas 
+    WHERE estado='ABIERTA' 
+    AND fin <= NOW()
+  `;
+
+  db.query(qSel, [], (err, subastas) => {
+    if (err) {
+      console.error('❌ Error buscando subastas vencidas:', err);
+      return;
+    }
+
+    if (!subastas.length) return;
+
+    const ids = subastas.map(s => s.id);
     const qUpd = `
       UPDATE subastas 
       SET estado='CERRADA', updated_at=NOW() 
       WHERE id IN (${ids.map(() => '?').join(',')})
     `;
-    db.query(qUpd, ids, (e2) => {
-      if (!e2) {
-        const io = app.get('io');
-        io.emit('auction:closed', { ids });
 
-        // 🔔 Notificar ganadores automáticamente
-        ids.forEach(id => {
-          const qGanador = `
-            SELECT id_postor, monto 
-            FROM pujas 
-            WHERE id_subasta=? 
-            ORDER BY monto DESC, created_at ASC 
-            LIMIT 1
-          `;
-          db.query(qGanador, [id], (err, rows) => {
-            if (!err && rows.length) {
-              const ganador = rows[0];
-              io.emit('auction:won', { id_subasta: id, id_postor: ganador.id_postor });
-              console.log(`🏆 Notificado ganador de subasta ${id}`);
-            }
-          });
-        });
+    db.query(qUpd, ids, (err2) => {
+      if (err2) {
+        console.error('❌ Error actualizando subastas:', err2);
+        return;
       }
+
+      const io = app.get('io');
+      io.emit('auction:closed', { ids });
+      io.emit('auction:updated', { ids }); // 💡 nuevo evento para refrescar el frontend dinámicamente
+      console.log(`🔒 Subastas cerradas automáticamente: ${ids.join(', ')}`);
+
+      // 🔔 Notificar ganadores automáticamente
+      ids.forEach(id => {
+        const qGanador = `
+          SELECT id_postor, monto 
+          FROM pujas 
+          WHERE id_subasta=? 
+          ORDER BY monto DESC, created_at ASC 
+          LIMIT 1
+        `;
+        db.query(qGanador, [id], (err3, rows) => {
+          if (err3) {
+            console.error(`❌ Error buscando ganador subasta ${id}:`, err3);
+            return;
+          }
+          if (rows.length) {
+            const ganador = rows[0];
+            io.emit('auction:won', { id_subasta: id, id_postor: ganador.id_postor });
+            console.log(`🏁 Notificado ganador subasta ${id} → usuario ${ganador.id_postor}`);
+          } else {
+            console.log(`⚠️ Subasta ${id} cerrada sin pujas.`);
+          }
+        });
+      });
     });
   });
 }
