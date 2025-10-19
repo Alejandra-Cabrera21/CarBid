@@ -19,18 +19,19 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 /* ===== Rutas API ===== */
-const usuarioRoutes  = require('./routes/usuario');
-const authRoutes     = require('./routes/auth');
-const auctionsRoutes = require('./routes/auctions');
-const bidsRoutes     = require('./routes/bids');
+const usuarioRoutes       = require('./routes/usuario');
+const authRoutes          = require('./routes/auth');
+const auctionsRoutes      = require('./routes/auctions');
+const bidsRoutes          = require('./routes/bids');
 const notificacionesRoutes = require('./routes/notificaciones');
-app.use('/api/notificaciones', notificacionesRoutes);
-
+const historialPujasRoutes = require('./routes/historialPujas'); // 🆕 nueva ruta
 
 app.use('/api/usuario', usuarioRoutes);
-app.use('/api/auth',    authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/subastas', auctionsRoutes);
 app.use('/api/pujas', bidsRoutes);
+app.use('/api/notificaciones', notificacionesRoutes);
+app.use('/api/historial-pujas', historialPujasRoutes); // 🧩 nueva línea añadida
 
 /* ===== Pings de prueba ===== */
 app.get('/__ping', (_req, res) => res.json({ ok: true, where: 'root' }));
