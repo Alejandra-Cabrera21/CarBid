@@ -29,4 +29,29 @@ router.get("/", authRequired, (req, res) => {
   });
 });
 
+/**
+ * 🗑️ DELETE /api/notificaciones/:id_subasta
+ * Elimina la notificación (ganador) para un usuario específico.
+ */
+router.delete("/:id_subasta", authRequired, (req, res) => {
+  const userId = req.user.id;
+  const { id_subasta } = req.params;
+
+  const q = `
+    DELETE FROM ganadores 
+    WHERE id_subasta = ? AND id_postor = ?
+  `;
+
+  db.query(q, [id_subasta, userId], (err, result) => {
+    if (err) {
+      console.error("❌ Error al eliminar notificación:", err);
+      return res.status(500).json({ message: "Error al eliminar notificación" });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Notificación no encontrada" });
+    }
+    res.json({ ok: true });
+  });
+});
+
 module.exports = router;
