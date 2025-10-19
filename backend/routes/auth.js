@@ -1,11 +1,24 @@
+// routes/auth.js
 const express = require("express");
 const router = express.Router();
 const db = require("../db");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const nodemailer = require("nodemailer");
 
 // Usa variable de entorno en producción
 const SECRET_KEY = process.env.JWT_SECRET || "carbid-secret";
+
+// === Nodemailer (SMTP) ===
+const mailer = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT || 587),
+  secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 // 🕒 Suma horas a la fecha actual (para fecha_expiracion)
 function sumarHoras(horas) {
@@ -172,6 +185,133 @@ router.post("/logout", authRequired, (req, res) => {
   db.query(q, [req.sessionId], (err) => {
     if (err) return res.status(500).json({ message: "Error al cerrar sesión" });
     return res.json({ message: "Sesión cerrada" });
+  });
+});
+
+/* ======================================================
+   🔹 OLVIDÉ MI CONTRASEÑA (solicitar código)
+   POST /api/auth/forgot  { email }
+   - Genera un código de 6 dígitos, válido 15 min
+   - En dev devuelve devHint con el código
+   - NO crea la tabla (ya existe)
+====================================================== */
+router.post("/forgot", (req, res) => {
+  const { email } = req.body || {};
+  if (!email) return res.status(400).json({ message: "Correo requerido" });
+
+  const qUser = "SELECT id FROM usuarios WHERE correo = ? LIMIT 1";
+  db.query(qUser, [email], (err, rows) => {
+    if (err) return res.status(500).json({ message: "Error DB" });
+
+    // Siempre respondemos 200 para no filtrar existencia del email
+    const code = ("" + Math.floor(100000 + Math.random() * 900000)).slice(-6);
+    const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+
+    // Si NO existe el usuario → no guardamos nada, pero respondemos igual
+    if (!rows.length) {
+      return res.json({
+        message: "Si el correo existe, te enviamos un código.",
+        ...(process.env.NODE_ENV !== "production" ? { devHint: "xxxxxx" } : {}),
+      });
+    }
+
+    // Insertar el código en la tabla EXISTENTE password_resets
+    const insert = `
+      INSERT INTO password_resets (email, code, expires_at)
+      VALUES (?, ?, ?)
+    `;
+    db.query(insert, [email, code, expires], async (e2) => {
+      if (e2) return res.status(500).json({ message: "Error generando código" });
+
+      // Enviar email (best-effort, no rompemos si falla)
+      try {
+        await mailer.sendMail({
+          from: process.env.MAIL_FROM || process.env.SMTP_USER,
+          to: email,
+          subject: "CarBid – Código para restablecer tu contraseña",
+          html: `
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#111">
+              <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+              <p>Tu código es:</p>
+              <p style="font-size:28px;font-weight:700;letter-spacing:2px;margin:10px 0">${code}</p>
+              <p>Este código caduca en <strong>15 minutos</strong>.</p>
+              <p>Si no hiciste esta solicitud, ignora este correo.</p>
+              <hr/>
+              <p style="font-size:12px;color:#555">CarBid</p>
+            </div>
+          `,
+          text: `Tu código de recuperación es: ${code} (válido 15 minutos)`,
+        });
+      } catch (mailErr) {
+        console.warn("⚠️ Error enviando correo de reset:", mailErr.message);
+      }
+
+      const dev = process.env.NODE_ENV !== "production";
+      return res.json({
+        message: "Si el correo existe, te enviamos un código.",
+        ...(dev ? { devHint: code } : {}),
+      });
+    });
+  });
+});
+
+/* ======================================================
+   🔹 VERIFICAR CÓDIGO Y CAMBIAR CONTRASEÑA
+   POST /api/auth/forgot/verify
+   body: { email, code, newPassword }
+====================================================== */
+router.post("/forgot/verify", (req, res) => {
+  const { email, code, newPassword } = req.body || {};
+  if (!email || !code || !newPassword) {
+    return res.status(400).json({ message: "Faltan datos" });
+  }
+  if (String(newPassword).length < 6) {
+    return res.status(400).json({ message: "La contraseña debe tener al menos 6 caracteres" });
+  }
+
+  const qSel = `
+    SELECT id, expires_at, used
+    FROM password_resets
+    WHERE email = ? AND code = ?
+    ORDER BY id DESC
+    LIMIT 1
+  `;
+  db.query(qSel, [email, code], (err, rows) => {
+    if (err) return res.status(500).json({ message: "Error DB" });
+    if (!rows.length) return res.status(400).json({ message: "Código inválido" });
+
+    const row = rows[0];
+    if (row.used) return res.status(400).json({ message: "Código ya utilizado" });
+    if (new Date(row.expires_at) <= new Date()) {
+      return res.status(400).json({ message: "Código expirado" });
+    }
+
+    const hash = bcrypt.hashSync(newPassword, 10);
+
+    // Cambiar contraseña del usuario
+    const qUpdUser = `UPDATE usuarios SET contraseña = ? WHERE correo = ? LIMIT 1`;
+    db.query(qUpdUser, [hash, email], (e2, result2) => {
+      if (e2) return res.status(500).json({ message: "Error actualizando contraseña" });
+      if (result2.affectedRows === 0) {
+        // Si no existe el usuario (edge case), marcamos usado igual para invalidar el código
+        db.query(`UPDATE password_resets SET used = 1 WHERE id = ?`, [row.id], () => {});
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+
+      // Marcar reset como usado
+      db.query(`UPDATE password_resets SET used = 1 WHERE id = ?`, [row.id], () => {});
+
+      // Invalidar sesiones activas del usuario de ese correo
+      const qDelSes = `
+        DELETE s
+        FROM sesiones s
+        JOIN usuarios u ON u.id = s.id_usuario
+        WHERE u.correo = ?
+      `;
+      db.query(qDelSes, [email], () => {});
+
+      return res.json({ message: "Contraseña actualizada" });
+    });
   });
 });
 
