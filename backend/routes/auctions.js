@@ -152,16 +152,32 @@ router.patch("/:id/cerrar", authRequired, requireVendedor, (req, res) => {
 /* ========== GET /api/subastas/mias/listado ========== */
 router.get("/mias/listado", authRequired, requireVendedor, (req, res) => {
   const q = `
-    SELECT id, marca, modelo, anio, precio_base, estado, fin, created_at
-    FROM subastas
-    WHERE id_vendedor = ?
-    ORDER BY created_at DESC
+    SELECT 
+      s.id, 
+      s.marca, 
+      s.modelo, 
+      s.anio, 
+      s.precio_base, 
+      s.estado, 
+      s.fin, 
+      s.created_at,
+      COALESCE(MAX(p.monto), 0) AS oferta_max
+    FROM subastas s
+    LEFT JOIN pujas p ON p.id_subasta = s.id
+    WHERE s.id_vendedor = ?
+    GROUP BY s.id
+    ORDER BY s.created_at DESC
   `;
+
   db.query(q, [req.user.id], (err, rows) => {
-    if (err) return res.status(500).json({ message: "Error DB" });
+    if (err) {
+      console.error("Error DB /mias/listado:", err);
+      return res.status(500).json({ message: "Error al obtener subastas" });
+    }
     res.json(rows);
   });
 });
+
 
 /* ========== GET /api/subastas/:id (detalle) ========== */
 router.get("/:id", (req, res) => {

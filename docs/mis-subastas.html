@@ -104,57 +104,59 @@
     return `<span class="badge ${cls}">${icon}</span>`;
   }
 
-  function renderItem(sub){
-    const li = document.createElement('article');
-    li.className = 'item';
+ function renderItem(sub){
+  const li = document.createElement('article');
+  li.className = 'item';
 
-    const title = document.createElement('div');
-    title.innerHTML = `
-      <div class="item-title">${sub.marca} ${sub.modelo}${sub.anio ? ' ' + sub.anio : ''}</div>
-      <div class="meta">
-        Precio base: $${Number(sub.precio_base).toLocaleString('en-US')}
-        &nbsp;•&nbsp; Cierra: ${sub.fin ? new Date(sub.fin).toLocaleString() : '—'}
-      </div>
-    `;
+  const title = document.createElement('div');
+  title.innerHTML = `
+    <div class="item-title">${sub.marca} ${sub.modelo}${sub.anio ? ' ' + sub.anio : ''}</div>
+    <div class="meta">
+      Precio base: $${Number(sub.precio_base).toLocaleString('en-US')}
+      &nbsp;•&nbsp; Oferta más alta: <strong>$${Number(sub.oferta_max || 0).toLocaleString('en-US')}</strong>
+      &nbsp;•&nbsp; Cierra: ${sub.fin ? new Date(sub.fin).toLocaleString() : '—'}
+    </div>
+  `;
 
-    const estadoBox = document.createElement('div');
-    estadoBox.className = 'estado';
+  const estadoBox = document.createElement('div');
+  estadoBox.className = 'estado';
 
-    // Chip (solo ícono)
-    const badge = document.createElement('span');
-    badge.innerHTML = badgeHTML(sub.estado);
+  // Icono de estado
+  const badge = document.createElement('span');
+  badge.innerHTML = badgeHTML(sub.estado);
 
-    // Select con caret ▾ para cambiar
-    const wrap = document.createElement('span');
-    wrap.className = 'sel-wrap';
-    const sel = document.createElement('select');
-    sel.className = 'select ' + (sub.estado === 'ABIERTA' ? 'abierta' : 'cerrada');
-    sel.innerHTML = `
-      <option value="ABIERTA" ${sub.estado==='ABIERTA'?'selected':''}>Abierta</option>
-      <option value="CERRADA" ${sub.estado==='CERRADA'?'selected':''}>Cerrada</option>
-    `;
-    const caret = document.createElement('span');
-    caret.className = 'caret';
-    caret.textContent = '▾';
-    wrap.appendChild(sel);
-    wrap.appendChild(caret);
+  // Selector con caret ▾
+  const wrap = document.createElement('span');
+  wrap.className = 'sel-wrap';
+  const sel = document.createElement('select');
+  sel.className = 'select ' + (sub.estado === 'ABIERTA' ? 'abierta' : 'cerrada');
+  sel.innerHTML = `
+    <option value="ABIERTA" ${sub.estado==='ABIERTA'?'selected':''}>Abierta</option>
+    <option value="CERRADA" ${sub.estado==='CERRADA'?'selected':''}>Cerrada</option>
+  `;
+  const caret = document.createElement('span');
+  caret.className = 'caret';
+  caret.textContent = '▾';
+  wrap.appendChild(sel);
+  wrap.appendChild(caret);
 
-    sel.addEventListener('change', async () => {
-      const nuevo = sel.value;
-      const ok = await changeStatus(sub.id, nuevo);
-      if(ok){
-        badge.innerHTML = badgeHTML(nuevo);
-        sel.className = 'select ' + (nuevo === 'ABIERTA' ? 'abierta' : 'cerrada');
-        sub.estado = nuevo;
-      }else{
-        sel.value = sub.estado;
-      }
-    });
+  sel.addEventListener('change', async () => {
+    const nuevo = sel.value;
+    const ok = await changeStatus(sub.id, nuevo);
+    if(ok){
+      badge.innerHTML = badgeHTML(nuevo);
+      sel.className = 'select ' + (nuevo === 'ABIERTA' ? 'abierta' : 'cerrada');
+      sub.estado = nuevo;
+    }else{
+      sel.value = sub.estado;
+    }
+  });
 
-    estadoBox.append(badge, wrap);
-    li.append(title, estadoBox);
-    return li;
-  }
+  estadoBox.append(badge, wrap);
+  li.append(title, estadoBox);
+  return li;
+}
+
 
   async function changeStatus(id, estado){
     const token = localStorage.getItem('token');
@@ -231,10 +233,22 @@
   });
 
   // (Opcional) refrescar por sockets si otro evento cambia estados
-  try{
-    const socket = io('http://localhost:3000',{transports:['websocket']});
+    // 🔌 Refrescar automáticamente por eventos WebSocket
+  try {
+    const socket = io('http://localhost:3000', { transports: ['websocket'] });
+
+    // Si cambia el estado de una subasta (ej: abierta/cerrada)
     socket.on('auction:updated', () => loadMyAuctions());
-  }catch(_){}
+
+    // 🔥 Si alguien hace una nueva puja en tiempo real
+    socket.on('auction:bid', (data) => {
+      console.log('Nueva puja detectada:', data);
+      loadMyAuctions(); // Refresca el listado con la nueva oferta más alta
+    });
+  } catch (_) {
+    console.warn('No se pudo conectar con Socket.IO');
+  }
+
 </script>
 </body>
 </html>
