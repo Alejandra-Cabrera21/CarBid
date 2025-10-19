@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const vendEl   = document.getElementById('vendedor');
   const compEl   = document.getElementById('comprador');
 
+  // 👇 BASE de API correcta según tu server.js
+  const API = 'http://localhost:3000/api/usuario';
+
   // 👁 Mostrar/ocultar contraseñas
   setupToggle('#togglePassword', passEl);
   setupToggle('#toggleConfirm', confEl);
@@ -37,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
       position: 'right',
       close: true,
       style: {
-        background: ok ? '#28a745' : '#b51f05ff', // color sólido
+        background: ok ? '#28a745' : '#b51f05ff',
         color: '#fff',
         fontWeight: '500',
         borderRadius: '8px',
@@ -75,48 +78,55 @@ document.addEventListener('DOMContentLoaded', () => {
     if (password !== confirmar) {
       setErr('confirmar','Las contraseñas no coinciden.'); ok = false;
     }
-
-    // Debe seleccionar al menos uno
     if (!vendEl.checked && !compEl.checked) {
       toast('Selecciona vender o comprar', false); ok = false;
     }
-
     if (!ok) return;
 
     try {
-      // 1️⃣ Verificar si el correo ya existe
-      const chk = await fetch('http://localhost:3000/api/users/check', {
+      // 1) Verificar si el correo ya existe (ENDPOINT CORRECTO)
+      const chk = await fetch(`${API}/check?t=${Date.now()}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify({ correo })
       });
-      const chkJson = await chk.json();
+
+      // Si el servidor devolviera HTML (404), evita crash:
+      let chkJson = {};
+      try { chkJson = await chk.json(); } catch { /* ignore */ }
+
       if (chk.ok && chkJson.encontrado) {
         setErr('correo','Este correo ya se encuentra registrado.');
         return;
       }
+      if (!chk.ok && chk.status !== 404) {
+        // si hay error de DB u otro
+        toast(chkJson.mensaje || 'Error al verificar correo.', false);
+        return;
+      }
 
-      // 2️⃣ Registrar usuario
+      // 2) Registrar usuario (ENDPOINT CORRECTO)
       const btn = form.querySelector('button[type="submit"]');
       btn.disabled = true; btn.textContent = 'Guardando...';
 
-      const res = await fetch('http://localhost:3000/api/users/register', {
+      const res = await fetch(`${API}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nombre: usuario,
           correo,
-          contraseña: password, // el backend espera 'contraseña'
+          contraseña: password,        // el backend espera 'contraseña'
           es_vendedor: vendEl.checked ? 'S' : 'N',
           es_comprador: compEl.checked ? 'S' : 'N'
         })
       });
-      const data = await res.json();
+
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
         toast('Registro correcto', true);
         form.reset();
-        // volver a modo oculto los ojos
         document.querySelectorAll('.toggle-pass i').forEach(i=>{
           i.classList.remove('fa-eye-slash');
           i.classList.add('fa-eye');
