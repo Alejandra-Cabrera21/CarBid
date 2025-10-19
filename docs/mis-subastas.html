@@ -121,19 +121,21 @@
   const estadoBox = document.createElement('div');
   estadoBox.className = 'estado';
 
-  // Icono de estado
   const badge = document.createElement('span');
   badge.innerHTML = badgeHTML(sub.estado);
 
-  // Selector con caret ▾
   const wrap = document.createElement('span');
   wrap.className = 'sel-wrap';
   const sel = document.createElement('select');
+
+  const vencida = sub.fin && new Date(sub.fin) <= new Date(); // ⏰ ya pasó
+
   sel.className = 'select ' + (sub.estado === 'ABIERTA' ? 'abierta' : 'cerrada');
   sel.innerHTML = `
-    <option value="ABIERTA" ${sub.estado==='ABIERTA'?'selected':''}>Abierta</option>
+    <option value="ABIERTA" ${sub.estado==='ABIERTA'?'selected':''} ${vencida?'disabled':''}>Abierta</option>
     <option value="CERRADA" ${sub.estado==='CERRADA'?'selected':''}>Cerrada</option>
   `;
+
   const caret = document.createElement('span');
   caret.className = 'caret';
   caret.textContent = '▾';
@@ -142,6 +144,14 @@
 
   sel.addEventListener('change', async () => {
     const nuevo = sel.value;
+
+    // Extra por si el usuario fuerza el cambio con devtools
+    if (vencida && nuevo === 'ABIERTA') {
+      toast('No puedes reabrir una subasta vencida','error');
+      sel.value = sub.estado;
+      return;
+    }
+
     const ok = await changeStatus(sub.id, nuevo);
     if(ok){
       badge.innerHTML = badgeHTML(nuevo);

@@ -1,4 +1,3 @@
-// backend/routes/auctions.js
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
@@ -126,7 +125,6 @@ router.post("/", authRequired, requireVendedor, (req, res) => {
 router.patch("/:id/cerrar", authRequired, requireVendedor, (req, res) => {
   const id = parseInt(req.params.id, 10);
 
-  // (opcional) verificar propiedad: que la subasta sea del vendedor logueado
   const qGet = "SELECT id_vendedor, estado FROM subastas WHERE id=? LIMIT 1";
   db.query(qGet, [id], (e, r) => {
     if (e) return res.status(500).json({ message: "Error DB" });
@@ -134,13 +132,10 @@ router.patch("/:id/cerrar", authRequired, requireVendedor, (req, res) => {
     const sub = r[0];
     if (sub.estado === 'CERRADA') return res.json({ message: "Ya estaba cerrada" });
 
-    // Si quieres forzar propiedad: if (sub.id_vendedor !== req.user.id) return res.status(403).json({message:'No autorizado'});
-
     const qUpd = "UPDATE subastas SET estado='CERRADA', fin=IF(fin<NOW(), fin, NOW()), updated_at=NOW() WHERE id=?";
     db.query(qUpd, [id], (e2) => {
       if (e2) return res.status(500).json({ message: "Error al cerrar" });
 
-      // EMITIR cierre en tiempo real
       const io = req.app.get('io');
       if (io) io.emit('auction:closed', { ids: [id] });
 
@@ -177,7 +172,6 @@ router.get("/mias/listado", authRequired, requireVendedor, (req, res) => {
     res.json(rows);
   });
 });
-
 
 /* ========== GET /api/subastas/:id (detalle) ========== */
 router.get("/:id", (req, res) => {
@@ -217,67 +211,40 @@ router.get("/", (req, res) => {
   });
 });
 
-/* ========== PATCH /api/subastas/:id/estado (abrir/cerrar) ========== */
-router.patch("/:id/estado", authRequired, requireVendedor, (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  const { estado } = req.body;
-
-  if (!["ABIERTA", "CERRADA"].includes((estado || "").toUpperCase())) {
-    return res.status(400).json({ message: "Estado inválido (ABIERTA/CERRADA)" });
-  }
-  const nuevoEstado = estado.toUpperCase();
-
-  const q = `UPDATE subastas SET estado = ? WHERE id = ? AND id_vendedor = ?`;
-  db.query(q, [nuevoEstado, id, req.user.id], (err, result) => {
-    if (err) {
-      console.error("Error actualizando estado:", err);
-      return res.status(500).json({ message: "Error DB" });
-    }
-    if (result.affectedRows === 0) {
-      // no existe o no pertenece al vendedor logueado
-      return res.status(404).json({ message: "Subasta no encontrada" });
-    }
-
-    // OK
-    res.json({ message: "Estado actualizado", id, estado: nuevoEstado });
-
-    // Broadcast por WebSocket
-    const io = req.app.get("io");
-    if (io) {
-      io.emit("subasta:estado", { id, estado: nuevoEstado }); // todos los clientes reciben el cambio
-    }
-  });
-});
-
-
 /* ========== PUT /api/subastas/:id/estado (abrir/cerrar) ========== */
+/*  🔐 FIX: Validación atómica en SQL: si fin <= NOW() y se quiere 'ABIERTA',
+    el UPDATE no hace nada (affectedRows=0) y devolvemos 400. */
 router.put("/:id/estado", authRequired, requireVendedor, (req, res) => {
   const id = parseInt(req.params.id, 10);
   const { estado } = req.body || {};
 
-  // Validación del nuevo estado
   if (!["ABIERTA", "CERRADA"].includes(estado)) {
     return res.status(400).json({ message: "Estado inválido" });
   }
 
-  // Solo puede cambiar el dueño de la subasta
-  const q = `
+  const qUpd = `
     UPDATE subastas
     SET estado = ?, updated_at = NOW()
-    WHERE id = ? AND id_vendedor = ?
+    WHERE id = ? 
+      AND id_vendedor = ?
+      AND ( ? <> 'ABIERTA' OR fin > NOW() )
   `;
 
-  db.query(q, [estado, id, req.user.id], (err, result) => {
+  db.query(qUpd, [estado, id, req.user.id, estado], (err, result) => {
     if (err) {
       console.error("Error update estado:", err);
       return res.status(500).json({ message: "Error al actualizar estado" });
     }
+
     if (result.affectedRows === 0) {
-      // No existe o no eres el dueño
+      // Si intentaba abrir y no se pudo, probablemente vencida.
+      if (estado === 'ABIERTA') {
+        return res.status(400).json({ message: "No puedes reabrir una subasta vencida." });
+      }
+      // También puede ser que no exista o no sea del vendedor
       return res.status(404).json({ message: "Subasta no encontrada" });
     }
 
-    // Aviso por WebSocket (si está habilitado)
     try {
       const io = req.app.get("io");
       if (io) io.emit("auction:updated", { id, estado });
@@ -286,6 +253,5 @@ router.put("/:id/estado", authRequired, requireVendedor, (req, res) => {
     return res.json({ message: "Estado actualizado", id, estado });
   });
 });
-
 
 module.exports = router;
