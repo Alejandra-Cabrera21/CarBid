@@ -5,67 +5,260 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CarBid — Subastas</title>
   <style>
-    body{background:#111;color:#fff;font-family:system-ui,Segoe UI,Roboto,Arial}
-    .wrap{max-width:960px;margin:24px auto;padding:0 12px}
-    h1{font-weight:700}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
-    .card{background:#171717;border:1px solid #2a2a2a;border-radius:12px;padding:14px}
-    .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px}
-    .ok{background:#1b5e20}
-    .warn{background:#8b0000}
-    .muted{color:#cbd5e1}
-    .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+    body{background:#111;color:#fff;font-family:system-ui,Segoe UI,Roboto,Arial;margin:0}
+    header{background:#0f0f0f;padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+    header .right{display:flex;align-items:center;gap:20px}
+    header a{color:#fff;text-decoration:none}
+    header input{padding:6px 10px;border-radius:8px;border:none;width:240px}
+    .wrap{max-width:1100px;margin:24px auto;padding:0 12px}
+    h1{font-weight:700;margin:10px 0 24px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+    .card{background:#171717;border:1px solid #2a2a2a;border-radius:12px;padding:16px;text-align:center;position:relative}
+    .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;background:#166534}
+    .muted{color:#cbd5e1;margin:2px 0}
+    .row{display:flex;justify-content:center;align-items:center;margin-top:8px;gap:10px}
+    button{background:#1e40af;border:none;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer}
+    button:hover{background:#2563eb}
+    img{max-width:100%;border-radius:8px;object-fit:cover;height:220px}
+    .slider{position:relative}
+    .slider button{
+      position:absolute;top:50%;transform:translateY(-50%);
+      background:rgba(0,0,0,.6);border:none;color:#fff;font-size:20px;padding:5px 10px;cursor:pointer
+    }
+    .slider button.prev{left:5px}
+    .slider button.next{right:5px}
+    #dialog{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:10}
+    #dialog .box{background:#fff;color:#000;padding:20px;border-radius:8px;min-width:280px;text-align:center}
+    #dialog input{width:90%;padding:8px;margin:10px 0}
+    #bell{position:relative;cursor:pointer;font-size:22px}
+    #bell span{position:absolute;top:-6px;right:-8px;background:red;color:#fff;font-size:12px;border-radius:50%;padding:2px 6px}
+
+    /* Dropdown notificaciones */
+    #notif-box{
+      position:absolute;
+      right:10px;
+      top:60px;
+      background:#1f2937;
+      color:#fff;
+      border-radius:8px;
+      padding:10px;
+      display:none;
+      flex-direction:column;
+      gap:8px;
+      width:250px;
+      box-shadow:0 0 10px rgba(0,0,0,0.4);
+      z-index:999;
+    }
+    .notif-item{
+      background:#374151;
+      padding:8px;
+      border-radius:6px;
+      font-size:14px;
+    }
+    .notif-empty{
+      text-align:center;
+      font-size:13px;
+      color:#9ca3af;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: #166534;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.4s ease;
+      z-index: 9999;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
+  <header>
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="img/logo.png" alt="CarBid" style="height:40px">
+      <strong>CarBid</strong>
+      <input type="text" id="search" placeholder="Buscar vehículo... 🔍">
+    </div>
+    <div class="right">
+      <a href="historial.html">Historial Subastas</a>
+      <a href="perfil.html">Mi perfil</a>
+      <a href="logout.html">Salir</a>
+      <div id="bell">🔔<span id="notif-count">0</span></div>
+      <div id="notif-box"></div>
+    </div>
+  </header>
+
   <div class="wrap">
     <h1>Subastas abiertas</h1>
     <div id="list" class="grid"></div>
   </div>
 
-  <!-- Socket.IO client -->
+  <div id="dialog">
+    <div class="box">
+      <h3>Ingresar oferta</h3>
+      <input type="number" id="oferta" placeholder="Monto en Q"/>
+      <div>
+        <button id="btnAceptar">Aceptar</button>
+        <button onclick="cerrarDialog()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
   <script src="http://localhost:3000/socket.io/socket.io.js"></script>
   <script>
-    const API = 'http://localhost:3000/api/subastas';
+    const API = 'http://localhost:3000/api';
     const list = document.getElementById('list');
+    const dialog = document.getElementById('dialog');
+    const inpOferta = document.getElementById('oferta');
+    const btnAceptar = document.getElementById('btnAceptar');
+    const bell = document.getElementById('bell');
+    const notifBox = document.getElementById('notif-box');
+    const bellCount = document.getElementById('notif-count');
+    const toast = document.getElementById('toast');
+    const search = document.getElementById('search');
+    let idSubastaActual = null;
+    let notifs = [];
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // 🛎️ Manejador de notificaciones
+    function addNotif(msg){
+      notifs.unshift(msg);
+      bellCount.textContent = notifs.length;
+      renderNotifs();
+    }
+
+    function renderNotifs(){
+      notifBox.innerHTML = '';
+      if(notifs.length === 0){
+        notifBox.innerHTML = '<div class="notif-empty">Sin notificaciones</div>';
+        return;
+      }
+      notifs.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'notif-item';
+        div.textContent = n;
+        notifBox.appendChild(div);
+      });
+    }
+
+    // Mostrar/ocultar notificaciones
+    bell.addEventListener('click', ()=>{
+      notifBox.style.display = notifBox.style.display === 'flex' ? 'none' : 'flex';
+    });
+
+    function createSlider(imagenes){
+      if(!imagenes || !imagenes.length) return '<img src="img/no-image.png">';
+      const id = 'slider_' + Math.random().toString(36).substring(2,7);
+      window.slides = window.slides || {};
+      window.slides[id] = { imgs: imagenes, idx: 0 };
+      return `
+        <div class="slider" id="${id}">
+          <img src="http://localhost:3000${imagenes[0].url}" alt="imagen">
+          <button class="prev" onclick="moveSlide('${id}',-1)">‹</button>
+          <button class="next" onclick="moveSlide('${id}',1)">›</button>
+        </div>
+      `;
+    }
+
+    function moveSlide(id, dir){
+      const s = window.slides[id];
+      if(!s) return;
+      s.idx = (s.idx + dir + s.imgs.length) % s.imgs.length;
+      const el = document.querySelector('#'+id+' img');
+      el.src = 'http://localhost:3000' + s.imgs[s.idx].url;
+    }
 
     function card(sub){
       const el = document.createElement('div');
       el.className = 'card';
-      el.id = 'sub_'+sub.id;
+      el.id = 'sub_' + sub.id;
       el.innerHTML = `
-        <div class="row"><strong>${sub.marca} ${sub.modelo} ${sub.anio ?? ''}</strong>
-          <span class="badge ok">ABIERTA</span></div>
-        <div class="muted">Base: $${Number(sub.precio_base).toFixed(2)}</div>
+        ${createSlider(sub.imagenes)}
+        <div class="row"><strong>${sub.marca} ${sub.modelo} ${sub.anio ?? ''}</strong></div>
+        <div class="muted">${sub.descripcion || ''}</div>
+        <div class="muted">Precio base: Q${Number(sub.precio_base).toLocaleString()}</div>
+        <div class="muted">Oferta más alta: Q${Number(sub.oferta_max || 0).toLocaleString()}</div>
         <div class="muted">Cierra: ${new Date(sub.fin).toLocaleString()}</div>
+        <div class="row"><button onclick="abrirDialog(${sub.id})">Pujar</button></div>
       `;
       return el;
     }
 
-    async function load(){
-      const r = await fetch(API + '?estado=ABIERTA');
-      const data = await r.json();
+    async function load(term=''){
+      const r = await fetch(API + '/subastas?estado=ABIERTA');
+      let data = await r.json();
+      if(term){
+        data = data.filter(s => (s.marca + s.modelo + (s.descripcion || '')).toLowerCase().includes(term.toLowerCase()));
+      }
+      for(let s of data){
+        const resImg = await fetch(`${API}/subastas/${s.id}`);
+        const det = await resImg.json();
+        s.imagenes = det.imagenes || [];
+        s.descripcion = det.subasta.descripcion;
+        s.oferta_max = det.oferta_actual;
+      }
       list.innerHTML = '';
       data.forEach(s => list.appendChild(card(s)));
     }
     load();
 
-    // Socket realtime
-    const socket = io('http://localhost:3000', { path: '/socket.io' });
+    search.addEventListener('input', e => load(e.target.value));
 
-    socket.on('auction:created', (s) => {
-      // Añade si está ABIERTA
-      if (document.getElementById('sub_'+s.id)) return;
-      list.prepend(card(s));
-    });
+    function abrirDialog(id){
+      idSubastaActual = id;
+      dialog.style.display = 'flex';
+      inpOferta.value = '';
+    }
+    function cerrarDialog(){
+      dialog.style.display = 'none';
+      idSubastaActual = null;
+    }
 
-    socket.on('auction:closed', ({ ids }) => {
-      // Quita/actualiza tarjetas cerradas
-      (ids || []).forEach(id => {
-        const el = document.getElementById('sub_'+id);
-        if (el) el.remove();
-      });
-    });
+    btnAceptar.onclick = async () => {
+      const monto = parseFloat(inpOferta.value);
+      if (!monto || monto <= 0) return showToast("Monto inválido");
+      const token = localStorage.getItem("token");
+      if (!token) return showToast("No hay sesión activa. Inicia sesión.");
+      try {
+        const r = await fetch(`${API}/pujas`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+          body: JSON.stringify({ id_subasta: idSubastaActual, monto })
+        });
+        const data = await r.json();
+        if (r.ok) {
+          showToast("✅ Puja registrada correctamente");
+          cerrarDialog();
+          load();
+        } else showToast("⚠️ " + (data.message || "Error desconocido"));
+      } catch (err) {
+        showToast("❌ No se pudo conectar con el servidor.");
+      }
+    };
+
+    // 🔌 Socket realtime
+    const socket = io('http://localhost:3000',{transports:['websocket']});
+    socket.on('auction:created', s => load());
+    socket.on('auction:closed', ({ids}) => load());
+    socket.on('auction:bid', data => load());
+    socket.on('auction:won', data => addNotif(`🏁 ¡Ganaste la subasta #${data.id_subasta}!`));
   </script>
 </body>
 </html>
