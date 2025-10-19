@@ -44,14 +44,14 @@
       font-size:12px; line-height:18px; text-align:center;
     }
 
-    /* Dropdown notificaciones */
+    /* Dropdown notificaciones (más alto para que no se oculte) */
     #notif-box{
       position:absolute; right:10px; top:60px;
       background:#1f2937; color:#fff; border-radius:10px; padding:10px;
       display:none; flex-direction:column; gap:8px;
       width:min(320px, 94vw); max-height:70vh; overflow:auto;
       box-shadow:0 12px 24px rgba(0,0,0,.35);
-      z-index:999;
+      z-index:10000; /* evita que lo tape el contenido */
     }
     .notif-empty{ text-align:center; font-size:13px; color:#9ca3af; padding:6px 2px}
 
@@ -81,14 +81,20 @@
     .wrap{max-width:1100px; margin:24px auto; padding:0 12px}
     h1{font-weight:700; margin:10px 0 24px}
     .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:20px}
-    .card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center}
-    .muted{color:var(--muted); margin:2px 0}
-    .row{display:flex; justify-content:center; align-items:center; margin-top:8px; gap:10px}
+
+    /* Tarjeta: borde blanco y texto a la izquierda */
+    .card{background:var(--card); border:1px solid #fff; border-radius:12px; padding:16px; text-align:left}
+    .muted{color:var(--muted); margin:2px 0; word-break:break-word}
+    /* botón Pujar a la derecha */
+    .card .row{display:flex; justify-content:flex-end; align-items:center; margin-top:8px; gap:10px}
+
     button{background:var(--brand); border:none; color:#fff; border-radius:8px; padding:8px 12px; cursor:pointer}
     button:hover{background:var(--brand-hover)}
+    button[disabled]{opacity:.6; cursor:not-allowed}
     img{max-width:100%; border-radius:8px; object-fit:cover; height:220px}
 
-    .slider{position:relative}
+    /* Slider */
+    .slider{position:relative; overflow:hidden}
     .slider button{
       position:absolute; top:50%; transform:translateY(-50%);
       background:rgba(0,0,0,.6); border:none; color:#fff;
@@ -119,7 +125,6 @@
   <header>
     <div class="left">
       <img src="img/logo.png" alt="CarBid">
-      
       <input type="text" id="search" placeholder="Buscar... 🔍" aria-label="Buscar vehículo">
     </div>
 
@@ -130,7 +135,6 @@
 
       <!-- Campana con contador -->
       <button id="bell" aria-label="Notificaciones">
-        <!-- Bell icon (outline) -->
         <svg viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
           <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.172V11a6 6 0 1 0-12 0v3.172a2 2 0 0 1-.6 1.428L4 17h5"/>
           <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
@@ -165,6 +169,7 @@
   <script src="http://localhost:3000/socket.io/socket.io.js"></script>
   <script>
     const API = 'http://localhost:3000/api';
+    const FAST_POLL_MS = 10000; // 🔁 refresco más rápido (10s)
 
     const list = document.getElementById('list');
     const dialog = document.getElementById('dialog');
@@ -179,12 +184,42 @@
     let idSubastaActual = null;
     // notifs = [{text:string}]
     let notifs = [];
+    // timers para contadores
+    const timers = {};
 
     /* ===== Toast ===== */
     function showToast(msg){
       toast.textContent = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    /* ===== Utilidades contador ===== */
+    function fmtQ(n){ return "Q" + Number(n ?? 0).toLocaleString(); }
+    function two(n){ return String(n).padStart(2,'0'); }
+    function startCountdown(cardId, finISO){
+      const lbl = document.querySelector(`#${cardId} .countdown`);
+      const btn = document.querySelector(`#${cardId} .btn-pujar`);
+      if(!lbl) return;
+
+      function tick(){
+        const target = new Date(finISO).getTime();
+        const diff = target - Date.now();
+        if(diff <= 0){
+          lbl.textContent = 'Finalizada';
+          btn?.setAttribute('disabled','disabled');
+          clearInterval(timers[cardId]);
+          return;
+        }
+        const t = Math.floor(diff/1000);
+        const d = Math.floor(t/86400);
+        const h = Math.floor((t%86400)/3600);
+        const m = Math.floor((t%3600)/60);
+        const s = t%60;
+        lbl.textContent = `${d}d ${two(h)}:${two(m)}:${two(s)} restantes`;
+      }
+      tick();
+      timers[cardId] = setInterval(tick, 1000);
     }
 
     /* ===== Notificaciones ===== */
@@ -213,48 +248,55 @@
       bellCount.textContent = notifs.length;
     }
 
-  async function deleteNotif(idx){
-  const token = localStorage.getItem("token");
-  const notif = notifs[idx];
-  if (!notif || !notif.id_subasta) return;
+    async function deleteNotif(idx){
+      const token = localStorage.getItem("token");
+      const notif = notifs[idx];
+      if (!notif || !notif.id_subasta) return;
 
-  try {
-    const r = await fetch(`${API}/notificaciones/${notif.id_subasta}`, {
-      method: "DELETE",
-      headers: { "Authorization": "Bearer " + token }
-    });
-    if (r.ok) {
-      showToast("🗑️ Notificación eliminada");
-      notifs.splice(idx,1);
-      renderNotifs();
-    } else {
-      const data = await r.json();
-      console.warn("⚠️ No se eliminó:", data.message);
-      showToast("⚠️ Error al eliminar");
+      try {
+        const r = await fetch(`${API}/notificaciones/${notif.id_subasta}`, {
+          method: "DELETE",
+          headers: { "Authorization": "Bearer " + token }
+        });
+        if (r.ok) {
+          showToast("🗑️ Notificación eliminada");
+          notifs.splice(idx,1);
+          renderNotifs();
+        } else {
+          const data = await r.json();
+          console.warn("⚠️ No se eliminó:", data.message);
+          showToast("⚠️ Error al eliminar");
+        }
+      } catch (err) {
+        console.error("❌ Error al eliminar notificación:", err);
+        showToast("❌ No se pudo eliminar");
+      }
     }
-  } catch (err) {
-    console.error("❌ Error al eliminar notificación:", err);
-    showToast("❌ No se pudo eliminar");
-  }
-}
 
+    // Actualiza SIEMPRE el contador; re-renderiza lista solo si está abierto
+    let panelOpen = false;
+    function setBellCount(n){ bellCount.textContent = n; }
 
     async function loadNotificaciones(){
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token){
+        setBellCount(0);
+        return;
+      }
       try {
-        const r = await fetch(`${API}/notificaciones`, {
-          headers: { "Authorization": "Bearer " + token }
+        const r = await fetch(`${API}/notificaciones?t=${Date.now()}`, {
+          headers: { "Authorization": "Bearer " + token },
+          cache: "no-store"
         });
         if (!r.ok) throw new Error("Error al cargar notificaciones");
         const data = await r.json();
         // data: [{id_subasta, marca, modelo, monto, fecha}]
-       notifs = data.map(n => ({
-  id_subasta: n.id_subasta,
-  text: `🏁 Ganaste <b>${n.marca} ${n.modelo}</b> por Q${Number(n.monto).toLocaleString()}`
-}));
-
-        renderNotifs();
+        notifs = data.map(n => ({
+          id_subasta: n.id_subasta,
+          text: `🏁 Ganaste <b>${n.marca} ${n.modelo}</b> por Q${Number(n.monto).toLocaleString()}`
+        }));
+        setBellCount(notifs.length);
+        if (panelOpen) renderNotifs();
       } catch (err) {
         console.error("❌ Notificaciones:", err);
       }
@@ -262,19 +304,26 @@
 
     // Abrir / cerrar panel
     bell.addEventListener('click', async () => {
-      const show = notifBox.style.display !== 'flex';
-      notifBox.style.display = show ? 'flex' : 'none';
-      if (show) await loadNotificaciones();
+      panelOpen = notifBox.style.display !== 'flex';
+      notifBox.style.display = panelOpen ? 'flex' : 'none';
+      if (panelOpen){
+        renderNotifs();         // pinta lo que ya hay
+        await loadNotificaciones(); // y trae lo nuevo
+      }
     });
     // Cerrar si hago click fuera
     document.addEventListener('click', (e) => {
       if (!notifBox.contains(e.target) && !bell.contains(e.target)) {
         notifBox.style.display = 'none';
+        panelOpen = false;
       }
     });
     // Esc para cerrar
     document.addEventListener('keydown', (e)=>{
-      if(e.key === 'Escape') notifBox.style.display = 'none';
+      if(e.key === 'Escape'){
+        notifBox.style.display = 'none';
+        panelOpen = false;
+      }
     });
 
     /* ===== Subastas ===== */
@@ -303,16 +352,34 @@
     function card(sub){
       const el = document.createElement('div');
       el.className = 'card';
-      el.id = 'sub_' + sub.id;
+      const cardId = 'sub_' + sub.id;
+      el.id = cardId;
+
+      const titulo = `${sub.marca ?? ''} ${sub.modelo ?? ''} ${sub.anio ?? ''}`.trim();
+      const finExacto = new Date(sub.fin).toLocaleString();
+
       el.innerHTML = `
         ${createSlider(sub.imagenes)}
-        <div class="row"><strong>${sub.marca} ${sub.modelo} ${sub.anio ?? ''}</strong></div>
-        <div class="muted">${sub.descripcion || ''}</div>
-        <div class="muted">Precio base: Q${Number(sub.precio_base).toLocaleString()}</div>
-        <div class="muted">Oferta más alta: Q${Number(sub.oferta_max || 0).toLocaleString()}</div>
-        <div class="muted">Cierra: ${new Date(sub.fin).toLocaleString()}</div>
-        <div class="row"><button onclick="abrirDialog(${sub.id})">Pujar</button></div>
+        <div class="muted" style="font-weight:700; margin-top:8px">${titulo}</div>
+
+        <div class="muted"><b>Marca:</b> ${sub.marca ?? '-'}</div>
+        <div class="muted"><b>Modelo:</b> ${sub.modelo ?? '-'}</div>
+        <div class="muted"><b>Año:</b> ${sub.anio ?? '-'}</div>
+        ${sub.descripcion ? `<div class="muted"><b>Descripción:</b> ${sub.descripcion}</div>` : ""}
+
+        <div class="muted"><b>Precio base:</b> ${fmtQ(sub.precio_base)}</div>
+        <div class="muted"><b>Oferta más alta:</b> ${fmtQ(sub.oferta_max || 0)}</div>
+
+        <div class="muted" title="Cierra: ${finExacto}">
+          <b>Cierra en:</b> <span class="countdown">--:--</span>
+        </div>
+
+        <div class="row">
+          <button class="btn-pujar" onclick="abrirDialog(${sub.id})">Pujar</button>
+        </div>
       `;
+      // Activar contador tras pintar
+      requestAnimationFrame(() => startCountdown(cardId, sub.fin));
       return el;
     }
 
@@ -330,6 +397,10 @@
         s.descripcion = det.subasta.descripcion;
         s.oferta_max = det.oferta_actual;
       }
+
+      // limpiar contadores previos
+      Object.values(timers).forEach(clearInterval);
+
       list.innerHTML = '';
       data.forEach(s => list.appendChild(card(s)));
     }
@@ -376,15 +447,17 @@
     socket.on('auction:bid', () => load());
     socket.on('auction:updated', () => load());
     socket.on('auction:won', async (data) => {
-      // Recargo lista real desde la API para que "de verdad" se refleje
-      await loadNotificaciones();
+      await loadNotificaciones(); // 👈 refresca en caliente cuando gane
       showToast(`Ganaste la subasta #${data.id_subasta}`);
     });
 
-    // Refrescar notificaciones cada 30s
-    setInterval(loadNotificaciones, 30000);
-    // Carga inicial del contador
-    loadNotificaciones();
+    /* ===== Auto-refresh notificaciones más rápido ===== */
+    setInterval(loadNotificaciones, FAST_POLL_MS);
+    window.addEventListener('focus', loadNotificaciones);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) loadNotificaciones();
+    });
+    loadNotificaciones(); // carga inicial rápida
   </script>
 </body>
 </html>
