@@ -13,21 +13,22 @@ router.get('/', authRequired, (req, res) => {
   const vendedorId = req.user.id;
 
   const sql = `
-    SELECT
-      p.id                  AS id_puja,
-      s.id                  AS id_subasta,
-      -- Vehículo (usa marca + modelo + año; si todo viniera null, cae en 'Publicación')
-      COALESCE(NULLIF(CONCAT_WS(' ', s.marca, s.modelo, s.anio), ''), s.descripcion, 'Publicación') AS vehiculo,
-      u.nombre              AS nombre_postor,
-      p.monto               AS oferta,
-      DATE_FORMAT(p.created_at, '%H:%i') AS hora,
-      p.created_at
-    FROM pujas p
-    INNER JOIN subastas s ON s.id = p.id_subasta
-    INNER JOIN usuarios u ON u.id = p.id_postor
-    WHERE s.id_vendedor = ?
-    ORDER BY p.created_at DESC, p.id DESC
-  `;
+  SELECT
+    p.id                  AS id_puja,
+    s.id                  AS id_subasta,
+    COALESCE(NULLIF(CONCAT_WS(' ', s.marca, s.modelo, s.anio), ''), s.descripcion, 'Publicación') AS vehiculo,
+    u.nombre              AS nombre_postor,
+    p.monto               AS oferta,
+    DATE_FORMAT(p.created_at, '%Y-%m-%d') AS fecha,
+    DATE_FORMAT(p.created_at, '%H:%i')     AS hora,
+    p.created_at
+  FROM pujas p
+  INNER JOIN subastas s ON s.id = p.id_subasta
+  INNER JOIN usuarios u ON u.id = p.id_postor
+  WHERE s.id_vendedor = ?
+  ORDER BY p.created_at DESC, p.id DESC
+`;
+
 
   db.query(sql, [vendedorId], (err, rows) => {
     if (err) {
