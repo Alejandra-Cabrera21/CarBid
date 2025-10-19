@@ -374,6 +374,7 @@
     socket.on('auction:created', () => load());
     socket.on('auction:closed', () => load());
     socket.on('auction:bid', () => load());
+    socket.on('auction:updated', () => load());
     socket.on('auction:won', async (data) => {
       // Recargo lista real desde la API para que "de verdad" se refleje
       await loadNotificaciones();
