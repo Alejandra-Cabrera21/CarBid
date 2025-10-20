@@ -25,6 +25,7 @@ const auctionsRoutes      = require('./routes/auctions');
 const bidsRoutes          = require('./routes/bids');
 const notificacionesRoutes = require('./routes/notificaciones');
 const historialPujasRoutes = require('./routes/historialPujas'); // 🆕 nueva ruta
+const perfilRoutes = require('./routes/perfil');   // ⬅️ NUEVO
 
 app.use('/api/usuario', usuarioRoutes);
 app.use('/api/auth', authRoutes);
