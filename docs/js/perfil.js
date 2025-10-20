@@ -113,17 +113,39 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await r.json().catch(()=> ({}));
 
       if (r.ok) {
-        toast('Perfil actualizado');
-        localStorage.setItem('usuario', JSON.stringify({
-          ...(uObj||{}),
-          id: Number(userId),
-          nombre: payload.nombre,
-          correo: payload.correo,
-          es_vendedor: payload.es_vendedor,
-          es_comprador: payload.es_comprador
-        }));
-        pass.value = '';
-      } else {
+  toast('Perfil actualizado');
+
+  // 👇 lee el estado anterior ANTES de sobrescribir
+  const prevUser  = JSON.parse(localStorage.getItem('usuario') || '{}');
+  const wasSeller = prevUser.es_vendedor === 'S';
+
+  // actualiza cache local
+  const newUser = {
+    ...(prevUser || {}),
+    id: Number(userId),
+    nombre: payload.nombre,
+    correo: payload.correo,
+    es_vendedor: payload.es_vendedor,
+    es_comprador: payload.es_comprador
+  };
+  localStorage.setItem('usuario', JSON.stringify(newUser));
+
+  // 👇 si estaba en panel de vendedor y ahora dejó de ser vendedor…
+  const rolActual = localStorage.getItem('rolActual'); // lo pone el panel del vendedor
+  const nowSeller = newUser.es_vendedor === 'S';
+
+  if (rolActual === 'vendedor' && wasSeller && !nowSeller) {
+    // limpia marcadores de rol/sesión si quieres
+    localStorage.removeItem('rolActual');
+    // Elige a dónde redirigir:
+    // window.location.replace('panel-comprador.html');
+    window.location.replace('login.html');
+    return; // para que no siga ejecutando
+  }
+
+  pass.value = '';
+}
+ else {
         toast(data.mensaje || data.message || 'No se pudo actualizar', false);
       }
     } catch (err) {
