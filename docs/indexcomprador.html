@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CarBidSubastas</title>
+
+  <!-- Toastify (para mostrar el "flash" que viene desde perfil) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
   <style>
     :root{
       --bg:#111; --panel:#0f0f0f; --card:#171717; --border:#2a2a2a; --fg:#fff; --muted:#cbd5e1;
@@ -51,7 +56,7 @@
       display:none; flex-direction:column; gap:8px;
       width:min(320px, 94vw); max-height:70vh; overflow:auto;
       box-shadow:0 12px 24px rgba(0,0,0,.35);
-      z-index:999;
+      z-index:10000;
     }
     .notif-empty{ text-align:center; font-size:13px; color:#9ca3af; padding:6px 2px}
 
@@ -68,7 +73,7 @@
     .notif-del:hover{background:rgba(255,255,255,.08)}
     .notif-del svg{width:18px; height:18px; stroke:#fff; fill:none}
 
-    /* Toast */
+    /* Toast propio de la página (lo mantenemos para tus mensajes internos) */
     #toast{
       position: fixed; bottom: 25px; right: 25px;
       background: #166534; color: #fff; padding: 12px 16px;
@@ -81,14 +86,19 @@
     .wrap{max-width:1100px; margin:24px auto; padding:0 12px}
     h1{font-weight:700; margin:10px 0 24px}
     .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:20px}
-    .card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center}
-    .muted{color:var(--muted); margin:2px 0}
-    .row{display:flex; justify-content:center; align-items:center; margin-top:8px; gap:10px}
+
+    /* Tarjeta */
+    .card{background:var(--card); border:1px solid #fff; border-radius:12px; padding:16px; text-align:left}
+    .muted{color:var(--muted); margin:2px 0; word-break:break-word}
+    .card .row{display:flex; justify-content:flex-end; align-items:center; margin-top:8px; gap:10px}
+
     button{background:var(--brand); border:none; color:#fff; border-radius:8px; padding:8px 12px; cursor:pointer}
     button:hover{background:var(--brand-hover)}
+    button[disabled]{opacity:.6; cursor:not-allowed}
     img{max-width:100%; border-radius:8px; object-fit:cover; height:220px}
 
-    .slider{position:relative}
+    /* Slider */
+    .slider{position:relative; overflow:hidden}
     .slider button{
       position:absolute; top:50%; transform:translateY(-50%);
       background:rgba(0,0,0,.6); border:none; color:#fff;
@@ -97,7 +107,7 @@
     .slider button.prev{left:5px}
     .slider button.next{right:5px}
 
-    /* Dialogo de puja */
+    /* Diálogo de puja */
     #dialog{position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:10}
     #dialog .box{background:#fff; color:#000; padding:20px; border-radius:10px; min-width:min(380px, 92vw); text-align:center}
     #dialog input{width:100%; padding:10px; margin:10px 0; border:1px solid #ddd; border-radius:8px}
@@ -119,18 +129,16 @@
   <header>
     <div class="left">
       <img src="img/logo.png" alt="CarBid">
-      
-      <input type="text" id="search" placeholder="Buscar... 🔍" aria-label="Buscar vehículo">
+      <input type="text" id="search" placeholder="Buscar..." aria-label="Buscar vehículo">
     </div>
 
     <div class="right">
-      <a href="historial.html">Historial Subastas</a>
+      <a href="historial-subastas.html">Historial Subastas</a>
       <a href="perfil.html">Mi perfil</a>
       <a href="index.html">Salir</a>
 
       <!-- Campana con contador -->
       <button id="bell" aria-label="Notificaciones">
-        <!-- Bell icon (outline) -->
         <svg viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
           <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.172V11a6 6 0 1 0-12 0v3.172a2 2 0 0 1-.6 1.428L4 17h5"/>
           <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
@@ -159,12 +167,92 @@
     </div>
   </div>
 
-  <!-- Toast -->
+  <!-- Toast propio de la página -->
   <div id="toast" role="status" aria-live="polite"></div>
 
   <script src="http://localhost:3000/socket.io/socket.io.js"></script>
   <script>
     const API = 'http://localhost:3000/api';
+    const FAST_POLL_MS = 10000;
+
+    // ========= NUEVO: sesión, rolActual, flash, guarda de acceso =========
+    (function guardYFlash(){
+      const uStr = localStorage.getItem('usuario');
+      let uObj   = uStr ? JSON.parse(uStr) : null;
+      const userId   = localStorage.getItem('userId') || (uObj && uObj.id);
+      let userName   = localStorage.getItem('userName') || (uObj && uObj.nombre);
+
+      if (!userId) { window.location.href = 'login.html'; return; }
+
+      // rol actual
+      localStorage.setItem('rolActual', 'comprador');
+
+      // mostrar flash si venimos de perfil
+      const raw = localStorage.getItem('flash');
+      if (raw) {
+        localStorage.removeItem('flash');
+        try {
+          const f = JSON.parse(raw);
+          if (window.Toastify) {
+            Toastify({
+              text: f.text || 'Hecho',
+              duration: f.timeout || 2200,
+              gravity: 'top', position: 'right', close: true,
+              style: { background: f.type === 'warn' ? '#f59e0b' : (f.type==='error' ? '#dc2626' : '#22c55e'),
+                       color:'#fff', borderRadius:'10px' }
+            }).showToast();
+          } else {
+            // fallback al toast propio de la página
+            const t = document.getElementById('toast');
+            if (t) { t.textContent = f.text || 'Hecho'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), f.timeout||2200); }
+          }
+          if (f.kickTo) setTimeout(() => window.location.replace(f.kickTo), f.timeout || 1800);
+        } catch {}
+      }
+
+      // verificar que siga siendo comprador
+      (async () => {
+        if (!uObj || uObj.es_comprador !== 'S') {
+          try {
+            const r = await fetch(`${API}/usuario/${encodeURIComponent(userId)}`);
+            if (r.ok) { uObj = await r.json(); localStorage.setItem('usuario', JSON.stringify(uObj)); }
+          } catch {}
+        }
+        if (!uObj || uObj.es_comprador !== 'S') {
+          // Mostrar aviso y expulsar a index
+          if (window.Toastify) {
+            Toastify({
+              text: 'Ya no eres comprador. Te sacamos del panel.',
+              duration: 1800, gravity: 'top', position: 'right', close: true,
+              style: { background:'#f59e0b', color:'#fff', borderRadius:'10px' }
+            }).showToast();
+          } else {
+            const t = document.getElementById('toast');
+            if (t) { t.textContent = 'Ya no eres comprador. Te sacamos del panel.'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1800); }
+          }
+          setTimeout(() => window.location.replace('index.html'), 1800);
+          return;
+        }
+
+        // Link a perfil con id
+        const aPerfil = document.querySelector('header .right a[href="perfil.html"]');
+        if (aPerfil) aPerfil.href = `perfil.html?id=${encodeURIComponent(userId)}`;
+
+        // Salir limpia todo
+        const aSalir = document.querySelector('header .right a[href="index.html"]');
+        if (aSalir) {
+          aSalir.addEventListener('click', () => {
+            localStorage.removeItem('rolActual');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('flash');
+          });
+        }
+      })();
+    })();
+    // ========= FIN NUEVO =========
 
     const list = document.getElementById('list');
     const dialog = document.getElementById('dialog');
@@ -177,14 +265,42 @@
     const search = document.getElementById('search');
 
     let idSubastaActual = null;
-    // notifs = [{text:string}]
     let notifs = [];
+    const timers = {};
 
-    /* ===== Toast ===== */
+    /* ===== Toast propio ===== */
     function showToast(msg){
       toast.textContent = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    /* ===== Utilidades contador ===== */
+    function fmtQ(n){ return "Q" + Number(n ?? 0).toLocaleString(); }
+    function two(n){ return String(n).padStart(2,'0'); }
+    function startCountdown(cardId, finISO){
+      const lbl = document.querySelector(`#${cardId} .countdown`);
+      const btn = document.querySelector(`#${cardId} .btn-pujar`);
+      if(!lbl) return;
+
+      function tick(){
+        const target = new Date(finISO).getTime();
+        const diff = target - Date.now();
+        if(diff <= 0){
+          lbl.textContent = 'Finalizada';
+          btn?.setAttribute('disabled','disabled');
+          clearInterval(timers[cardId]);
+          return;
+        }
+        const t = Math.floor(diff/1000);
+        const d = Math.floor(t/86400);
+        const h = Math.floor((t%86400)/3600);
+        const m = Math.floor((t%3600)/60);
+        const s = t%60;
+        lbl.textContent = `${d}d ${two(h)}:${two(m)}:${two(s)} restantes`;
+      }
+      tick();
+      timers[cardId] = setInterval(tick, 1000);
     }
 
     /* ===== Notificaciones ===== */
@@ -213,68 +329,77 @@
       bellCount.textContent = notifs.length;
     }
 
-  async function deleteNotif(idx){
-  const token = localStorage.getItem("token");
-  const notif = notifs[idx];
-  if (!notif || !notif.id_subasta) return;
+    async function deleteNotif(idx){
+      const token = localStorage.getItem("token");
+      const notif = notifs[idx];
+      if (!notif || !notif.id_subasta) return;
 
-  try {
-    const r = await fetch(`${API}/notificaciones/${notif.id_subasta}`, {
-      method: "DELETE",
-      headers: { "Authorization": "Bearer " + token }
-    });
-    if (r.ok) {
-      showToast("🗑️ Notificación eliminada");
-      notifs.splice(idx,1);
-      renderNotifs();
-    } else {
-      const data = await r.json();
-      console.warn("⚠️ No se eliminó:", data.message);
-      showToast("⚠️ Error al eliminar");
+      try {
+        const r = await fetch(`${API}/notificaciones/${notif.id_subasta}`, {
+          method: "DELETE",
+          headers: { "Authorization": "Bearer " + token }
+        });
+        if (r.ok) {
+          showToast("🗑️ Notificación eliminada");
+          notifs.splice(idx,1);
+          renderNotifs();
+        } else {
+          const data = await r.json();
+          console.warn("⚠️ No se eliminó:", data.message);
+          showToast("⚠️ Error al eliminar");
+        }
+      } catch (err) {
+        console.error("❌ Error al eliminar notificación:", err);
+        showToast("❌ No se pudo eliminar");
+      }
     }
-  } catch (err) {
-    console.error("❌ Error al eliminar notificación:", err);
-    showToast("❌ No se pudo eliminar");
-  }
-}
 
+    let panelOpen = false;
+    function setBellCount(n){ bellCount.textContent = n; }
 
     async function loadNotificaciones(){
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token){
+        setBellCount(0);
+        return;
+      }
       try {
-        const r = await fetch(`${API}/notificaciones`, {
-          headers: { "Authorization": "Bearer " + token }
+        const r = await fetch(`${API}/notificaciones?t=${Date.now()}`, {
+          headers: { "Authorization": "Bearer " + token },
+          cache: "no-store"
         });
         if (!r.ok) throw new Error("Error al cargar notificaciones");
         const data = await r.json();
-        // data: [{id_subasta, marca, modelo, monto, fecha}]
-       notifs = data.map(n => ({
-  id_subasta: n.id_subasta,
-  text: `🏁 Ganaste <b>${n.marca} ${n.modelo}</b> por Q${Number(n.monto).toLocaleString()}`
-}));
-
-        renderNotifs();
+        notifs = data.map(n => ({
+          id_subasta: n.id_subasta,
+          text: `🏁 Ganaste <b>${n.marca} ${n.modelo}</b> por Q${Number(n.monto).toLocaleString()}`
+        }));
+        setBellCount(notifs.length);
+        if (panelOpen) renderNotifs();
       } catch (err) {
         console.error("❌ Notificaciones:", err);
       }
     }
 
-    // Abrir / cerrar panel
     bell.addEventListener('click', async () => {
-      const show = notifBox.style.display !== 'flex';
-      notifBox.style.display = show ? 'flex' : 'none';
-      if (show) await loadNotificaciones();
+      panelOpen = notifBox.style.display !== 'flex';
+      notifBox.style.display = panelOpen ? 'flex' : 'none';
+      if (panelOpen){
+        renderNotifs();
+        await loadNotificaciones();
+      }
     });
-    // Cerrar si hago click fuera
     document.addEventListener('click', (e) => {
       if (!notifBox.contains(e.target) && !bell.contains(e.target)) {
         notifBox.style.display = 'none';
+        panelOpen = false;
       }
     });
-    // Esc para cerrar
     document.addEventListener('keydown', (e)=>{
-      if(e.key === 'Escape') notifBox.style.display = 'none';
+      if(e.key === 'Escape'){
+        notifBox.style.display = 'none';
+        panelOpen = false;
+      }
     });
 
     /* ===== Subastas ===== */
@@ -303,16 +428,33 @@
     function card(sub){
       const el = document.createElement('div');
       el.className = 'card';
-      el.id = 'sub_' + sub.id;
+      const cardId = 'sub_' + sub.id;
+      el.id = cardId;
+
+      const titulo = `${sub.marca ?? ''} ${sub.modelo ?? ''} ${sub.anio ?? ''}`.trim();
+      const finExacto = new Date(sub.fin).toLocaleString();
+
       el.innerHTML = `
         ${createSlider(sub.imagenes)}
-        <div class="row"><strong>${sub.marca} ${sub.modelo} ${sub.anio ?? ''}</strong></div>
-        <div class="muted">${sub.descripcion || ''}</div>
-        <div class="muted">Precio base: Q${Number(sub.precio_base).toLocaleString()}</div>
-        <div class="muted">Oferta más alta: Q${Number(sub.oferta_max || 0).toLocaleString()}</div>
-        <div class="muted">Cierra: ${new Date(sub.fin).toLocaleString()}</div>
-        <div class="row"><button onclick="abrirDialog(${sub.id})">Pujar</button></div>
+        <div class="muted" style="font-weight:700; margin-top:8px">${titulo}</div>
+
+        <div class="muted"><b>Marca:</b> ${sub.marca ?? '-'}</div>
+        <div class="muted"><b>Modelo:</b> ${sub.modelo ?? '-'}</div>
+        <div class="muted"><b>Año:</b> ${sub.anio ?? '-'}</div>
+        ${sub.descripcion ? `<div class="muted"><b>Descripción:</b> ${sub.descripcion}</div>` : ""}
+
+        <div class="muted"><b>Precio base:</b> ${fmtQ(sub.precio_base)}</div>
+        <div class="muted"><b>Oferta más alta:</b> ${fmtQ(sub.oferta_max || 0)}</div>
+
+        <div class="muted" title="Cierra: ${finExacto}">
+          <b>Cierra en:</b> <span class="countdown">--:--</span>
+        </div>
+
+        <div class="row">
+          <button class="btn-pujar" onclick="abrirDialog(${sub.id})">Pujar</button>
+        </div>
       `;
+      requestAnimationFrame(() => startCountdown(cardId, sub.fin));
       return el;
     }
 
@@ -330,6 +472,9 @@
         s.descripcion = det.subasta.descripcion;
         s.oferta_max = det.oferta_actual;
       }
+
+      Object.values(timers).forEach(clearInterval);
+
       list.innerHTML = '';
       data.forEach(s => list.appendChild(card(s)));
     }
@@ -376,14 +521,16 @@
     socket.on('auction:bid', () => load());
     socket.on('auction:updated', () => load());
     socket.on('auction:won', async (data) => {
-      // Recargo lista real desde la API para que "de verdad" se refleje
       await loadNotificaciones();
       showToast(`Ganaste la subasta #${data.id_subasta}`);
     });
 
-    // Refrescar notificaciones cada 30s
-    setInterval(loadNotificaciones, 30000);
-    // Carga inicial del contador
+    /* ===== Notificaciones: auto-refresh ===== */
+    setInterval(loadNotificaciones, FAST_POLL_MS);
+    window.addEventListener('focus', loadNotificaciones);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) loadNotificaciones();
+    });
     loadNotificaciones();
   </script>
 </body>
