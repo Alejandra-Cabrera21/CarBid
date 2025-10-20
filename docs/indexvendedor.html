@@ -4,37 +4,62 @@
   <meta charset="UTF-8">
   <title>Panel del Vendedor - CarBid</title>
   <link rel="stylesheet" href="css/panel-vendedor.css">
-</head>
+  <!-- Para que el script pueda tocar el DOM sin problemas -->
+  <script defer>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const API_BASE = 'http://localhost:3000/api';
 
-<script>
-  // Lee la sesión guardada
-  const userId   = localStorage.getItem('userId');
-  const userName = localStorage.getItem('userName'); // opcional
+      // 1) Recuperar sesión
+      const uStr   = localStorage.getItem('usuario');
+      const uObj   = uStr ? JSON.parse(uStr) : null;
+      let userId   = localStorage.getItem('userId') || (uObj && uObj.id);
+      let userName = localStorage.getItem('userName') || (uObj && uObj.nombre);
 
-  // Si no hay sesión -> manda a login
-  if (!userId) {
-    window.location.href = 'login.html';
-  } else {
-    // Cambia el enlace "Mi perfil" para pasar el id en la URL
-    const aPerfil = document.querySelector('nav.menu a[href="perfil.html"]');
-    if (aPerfil) aPerfil.href = `perfil.html?id=${encodeURIComponent(userId)}`;
+      // 2) Si no hay sesión -> login
+      if (!userId) {
+        window.location.href = 'login.html';
+        return;
+      }
 
-    // Pone el nombre en el saludo (si lo guardas)
-    const spanNombre = document.getElementById('nombreUsuario');
-    if (spanNombre && userName) spanNombre.textContent = userName;
-  }
+      // 3) Poner el id en el link de "Mi perfil"
+      const aPerfil = document.querySelector('nav.menu a[href="perfil.html"]');
+      if (aPerfil) aPerfil.href = `perfil.html?id=${encodeURIComponent(userId)}`;
 
-  // Al salir, limpia la sesión (opcional)
-  const aSalir = document.querySelector('nav.menu a[href="index.html"]');
-  if (aSalir) {
-    aSalir.addEventListener('click', () => {
-      localStorage.removeItem('userId');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('token');
+      // 4) Si no tenemos nombre en localStorage, lo pedimos al backend
+      if (!userName) {
+        try {
+          const r = await fetch(`${API_BASE}/usuario/${encodeURIComponent(userId)}`);
+          if (r.ok) {
+            const u = await r.json();
+            userName = u.nombre || '';
+            // Actualiza el cache local para futuros usos
+            localStorage.setItem('usuario', JSON.stringify({ ...(uObj||{}), ...u }));
+            if (userName) localStorage.setItem('userName', userName);
+          }
+        } catch (_) { /* sin bloquear la página */ }
+      }
+
+      // 5) Imprimir el nombre (fallback a correo si no hay nombre)
+      const spanNombre = document.getElementById('nombreUsuario');
+      if (spanNombre) {
+        spanNombre.textContent = userName && userName.trim()
+          ? userName
+          : (uObj && uObj.correo) || 'Usuario';
+      }
+
+      // 6) Al salir, limpiar sesión
+      const aSalir = document.querySelector('nav.menu a[href="index.html"]');
+      if (aSalir) {
+        aSalir.addEventListener('click', () => {
+          localStorage.removeItem('userId');
+          localStorage.removeItem('userName');
+          localStorage.removeItem('token');
+          localStorage.removeItem('usuario');
+        });
+      }
     });
-  }
-</script>
-
+  </script>
+</head>
 
 <body>
   <!-- 🔹 Header superior -->
@@ -51,7 +76,7 @@
 
   <!-- 🔹 Contenido principal -->
   <main class="panel-container">
-    <h2>Bienvenid@ <span id="nombreUsuario">angiepsc</span></h2>
+    <h2>Bienvenid@ <span id="nombreUsuario">...</span></h2>
     <div class="botones">
       <button onclick="window.location.href='crear-publicacion.html'">Crear publicación</button>
       <button onclick="window.location.href='mis-subastas.html'">Listado de subastas creadas</button>
