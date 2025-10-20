@@ -201,6 +201,8 @@
         if (res.ok) {
           localStorage.setItem("token", data.token);
           localStorage.setItem("usuario", JSON.stringify(data.usuario));
+           localStorage.setItem("userId", String(data.usuario.id));     // ← necesario para perfil.html
+  localStorage.setItem("userName", data.usuario.nombre || "");
           localStorage.removeItem("tipoSeleccionado");
           window.location.href = data.redirect;
         } else {

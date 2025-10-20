@@ -6,6 +6,36 @@
   <link rel="stylesheet" href="css/panel-vendedor.css">
 </head>
 
+<script>
+  // Lee la sesión guardada
+  const userId   = localStorage.getItem('userId');
+  const userName = localStorage.getItem('userName'); // opcional
+
+  // Si no hay sesión -> manda a login
+  if (!userId) {
+    window.location.href = 'login.html';
+  } else {
+    // Cambia el enlace "Mi perfil" para pasar el id en la URL
+    const aPerfil = document.querySelector('nav.menu a[href="perfil.html"]');
+    if (aPerfil) aPerfil.href = `perfil.html?id=${encodeURIComponent(userId)}`;
+
+    // Pone el nombre en el saludo (si lo guardas)
+    const spanNombre = document.getElementById('nombreUsuario');
+    if (spanNombre && userName) spanNombre.textContent = userName;
+  }
+
+  // Al salir, limpia la sesión (opcional)
+  const aSalir = document.querySelector('nav.menu a[href="index.html"]');
+  if (aSalir) {
+    aSalir.addEventListener('click', () => {
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('token');
+    });
+  }
+</script>
+
+
 <body>
   <!-- 🔹 Header superior -->
   <header class="navbar">
