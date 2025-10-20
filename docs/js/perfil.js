@@ -37,31 +37,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (uObj.es_comprador) comprador.checked = uObj.es_comprador === 'S';
   }
 
-  // GET a la nueva ruta /api/perfil/:id
- // === CARGA DE PERFIL DESDE EL SERVER (usa /api/usuario/:id) ===
-(async function loadFromServer() {
-  try {
-    const r = await fetch(`${API_BASE}/usuario/${encodeURIComponent(userId)}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
-    if (!r.ok) throw new Error(`No se pudo cargar el perfil (HTTP ${r.status}).`);
-    const u = await r.json();
+  // === CARGA DE PERFIL DESDE EL SERVER (usa /api/usuario/:id) ===
+  (async function loadFromServer() {
+    try {
+      const r = await fetch(`${API_BASE}/usuario/${encodeURIComponent(userId)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (!r.ok) throw new Error(`No se pudo cargar el perfil (HTTP ${r.status}).`);
+      const u = await r.json();
 
-    // Rellenar UI con lo que trae el backend
-    correo.value      = u.correo || '';
-    nombre.value      = u.nombre || '';
-    vendedor.checked  = u.es_vendedor  === 'S';
-    comprador.checked = u.es_comprador === 'S';
+      // Rellenar UI con lo que trae el backend
+      correo.value      = u.correo || '';
+      nombre.value      = u.nombre || '';
+      vendedor.checked  = u.es_vendedor  === 'S';
+      comprador.checked = u.es_comprador === 'S';
 
-    // Refrescar cache local (opcional)
-    const last = JSON.parse(localStorage.getItem('usuario') || '{}');
-    localStorage.setItem('usuario', JSON.stringify({ ...last, ...u }));
-  } catch (e) {
-    console.error(e);
-    toast('No se pudo cargar tu perfil', false);
-  }
-})();
-
+      // Refrescar cache local (opcional)
+      const last = JSON.parse(localStorage.getItem('usuario') || '{}');
+      localStorage.setItem('usuario', JSON.stringify({ ...last, ...u }));
+    } catch (e) {
+      console.error(e);
+      toast('No se pudo cargar tu perfil', false);
+    }
+  })();
 
   // Mostrar/ocultar lo que escribes
   const togglePassword = document.getElementById('togglePassword');
@@ -78,11 +76,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Guardar (PATCH) a /api/perfil/:id
+  // Guardar (PATCH) a /api/usuario/:id
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    errCorreo.textContent = ''; errNombre.textContent = ''; errPass.textContent = '';
+    errCorreo.textContent = '';
+    errNombre.textContent = '';
+    errPass.textContent   = '';
 
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.value.trim());
     if (!emailOk) { errCorreo.textContent = 'Correo inválido'; return; }
@@ -99,10 +99,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pass.value) payload.contraseña = pass.value;
 
     const btn = form.querySelector('button[type=submit]');
-    const prev = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando...';
+    const prev = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
 
     try {
-   const r = await fetch(`${API_BASE}/usuario/${encodeURIComponent(userId)}`, {
+      const r = await fetch(`${API_BASE}/usuario/${encodeURIComponent(userId)}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -110,49 +112,77 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: JSON.stringify(payload)
       });
-      const data = await r.json().catch(()=> ({}));
+      const data = await r.json().catch(() => ({}));
 
       if (r.ok) {
-  toast('Perfil actualizado');
+        // Toast inmediato en esta página
+        toast('Perfil actualizado');
 
-  // 👇 lee el estado anterior ANTES de sobrescribir
-  const prevUser  = JSON.parse(localStorage.getItem('usuario') || '{}');
-  const wasSeller = prevUser.es_vendedor === 'S';
+        // Estado anterior
+        const prevUser  = JSON.parse(localStorage.getItem('usuario') || '{}');
+        const wasSeller = prevUser.es_vendedor === 'S';
+        const wasBuyer  = prevUser.es_comprador === 'S';
 
-  // actualiza cache local
-  const newUser = {
-    ...(prevUser || {}),
-    id: Number(userId),
-    nombre: payload.nombre,
-    correo: payload.correo,
-    es_vendedor: payload.es_vendedor,
-    es_comprador: payload.es_comprador
-  };
-  localStorage.setItem('usuario', JSON.stringify(newUser));
+        // Nuevo estado
+        const newUser = {
+          ...(prevUser || {}),
+          id: Number(userId),
+          nombre: payload.nombre,
+          correo: payload.correo,
+          es_vendedor: payload.es_vendedor,
+          es_comprador: payload.es_comprador
+        };
+        localStorage.setItem('usuario', JSON.stringify(newUser));
+          localStorage.setItem('userName', payload.nombre);
 
-  // 👇 si estaba en panel de vendedor y ahora dejó de ser vendedor…
-  const rolActual = localStorage.getItem('rolActual'); // lo pone el panel del vendedor
-  const nowSeller = newUser.es_vendedor === 'S';
+        // ¿Desde qué panel venías?
+        const rolActual = localStorage.getItem('rolActual'); // 'vendedor' | 'comprador'
+        const destPanel = rolActual === 'comprador' ? 'indexcomprador.html' : 'indexvendedor.html';
 
-  if (rolActual === 'vendedor' && wasSeller && !nowSeller) {
-    // limpia marcadores de rol/sesión si quieres
-    localStorage.removeItem('rolActual');
-    // Elige a dónde redirigir:
-    // window.location.replace('panel-comprador.html');
-    window.location.replace('login.html');
-    return; // para que no siga ejecutando
-  }
+        // Flags de pérdida de rol
+        const nowSeller = newUser.es_vendedor === 'S';
+        const nowBuyer  = newUser.es_comprador === 'S';
 
-  pass.value = '';
-}
- else {
+        // Mensaje flash para MOSTRAR en el panel y luego expulsar a index.html
+        let flashMsg  = 'Perfil actualizado correctamente.';
+        let flashType = 'success';
+        let kickTo    = null;   // a dónde expulsar luego del toast en el panel
+        const timeout = 1800;   // ms antes de expulsar
+
+        if (rolActual === 'vendedor' && wasSeller && !nowSeller) {
+          flashMsg  = 'Ya no eres vendedor. Te sacamos del panel.';
+          flashType = 'warn';
+          kickTo    = 'index.html';
+        }
+        if (rolActual === 'comprador' && wasBuyer && !nowBuyer) {
+          flashMsg  = 'Ya no eres comprador. Te sacamos del panel.';
+          flashType = 'warn';
+          kickTo    = 'index.html';
+        }
+
+        // Guardar flash para que el panel muestre el toast y (si aplica) expulse
+        localStorage.setItem('flash', JSON.stringify({
+          type: flashType,
+          text: flashMsg,
+          kickTo,
+          timeout
+        }));
+
+        // Limpia el campo de nueva contraseña
+        pass.value = '';
+
+        // SIEMPRE regresar primero al panel desde el que venías
+        window.location.replace(destPanel);
+        return;
+      } else {
         toast(data.mensaje || data.message || 'No se pudo actualizar', false);
       }
     } catch (err) {
       console.error(err);
       toast('Error de conexión', false);
     } finally {
-      btn.disabled = false; btn.textContent = prev;
+      btn.disabled = false;
+      btn.textContent = prev;
     }
   });
 });

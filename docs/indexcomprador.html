@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CarBidSubastas</title>
+
+  <!-- Toastify (para mostrar el "flash" que viene desde perfil) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
   <style>
     :root{
       --bg:#111; --panel:#0f0f0f; --card:#171717; --border:#2a2a2a; --fg:#fff; --muted:#cbd5e1;
@@ -44,14 +49,14 @@
       font-size:12px; line-height:18px; text-align:center;
     }
 
-    /* Dropdown notificaciones (más alto para que no se oculte) */
+    /* Dropdown notificaciones */
     #notif-box{
       position:absolute; right:10px; top:60px;
       background:#1f2937; color:#fff; border-radius:10px; padding:10px;
       display:none; flex-direction:column; gap:8px;
       width:min(320px, 94vw); max-height:70vh; overflow:auto;
       box-shadow:0 12px 24px rgba(0,0,0,.35);
-      z-index:10000; /* evita que lo tape el contenido */
+      z-index:10000;
     }
     .notif-empty{ text-align:center; font-size:13px; color:#9ca3af; padding:6px 2px}
 
@@ -68,7 +73,7 @@
     .notif-del:hover{background:rgba(255,255,255,.08)}
     .notif-del svg{width:18px; height:18px; stroke:#fff; fill:none}
 
-    /* Toast */
+    /* Toast propio de la página (lo mantenemos para tus mensajes internos) */
     #toast{
       position: fixed; bottom: 25px; right: 25px;
       background: #166534; color: #fff; padding: 12px 16px;
@@ -82,10 +87,9 @@
     h1{font-weight:700; margin:10px 0 24px}
     .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:20px}
 
-    /* Tarjeta: borde blanco y texto a la izquierda */
+    /* Tarjeta */
     .card{background:var(--card); border:1px solid #fff; border-radius:12px; padding:16px; text-align:left}
     .muted{color:var(--muted); margin:2px 0; word-break:break-word}
-    /* botón Pujar a la derecha */
     .card .row{display:flex; justify-content:flex-end; align-items:center; margin-top:8px; gap:10px}
 
     button{background:var(--brand); border:none; color:#fff; border-radius:8px; padding:8px 12px; cursor:pointer}
@@ -103,7 +107,7 @@
     .slider button.prev{left:5px}
     .slider button.next{right:5px}
 
-    /* Dialogo de puja */
+    /* Diálogo de puja */
     #dialog{position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:10}
     #dialog .box{background:#fff; color:#000; padding:20px; border-radius:10px; min-width:min(380px, 92vw); text-align:center}
     #dialog input{width:100%; padding:10px; margin:10px 0; border:1px solid #ddd; border-radius:8px}
@@ -125,7 +129,7 @@
   <header>
     <div class="left">
       <img src="img/logo.png" alt="CarBid">
-      <input type="text" id="search" placeholder="Buscar... 🔍" aria-label="Buscar vehículo">
+      <input type="text" id="search" placeholder="Buscar..." aria-label="Buscar vehículo">
     </div>
 
     <div class="right">
@@ -163,13 +167,92 @@
     </div>
   </div>
 
-  <!-- Toast -->
+  <!-- Toast propio de la página -->
   <div id="toast" role="status" aria-live="polite"></div>
 
   <script src="http://localhost:3000/socket.io/socket.io.js"></script>
   <script>
     const API = 'http://localhost:3000/api';
-    const FAST_POLL_MS = 10000; // 🔁 refresco más rápido (10s)
+    const FAST_POLL_MS = 10000;
+
+    // ========= NUEVO: sesión, rolActual, flash, guarda de acceso =========
+    (function guardYFlash(){
+      const uStr = localStorage.getItem('usuario');
+      let uObj   = uStr ? JSON.parse(uStr) : null;
+      const userId   = localStorage.getItem('userId') || (uObj && uObj.id);
+      let userName   = localStorage.getItem('userName') || (uObj && uObj.nombre);
+
+      if (!userId) { window.location.href = 'login.html'; return; }
+
+      // rol actual
+      localStorage.setItem('rolActual', 'comprador');
+
+      // mostrar flash si venimos de perfil
+      const raw = localStorage.getItem('flash');
+      if (raw) {
+        localStorage.removeItem('flash');
+        try {
+          const f = JSON.parse(raw);
+          if (window.Toastify) {
+            Toastify({
+              text: f.text || 'Hecho',
+              duration: f.timeout || 2200,
+              gravity: 'top', position: 'right', close: true,
+              style: { background: f.type === 'warn' ? '#f59e0b' : (f.type==='error' ? '#dc2626' : '#22c55e'),
+                       color:'#fff', borderRadius:'10px' }
+            }).showToast();
+          } else {
+            // fallback al toast propio de la página
+            const t = document.getElementById('toast');
+            if (t) { t.textContent = f.text || 'Hecho'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), f.timeout||2200); }
+          }
+          if (f.kickTo) setTimeout(() => window.location.replace(f.kickTo), f.timeout || 1800);
+        } catch {}
+      }
+
+      // verificar que siga siendo comprador
+      (async () => {
+        if (!uObj || uObj.es_comprador !== 'S') {
+          try {
+            const r = await fetch(`${API}/usuario/${encodeURIComponent(userId)}`);
+            if (r.ok) { uObj = await r.json(); localStorage.setItem('usuario', JSON.stringify(uObj)); }
+          } catch {}
+        }
+        if (!uObj || uObj.es_comprador !== 'S') {
+          // Mostrar aviso y expulsar a index
+          if (window.Toastify) {
+            Toastify({
+              text: 'Ya no eres comprador. Te sacamos del panel.',
+              duration: 1800, gravity: 'top', position: 'right', close: true,
+              style: { background:'#f59e0b', color:'#fff', borderRadius:'10px' }
+            }).showToast();
+          } else {
+            const t = document.getElementById('toast');
+            if (t) { t.textContent = 'Ya no eres comprador. Te sacamos del panel.'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1800); }
+          }
+          setTimeout(() => window.location.replace('index.html'), 1800);
+          return;
+        }
+
+        // Link a perfil con id
+        const aPerfil = document.querySelector('header .right a[href="perfil.html"]');
+        if (aPerfil) aPerfil.href = `perfil.html?id=${encodeURIComponent(userId)}`;
+
+        // Salir limpia todo
+        const aSalir = document.querySelector('header .right a[href="index.html"]');
+        if (aSalir) {
+          aSalir.addEventListener('click', () => {
+            localStorage.removeItem('rolActual');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('flash');
+          });
+        }
+      })();
+    })();
+    // ========= FIN NUEVO =========
 
     const list = document.getElementById('list');
     const dialog = document.getElementById('dialog');
@@ -182,12 +265,10 @@
     const search = document.getElementById('search');
 
     let idSubastaActual = null;
-    // notifs = [{text:string}]
     let notifs = [];
-    // timers para contadores
     const timers = {};
 
-    /* ===== Toast ===== */
+    /* ===== Toast propio ===== */
     function showToast(msg){
       toast.textContent = msg;
       toast.classList.add('show');
@@ -273,7 +354,6 @@
       }
     }
 
-    // Actualiza SIEMPRE el contador; re-renderiza lista solo si está abierto
     let panelOpen = false;
     function setBellCount(n){ bellCount.textContent = n; }
 
@@ -290,7 +370,6 @@
         });
         if (!r.ok) throw new Error("Error al cargar notificaciones");
         const data = await r.json();
-        // data: [{id_subasta, marca, modelo, monto, fecha}]
         notifs = data.map(n => ({
           id_subasta: n.id_subasta,
           text: `🏁 Ganaste <b>${n.marca} ${n.modelo}</b> por Q${Number(n.monto).toLocaleString()}`
@@ -302,23 +381,20 @@
       }
     }
 
-    // Abrir / cerrar panel
     bell.addEventListener('click', async () => {
       panelOpen = notifBox.style.display !== 'flex';
       notifBox.style.display = panelOpen ? 'flex' : 'none';
       if (panelOpen){
-        renderNotifs();         // pinta lo que ya hay
-        await loadNotificaciones(); // y trae lo nuevo
+        renderNotifs();
+        await loadNotificaciones();
       }
     });
-    // Cerrar si hago click fuera
     document.addEventListener('click', (e) => {
       if (!notifBox.contains(e.target) && !bell.contains(e.target)) {
         notifBox.style.display = 'none';
         panelOpen = false;
       }
     });
-    // Esc para cerrar
     document.addEventListener('keydown', (e)=>{
       if(e.key === 'Escape'){
         notifBox.style.display = 'none';
@@ -378,7 +454,6 @@
           <button class="btn-pujar" onclick="abrirDialog(${sub.id})">Pujar</button>
         </div>
       `;
-      // Activar contador tras pintar
       requestAnimationFrame(() => startCountdown(cardId, sub.fin));
       return el;
     }
@@ -398,7 +473,6 @@
         s.oferta_max = det.oferta_actual;
       }
 
-      // limpiar contadores previos
       Object.values(timers).forEach(clearInterval);
 
       list.innerHTML = '';
@@ -447,17 +521,17 @@
     socket.on('auction:bid', () => load());
     socket.on('auction:updated', () => load());
     socket.on('auction:won', async (data) => {
-      await loadNotificaciones(); // 👈 refresca en caliente cuando gane
+      await loadNotificaciones();
       showToast(`Ganaste la subasta #${data.id_subasta}`);
     });
 
-    /* ===== Auto-refresh notificaciones más rápido ===== */
+    /* ===== Notificaciones: auto-refresh ===== */
     setInterval(loadNotificaciones, FAST_POLL_MS);
     window.addEventListener('focus', loadNotificaciones);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) loadNotificaciones();
     });
-    loadNotificaciones(); // carga inicial rápida
+    loadNotificaciones();
   </script>
 </body>
 </html>

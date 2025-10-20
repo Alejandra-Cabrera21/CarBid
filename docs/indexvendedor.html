@@ -4,43 +4,75 @@
   <meta charset="UTF-8">
   <title>Panel del Vendedor - CarBid</title>
   <link rel="stylesheet" href="css/panel-vendedor.css">
-  <!-- Para que el script pueda tocar el DOM sin problemas -->
-<script defer>
+
+  <!-- Toasts -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+  <script defer>
   document.addEventListener('DOMContentLoaded', async () => {
     const API_BASE = 'http://localhost:3000/api';
 
-    // 1) Recuperar sesión
+    // util: mostrar "flash" (y quizá expulsar)
+    const showFlashAndMaybeKick = () => {
+      const raw = localStorage.getItem('flash');
+      if (!raw) return false;
+      localStorage.removeItem('flash');
+      try {
+        const f = JSON.parse(raw);
+        Toastify({
+          text: f.text || 'Hecho',
+          duration: f.timeout || 2200,
+          gravity: 'top', position: 'right', close: true,
+          style: { background: f.type === 'warn' ? '#f59e0b' : (f.type==='error' ? '#dc2626' : '#22c55e'),
+                   color:'#fff', borderRadius:'10px' }
+        }).showToast();
+        if (f.kickTo) {
+          setTimeout(() => window.location.replace(f.kickTo), f.timeout || 1800);
+          return true; // habrá expulsión
+        }
+      } catch {}
+      return false;
+    };
+
+    // Sesión / usuario
     const uStr = localStorage.getItem('usuario');
     let uObj   = uStr ? JSON.parse(uStr) : null;
-    let userId = localStorage.getItem('userId') || (uObj && uObj.id);
-    let userName = localStorage.getItem('userName') || (uObj && uObj.nombre);
+    const userId   = localStorage.getItem('userId') || (uObj && uObj.id);
+    let userName   = localStorage.getItem('userName') || (uObj && uObj.nombre);
 
     if (!userId) { window.location.href = 'login.html'; return; }
 
-    // 👈 NUEVO: marcar rol activo y bloquear acceso si no es vendedor
+    // Marca el rol activo
     localStorage.setItem('rolActual', 'vendedor');
+
+    // Mostrar flash si venimos de perfil
+    const willKickFromFlash = showFlashAndMaybeKick();
+    if (willKickFromFlash) return; // si ya hay expulsión programada, detenemos
+
+    // Verificar que siga siendo vendedor (si cache está desactualizado, refrescar)
     if (!uObj || uObj.es_vendedor !== 'S') {
       try {
         const r = await fetch(`${API_BASE}/usuario/${encodeURIComponent(userId)}`);
-        if (r.ok) {
-          uObj = await r.json();
-          localStorage.setItem('usuario', JSON.stringify(uObj));
-        }
+        if (r.ok) { uObj = await r.json(); localStorage.setItem('usuario', JSON.stringify(uObj)); }
       } catch {}
     }
     if (!uObj || uObj.es_vendedor !== 'S') {
-      // Elige a dónde quieres mandarlo si no es vendedor:
-      // window.location.replace('panel-comprador.html');
-      window.location.replace('login.html');
+      // No redirigimos de inmediato: mostramos toast y luego index.html
+      Toastify({
+        text: 'Ya no eres vendedor. Te sacamos del panel.',
+        duration: 1800, gravity: 'top', position: 'right', close: true,
+        style: { background:'#f59e0b', color:'#fff', borderRadius:'10px' }
+      }).showToast();
+      setTimeout(() => window.location.replace('index.html'), 1800);
       return;
     }
-    // /NUEVO
 
-    // 3) Link a "Mi perfil"
+    // Link "Mi perfil" con el id
     const aPerfil = document.querySelector('nav.menu a[href="perfil.html"]');
     if (aPerfil) aPerfil.href = `perfil.html?id=${encodeURIComponent(userId)}`;
 
-    // 4) Si no hay nombre, pedirlo
+    // Saludo con nombre (fallback a correo)
     if (!userName) {
       try {
         const r = await fetch(`${API_BASE}/usuario/${encodeURIComponent(userId)}`);
@@ -52,12 +84,10 @@
         }
       } catch {}
     }
+    const span = document.getElementById('nombreUsuario');
+    if (span) span.textContent = (userName && userName.trim()) || (uObj && uObj.correo) || 'Usuario';
 
-    // 5) Pintar saludo
-    const spanNombre = document.getElementById('nombreUsuario');
-    if (spanNombre) spanNombre.textContent = userName?.trim() || (uObj && uObj.correo) || 'Usuario';
-
-    // 6) Salir
+    // Salir: limpia todo
     const aSalir = document.querySelector('nav.menu a[href="index.html"]');
     if (aSalir) {
       aSalir.addEventListener('click', () => {
@@ -66,11 +96,11 @@
         localStorage.removeItem('userName');
         localStorage.removeItem('token');
         localStorage.removeItem('usuario');
+        localStorage.removeItem('flash');
       });
     }
   });
-</script>
-
+  </script>
 </head>
 
 <body>

@@ -112,8 +112,8 @@
   title.innerHTML = `
     <div class="item-title">${sub.marca} ${sub.modelo}${sub.anio ? ' ' + sub.anio : ''}</div>
     <div class="meta">
-      Precio base: $${Number(sub.precio_base).toLocaleString('en-US')}
-      &nbsp;•&nbsp; Oferta más alta: <strong>$${Number(sub.oferta_max || 0).toLocaleString('en-US')}</strong>
+      Precio base: Q${Number(sub.precio_base).toLocaleString('en-US')}
+      &nbsp;•&nbsp; Oferta más alta: <strong>Q${Number(sub.oferta_max || 0).toLocaleString('en-US')}</strong>
       &nbsp;•&nbsp; Cierra: ${sub.fin ? new Date(sub.fin).toLocaleString() : '—'}
     </div>
   `;
