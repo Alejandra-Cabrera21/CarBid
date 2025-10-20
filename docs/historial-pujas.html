@@ -172,186 +172,189 @@
   <!-- Socket.IO del backend -->
   <script src="http://localhost:3000/socket.io/socket.io.js"></script>
   <script>
-  (function () {
-    const info      = document.getElementById('info');
-    const tableWrap = document.getElementById('tableWrap');
-    const tbody     = document.getElementById('tbody');
-    const cardsWrap = document.getElementById('cards');
+(function () {
+  const info      = document.getElementById('info');
+  const tableWrap = document.getElementById('tableWrap');
+  const tbody     = document.getElementById('tbody');
+  const cardsWrap = document.getElementById('cards');
 
-    const prevBtn   = document.getElementById('prevBtn');
-    const nextBtn   = document.getElementById('nextBtn');
-    const pageInfo  = document.getElementById('pageInfo');
+  const prevBtn   = document.getElementById('prevBtn');
+  const nextBtn   = document.getElementById('nextBtn');
+  const pageInfo  = document.getElementById('pageInfo');
 
-    const sortBySel = document.getElementById('sortBy');
-    const sortDirSel= document.getElementById('sortDir');
-    const qInput    = document.getElementById('q');
+  const sortBySel = document.getElementById('sortBy');
+  const sortDirSel= document.getElementById('sortDir');
+  const qInput    = document.getElementById('q');
 
-    const tokenStr = localStorage.getItem('token') || '';
-    const token    = tokenStr ? JSON.parse(JSON.stringify(tokenStr)) : null;
+  const tokenStr = localStorage.getItem('token') || '';
+  const token    = tokenStr ? JSON.parse(JSON.stringify(tokenStr)) : null;
 
-    const pageSize = 5;
-    let currentPage = 1;
-    let rows = [];         // crudo desde API
-    let viewRows = [];     // filtrado + ordenado
+  const pageSize = 5; // 5 en todas las vistas
+  let currentPage = 1;
+  let rows = [];
+  let viewRows = [];
 
-    const fmtGTQ  = new Intl.NumberFormat('es-GT', { maximumFractionDigits: 0 });
-    const fmtDate = new Intl.DateTimeFormat('es-GT', { dateStyle: 'medium' });
-    const fmtTime = new Intl.DateTimeFormat('es-GT', { hour: '2-digit', minute: '2-digit' });
+  const fmtGTQ  = new Intl.NumberFormat('es-GT', { maximumFractionDigits: 0 });
+  const fmtDate = new Intl.DateTimeFormat('es-GT', { dateStyle: 'medium' });
+  const fmtTime = new Intl.DateTimeFormat('es-GT', { hour: '2-digit', minute: '2-digit' });
 
-    function normalize(r){
-      const d = r.created_at ? new Date(r.created_at) : null;
-      return {
-        vehiculo: (r.vehiculo || 'Publicación'),
-        nombre:   (r.nombre_postor || r.postor || '—'),
-        monto:    Number(r.oferta || r.monto || 0),
-        fecha:    r.fecha ? r.fecha : (d ? fmtDate.format(d) : ''),
-        hora:     r.hora  ? r.hora  : (d ? fmtTime.format(d) : ''),
-        createdAt: d ? d.getTime() : 0
-      };
-    }
+  function normalize(r){
+    const d = r.created_at ? new Date(r.created_at) : null;
+    return {
+      vehiculo: (r.vehiculo || 'Publicación'),
+      nombre:   (r.nombre_postor || r.postor || '—'),
+      monto:    Number(r.oferta || r.monto || 0),
+      fecha:    r.fecha ? r.fecha : (d ? fmtDate.format(d) : ''),
+      hora:     r.hora  ? r.hora  : (d ? fmtTime.format(d) : ''),
+      createdAt: d ? d.getTime() : 0
+    };
+  }
 
-    function computeView(){
-      const q = qInput.value.trim().toLowerCase();
-      const by = sortBySel.value;
-      const dir= sortDirSel.value;
+  function computeView(){
+    const q = qInput.value.trim().toLowerCase();
+    const by = sortBySel.value;
+    const dir= sortDirSel.value;
 
-      // filtrar
-      viewRows = rows
-        .map(normalize)
-        .filter(x => {
-          if(!q) return true;
-          return (x.vehiculo.toLowerCase().includes(q) || x.nombre.toLowerCase().includes(q));
-        });
-
-      // ordenar
-      const mul = dir === 'asc' ? 1 : -1;
-      viewRows.sort((a,b)=>{
-        if(by === 'monto') return (a.monto - b.monto) * mul;
-        if(by === 'vehiculo') return a.vehiculo.localeCompare(b.vehiculo) * mul;
-        if(by === 'nombre') return a.nombre.localeCompare(b.nombre) * mul;
-        // fecha por createdAt
-        return (a.createdAt - b.createdAt) * mul;
+    viewRows = rows
+      .map(normalize)
+      .filter(x => {
+        if(!q) return true;
+        return (x.vehiculo.toLowerCase().includes(q) || x.nombre.toLowerCase().includes(q));
       });
-    }
 
-    function renderTable(slice){
-      tbody.innerHTML = slice.map(r => `
-        <tr>
-          <td class="vehiculo" title="${r.vehiculo}">${r.vehiculo}</td>
-          <td>${r.nombre}</td>
-          <td style="text-align:right">Q${fmtGTQ.format(r.monto)}</td>
-          <td>${r.fecha}</td>
-          <td>${r.hora}</td>
-        </tr>
-      `).join('');
-    }
+    const mul = dir === 'asc' ? 1 : -1;
+    viewRows.sort((a,b)=>{
+      if(by === 'monto') return (a.monto - b.monto) * mul;
+      if(by === 'vehiculo') return a.vehiculo.localeCompare(b.vehiculo) * mul;
+      if(by === 'nombre') return a.nombre.localeCompare(b.nombre) * mul;
+      return (a.createdAt - b.createdAt) * mul;
+    });
+  }
 
-    function renderCards(slice){
-      cardsWrap.innerHTML = slice.map(r => `
-        <div class="card-item">
-          <div class="ci-top">
-            <div class="ci-title" title="${r.vehiculo}">${r.vehiculo}</div>
-            <div class="chip">Q${fmtGTQ.format(r.monto)}</div>
-          </div>
-          <div class="ci-name">${r.nombre}</div>
-          <div class="ci-row">
-            <span class="chip"><i class="fa-regular fa-calendar"></i> ${r.fecha}</span>
-            <span class="chip"><i class="fa-regular fa-clock"></i> ${r.hora}</span>
-          </div>
+  function renderTable(slice){
+    tbody.innerHTML = slice.map(r => `
+      <tr>
+        <td class="vehiculo" title="${r.vehiculo}">${r.vehiculo}</td>
+        <td>${r.nombre}</td>
+        <td style="text-align:right">Q${fmtGTQ.format(r.monto)}</td>
+        <td>${r.fecha}</td>
+        <td>${r.hora}</td>
+      </tr>
+    `).join('');
+  }
+
+  function renderCards(slice){
+    cardsWrap.innerHTML = slice.map(r => `
+      <div class="card-item">
+        <div class="ci-top">
+          <div class="ci-title" title="${r.vehiculo}">${r.vehiculo}</div>
+          <div class="chip">Q${fmtGTQ.format(r.monto)}</div>
         </div>
-      `).join('');
+        <div class="ci-name">${r.nombre}</div>
+        <div class="ci-row">
+          <span class="chip"><i class="fa-regular fa-calendar"></i> ${r.fecha}</span>
+          <span class="chip"><i class="fa-regular fa-clock"></i> ${r.hora}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderPage(keepPage=false){
+    const total = viewRows.length;
+    const pages = Math.max(1, Math.ceil(total / pageSize));
+    if (!keepPage && currentPage > pages) currentPage = pages;
+    if (currentPage < 1) currentPage = 1;
+
+    const start = (currentPage - 1) * pageSize;
+    const slice = viewRows.slice(start, start + pageSize);
+
+    const isMobile = window.matchMedia('(max-width: 640px)').matches;
+    if (isMobile){
+      cardsWrap.style.display = '';
+      tableWrap.style.display = 'none';
+      renderCards(slice);
+    } else {
+      tableWrap.style.display = '';
+      cardsWrap.style.display = 'none';
+      renderTable(slice);
     }
 
-    function renderPage(keepPage=false){
-      const total = viewRows.length;
-      const pages = Math.max(1, Math.ceil(total / pageSize));
-      if (!keepPage && currentPage > pages) currentPage = pages;
-      if (currentPage < 1) currentPage = 1;
+    const showingFrom = total ? start + 1 : 0;
+    const showingTo   = start + slice.length;
+    pageInfo.textContent = `Mostrando ${showingFrom}–${showingTo} de ${total}`;
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= pages;
 
-      const start = (currentPage - 1) * pageSize;
-      const slice = viewRows.slice(start, start + pageSize);
-
-      // mostrar contenedor correcto (CSS también lo hace, esto evita pintar vacíos)
-      const isMobile = window.matchMedia('(max-width: 640px)').matches;
-      if (isMobile){
-        cardsWrap.style.display = '';
-        tableWrap.style.display = 'none';
-        renderCards(slice);
-      } else {
-        tableWrap.style.display = '';
-        cardsWrap.style.display = 'none';
-        renderTable(slice);
-      }
-
-      const showingFrom = total ? start + 1 : 0;
-      const showingTo   = start + slice.length;
-      pageInfo.textContent = `Mostrando ${showingFrom}–${showingTo} de ${total}`;
-      prevBtn.disabled = currentPage <= 1;
-      nextBtn.disabled = currentPage >= pages;
+    // 🔹 Mover paginador debajo de cards si es móvil
+    if (isMobile && !document.querySelector('.cards + .pager')) {
+      cardsWrap.insertAdjacentElement('afterend', document.querySelector('.pager'));
+    } else if (!isMobile && !document.querySelector('#tableWrap .pager')) {
+      document.querySelector('#tableWrap').appendChild(document.querySelector('.pager'));
     }
+  }
 
-    prevBtn.addEventListener('click', () => { currentPage--; renderPage(true); });
-    nextBtn.addEventListener('click', () => { currentPage++; renderPage(true); });
+  prevBtn.addEventListener('click', () => { currentPage--; renderPage(true); });
+  nextBtn.addEventListener('click', () => { currentPage++; renderPage(true); });
 
-    sortBySel.addEventListener('change', ()=>{ currentPage=1; computeView(); renderPage(); });
-    sortDirSel.addEventListener('change', ()=>{ currentPage=1; computeView(); renderPage(); });
-    qInput.addEventListener('input', ()=>{ currentPage=1; computeView(); renderPage(true); });
-    window.addEventListener('resize', ()=> renderPage(true));
+  sortBySel.addEventListener('change', ()=>{ currentPage=1; computeView(); renderPage(); });
+  sortDirSel.addEventListener('change', ()=>{ currentPage=1; computeView(); renderPage(); });
+  qInput.addEventListener('input', ()=>{ currentPage=1; computeView(); renderPage(true); });
+  window.addEventListener('resize', ()=> renderPage(true));
 
-    async function fetchData(){
-      const res = await fetch('http://localhost:3000/api/historial-pujas', {
-        headers: { 'Authorization': token ? `Bearer ${token}` : '' }
-      });
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      return res.json();
-    }
+  async function fetchData(){
+    const res = await fetch('http://localhost:3000/api/historial-pujas', {
+      headers: { 'Authorization': token ? `Bearer ${token}` : '' }
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    return res.json();
+  }
 
-    async function reloadData(keepPage=false){
-      try{
-        const newRows = await fetchData();
-        rows = Array.isArray(newRows) ? newRows : [];
+  async function reloadData(keepPage=false){
+    try{
+      const newRows = await fetchData();
+      rows = Array.isArray(newRows) ? newRows : [];
 
-        if (rows.length === 0){
-          info.style.display = '';
-          info.textContent = 'No hay pujas todavía.';
-          tableWrap.style.display = 'none';
-          cardsWrap.style.display = 'none';
-          return;
-        }
-
-        info.style.display = 'none';
-        computeView();
-        renderPage(keepPage);
-      }catch(e){
-        console.error(e);
+      if (rows.length === 0){
         info.style.display = '';
-        info.textContent = 'Error al cargar el historial';
+        info.textContent = 'No hay pujas todavía.';
+        tableWrap.style.display = 'none';
+        cardsWrap.style.display = 'none';
+        return;
       }
+
+      info.style.display = 'none';
+      computeView();
+      renderPage(keepPage);
+    }catch(e){
+      console.error(e);
+      info.style.display = '';
+      info.textContent = 'Error al cargar el historial';
     }
+  }
 
-    // Debounce para refresco por socket / polling
-    let refreshTimer = null;
-    function scheduleRefresh(){
-      if (refreshTimer) return;
-      refreshTimer = setTimeout(async () => {
-        refreshTimer = null;
-        await reloadData(true);
-      }, 600);
+  // Refresco por socket / polling
+  let refreshTimer = null;
+  function scheduleRefresh(){
+    if (refreshTimer) return;
+    refreshTimer = setTimeout(async () => {
+      refreshTimer = null;
+      await reloadData(true);
+    }, 600);
+  }
+
+  (async function init(){
+    await reloadData();
+    try{
+      const socket = io('http://localhost:3000', { path: '/socket.io', transports: ['websocket','polling'] });
+      socket.on('auction:bid',  scheduleRefresh);
+      socket.on('auction:won',  scheduleRefresh);
+    }catch(e){
+      console.warn('Socket.IO no disponible, usando fallback de polling.', e);
     }
-
-    (async function init(){
-      await reloadData();
-
-      try{
-        const socket = io('http://localhost:3000', { path: '/socket.io', transports: ['websocket','polling'] });
-        socket.on('auction:bid',  scheduleRefresh);
-        socket.on('auction:won',  scheduleRefresh);
-      }catch(e){
-        console.warn('Socket.IO no disponible, usando fallback de polling.', e);
-      }
-      setInterval(scheduleRefresh, 20000);
-    })();
+    setInterval(scheduleRefresh, 20000);
   })();
-  </script>
+})();
+</script>
+
 </body>
 </html>
