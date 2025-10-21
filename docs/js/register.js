@@ -9,13 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const vendEl   = document.getElementById('vendedor');
   const compEl   = document.getElementById('comprador');
 
-  // 👁 Mostrar/ocultar contraseñas
-  setupToggle('#togglePassword',  passEl);
-  setupToggle('#toggleConfirm',   confEl);
+  // 👇 BASE de API correcta según tu server.js
+  const API = 'http://localhost:3000/api/usuario';
 
-  function setupToggle(btnSelector, inputEl){
-    const btn   = document.querySelector(btnSelector);
-    const icon  = btn.querySelector('i');
+  // 👁 Mostrar/ocultar contraseñas
+  setupToggle('#togglePassword', passEl);
+  setupToggle('#toggleConfirm', confEl);
+
+  function setupToggle(btnSelector, inputEl) {
+    const btn = document.querySelector(btnSelector);
+    const icon = btn.querySelector('i');
     const toggle = () => {
       const show = inputEl.type === 'password';
       inputEl.type = show ? 'text' : 'password';
@@ -29,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Toast helper
-  const toast = (txt, ok=true) => {
+  const toast = (txt, ok = true) => {
     Toastify({
       text: txt,
       duration: 3000,
@@ -37,10 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
       position: 'right',
       close: true,
       style: {
-        background: ok
-          ? 'linear-gradient(135deg,#00b09b,#96c93d)'
-          : 'linear-gradient(135deg,#ff5f6d,#ffc371)'
-      }
+        background: ok ? '#28a745' : '#b51f05ff',
+        color: '#fff',
+        fontWeight: '500',
+        borderRadius: '8px',
+        boxShadow: '0 3px 10px rgba(0,0,0,.25)',
+      },
     }).showToast();
   };
 
@@ -55,10 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const usuario   = usuarioEl.value.trim();
     const password  = passEl.value;
     const confirmar = confEl.value;
-
-    // ✅ aquí corregimos: enviamos 'S' o 'N' según cada checkbox
-    const es_vendedor  = vendEl.checked ? 'S' : 'N';
-    const es_comprador = compEl.checked ? 'S' : 'N';
 
     // Validaciones
     let ok = true;
@@ -77,46 +78,55 @@ document.addEventListener('DOMContentLoaded', () => {
     if (password !== confirmar) {
       setErr('confirmar','Las contraseñas no coinciden.'); ok = false;
     }
-    if (es_vendedor === 'N' && es_comprador === 'N') {
-      toast('Selecciona al menos Vender o Comprar', false); ok = false;
+    if (!vendEl.checked && !compEl.checked) {
+      toast('Selecciona vender o comprar', false); ok = false;
     }
-
     if (!ok) return;
 
     try {
-      // 1) Verificar si el correo ya existe
-      const chk = await fetch('http://localhost:3000/api/users/check', {
+      // 1) Verificar si el correo ya existe (ENDPOINT CORRECTO)
+      const chk = await fetch(`${API}/check?t=${Date.now()}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify({ correo })
       });
-      const chkJson = await chk.json();
+
+      // Si el servidor devolviera HTML (404), evita crash:
+      let chkJson = {};
+      try { chkJson = await chk.json(); } catch { /* ignore */ }
+
       if (chk.ok && chkJson.encontrado) {
-        setErr('correo','Este correo ya está registrado.');
+        setErr('correo','Este correo ya se encuentra registrado.');
+        return;
+      }
+      if (!chk.ok && chk.status !== 404) {
+        // si hay error de DB u otro
+        toast(chkJson.mensaje || 'Error al verificar correo.', false);
         return;
       }
 
-      // 2) Registrar usuario
+      // 2) Registrar usuario (ENDPOINT CORRECTO)
       const btn = form.querySelector('button[type="submit"]');
       btn.disabled = true; btn.textContent = 'Guardando...';
 
-      const res = await fetch('http://localhost:3000/api/users/register', {
+      const res = await fetch(`${API}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nombre: usuario,
           correo,
-          contraseña: password,      // tu backend espera 'contraseña'
-          es_vendedor,
-          es_comprador
+          contraseña: password,        // el backend espera 'contraseña'
+          es_vendedor: vendEl.checked ? 'S' : 'N',
+          es_comprador: compEl.checked ? 'S' : 'N'
         })
       });
-      const data = await res.json();
+
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
-        toast('Usuario registrado correctamente ✅', true);
+        toast('Registro correcto', true);
         form.reset();
-        // (opcional) volver a poner los ojos en estado "oculto"
         document.querySelectorAll('.toggle-pass i').forEach(i=>{
           i.classList.remove('fa-eye-slash');
           i.classList.add('fa-eye');

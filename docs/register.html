@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 
   <!-- Tus estilos -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css"/>
 </head>
 
 <body>
@@ -55,8 +55,9 @@
         <div id="error-confirmar" class="error"></div>
 
         <div class="checkbox-group">
-          <label><input type="checkbox" id="vendedor" /> Quiero Vender</label>
-          <label><input type="checkbox" id="comprador" /> Quiero Comprar</label>
+          <!-- IMPORTANTE: class="rol-check" en ambos -->
+          <label><input type="checkbox" id="vendedor" class="rol-check" /> Quiero Vender</label>
+          <label><input type="checkbox" id="comprador" class="rol-check" /> Quiero Comprar</label>
         </div>
 
         <button type="submit">SIGUIENTE</button>
