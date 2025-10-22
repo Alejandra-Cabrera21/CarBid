@@ -1,15 +1,18 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-}
+/* ===== Reset y base ===== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; }
+body { margin: 0; font-family: 'Poppins', Arial, sans-serif; }
 
+/* ===== Navbar ===== */
 .navbar {
   background: #111;
-  color: white;
+  color: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 40px;
+  position: relative;
+  z-index: 10;
 }
 
 .logo span {
@@ -18,121 +21,97 @@ body {
   font-weight: bold;
 }
 
-.menu {
-  display: flex;
-  gap: 20px;
-}
+.menu { display: flex; gap: 20px; }
 
-button {
+/* ===== Botones del header (Acceder / Crear cuenta) ===== */
+.home-btn,
+.dropbtn {
   background: transparent;
-  color: white;
-  border: 2px solid white;
+  color: #fff;
+  border: 2px solid #fff;
   padding: 8px 16px;
   cursor: pointer;
   font-size: 16px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  line-height: 1;
+}
+.home-btn:hover,
+.dropbtn:hover {
+  background: #fff;
+  color: #000;
 }
 
-button:hover {
-  background: white;
-  color: black;
-}
+/* caret del dropdown */
+.dropbtn .caret { display: inline-block; transition: transform .2s ease; }
+.dropbtn.open .caret { transform: rotate(180deg); }
 
-/* ====== Desplegable ====== */
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
+/* ===== Dropdown ===== */
+.dropdown { position: relative; display: inline-block; }
+.dropdown > .dropbtn { width: auto; } /* evita que el botón se estire */
 .dropdown-content {
   display: none;
   position: absolute;
-  background-color: black;
+  right: 0;
+  top: calc(100% + 8px);
+  background-color: #000;
   min-width: 160px;
-  z-index: 1;
   border-radius: 6px;
   overflow: hidden;
+  border: 1px solid #333;
+  z-index: 20;
 }
-
+.dropdown-content.active { display: block; }
 .dropdown-content a {
-  color: white;
+  color: #fff;
   padding: 10px 12px;
   text-decoration: none;
   display: block;
-  transition: background 0.2s;
+  transition: background .2s;
 }
+.dropdown-content a:hover { background-color: #444; }
 
-.dropdown-content a:hover {
-  background-color: #444;
-}
-
-/* ⚠️ Eliminado el hover que abría el menú automáticamente */
-/* .dropdown:hover .dropdown-content { display: block; } */
-
-/* Agregado control visual por JS */
-.dropdown-content.active {
-  display: block;
-}
-
-/* Triángulo giratorio */
-.dropbtn .caret {
-  display: inline-block;
-  transition: transform 0.2s ease;
-}
-
-.dropbtn.open .caret {
-  transform: rotate(180deg);
-}
-
+/* ===== Hero (imagen de portada pegada al header) ===== */
+.hero { margin: 0; }
+.hero img.background,
 .hero img {
   width: 100%;
   height: 90vh;
   object-fit: cover;
+  display: block;
 }
 
-/* ===== Fondo dividido (pantalla registro) ===== */
-.register-container {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-}
-
-.image-side {
-  flex: 1;
-  overflow: hidden;
-}
-
-.image-side img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
+/* ===== Layout registro / formularios ===== */
+.register-container { display: flex; height: 100vh; width: 100%; }
+.image-side { flex: 1; overflow: hidden; }
+.image-side img { width: 100%; height: 100%; object-fit: cover; }
 .form-side {
   flex: 1;
   background-color: #111;
-  color: white;
+  color: #fff;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
+.form-header { text-align: center; margin-bottom: 20px; }
+.form-header img { display: block; margin: 0 auto 10px; }
 
-.form-header {
-  text-align: center;
-  margin-bottom: 20px;
+/* Botones SOLO del formulario (no tocar header) */
+.form-side form { display: flex; flex-direction: column; width: 70%; gap: 10px; }
+.form-side form button {
+  background-color: #fff;
+  color: #000;
+  font-weight: bold;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background .2s;
 }
-
-.form-header img {
-  display: block;
-  margin: 0 auto 10px;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  width: 70%;
-  gap: 10px;
-}
+.form-side form button:hover { background-color: #e2e2e2; }
 
 input[type="text"],
 input[type="email"],
@@ -142,76 +121,28 @@ input[type="password"] {
   border-radius: 4px;
 }
 
-/* 👁 contenedor del ojo */
-.input-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-.input-wrapper input {
-  width: 100%;
-  padding-right: 42px;
-}
-
+/* 👁 Mostrar/ocultar contraseña en inputs */
+.input-wrapper { position: relative; width: 100%; }
+.input-wrapper input { width: 100%; padding-right: 42px; }
 .toggle-pass {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #888;
-  font-size: 18px;
-  z-index: 2;
+  position: absolute; right: 10px; top: 50%;
+  transform: translateY(-50%); cursor: pointer;
+  color: #888; font-size: 18px; z-index: 2;
 }
-
-.toggle-pass:hover {
-  color: #ddd;
-}
+.toggle-pass:hover { color: #ddd; }
 
 /* errores de campo en rojo */
 .form-side .error {
   color: #ff4d4f !important;
-  font-size: 0.95rem;
+  font-size: .95rem;
   font-weight: 600;
   margin-top: 6px;
   line-height: 1.2;
 }
 
-.checkbox-group {
-  display: flex;
-  justify-content: space-between;
-  margin: 10px 0;
-}
+.checkbox-group { display: flex; justify-content: space-between; margin: 10px 0; }
 
-button {
-  background-color: white;
-  color: black;
-  font-weight: bold;
-  padding: 10px;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: 0.2s;
-}
-
-button:hover {
-  background-color: #e2e2e2;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html,
-body {
-  width: 100%;
-  height: 100%;
-  font-family: 'Poppins', sans-serif;
-}
-
-/* ===== MODO MÓVIL ===== */
+/* ===== Mobile (pantalla registro como tarjeta sobre imagen) ===== */
 @media (max-width: 900px) {
   .register-container {
     position: relative;
@@ -220,119 +151,166 @@ body {
     max-width: none;
     margin: 0;
     border-radius: 0;
-    background: url('img/auto.png') center center / cover no-repeat;
+    background: url('/img/auto.png') center center / cover no-repeat; /* ruta pública correcta */
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
   }
-
   .register-container::before {
     content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(0, 0, 0, .45), rgba(0, 0, 0, .65));
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.65));
     z-index: 0;
   }
-
-  .image-side {
-    display: none;
-  }
-
+  .image-side { display: none; }
   .form-side {
-    position: relative;
-    z-index: 1;
-    width: 92%;
-    max-width: 380px;
-    margin: 0 auto;
+    position: relative; z-index: 1;
+    width: 92%; max-width: 380px; margin: 0 auto;
     padding: 22px 22px 26px;
-    background: rgba(17, 17, 17, .85);
+    background: rgba(17,17,17,.85);
     backdrop-filter: blur(4px);
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
   }
-
-  .form-header {
-    margin-bottom: 12px;
-  }
-
-  .form-side form {
-    width: 100%;
-    max-width: none;
-    gap: 12px;
-  }
-
-  .form-side form label {
-    font-size: .95rem;
-  }
-
-  .form-side form input {
-    font-size: .95rem;
-  }
-
-  .checkbox-group {
-    gap: 16px;
-    justify-content: space-between;
-  }
-
-  .form-side form button {
-    width: 100%;
-    padding: 12px;
-    font-size: 1rem;
-  }
+  .form-header { margin-bottom: 12px; }
+  .form-side form { width: 100%; max-width: none; gap: 12px; }
+  .form-side form label, .form-side form input { font-size: .95rem; }
+  .checkbox-group { gap: 16px; justify-content: space-between; }
+  .form-side form button { width: 100%; padding: 12px; font-size: 1rem; }
 }
 
-/* ===== Toastify sin degradados ===== */
-
-/* 🔸 General */
+/* ===== Toastify ===== */
 .toastify {
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: .9rem;
   border-radius: 10px !important;
   padding: 12px 16px !important;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
   color: #fff;
 }
+.toastify.success { background: #28a745 !important; }
+.toastify.error   { background: #dc3545 !important; }
+.toastify .toast-close { color:#fff !important; opacity:.9 !important; font-weight:bold; margin-left:8px; }
+.toastify .toast-close:hover { opacity:1 !important; transform:scale(1.1); cursor:pointer; }
 
-/* 🔹 Éxito (verde sólido) */
-.toastify.success {
-  background: #28a745 !important;
-}
-
-/* 🔻 Error (rojo sólido) */
-.toastify.error {
-  background: #dc3545 !important;
-}
-
-/* ❌ Botón de cierre (X) */
-.toastify .toast-close {
-  color: #fff !important;
-  opacity: 0.9 !important;
-  font-weight: bold;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  margin-left: 8px;
-}
-
-.toastify .toast-close:hover {
-  opacity: 1 !important;
-  transform: scale(1.1);
-  cursor: pointer;
-}
-
-/* 📱 Adaptación móvil */
 @media (max-width: 600px) {
   .toastify {
-    font-size: 0.85rem !important;
+    font-size: .85rem !important;
     width: 90% !important;
     text-align: center;
     border-radius: 8px !important;
     padding: 14px 10px !important;
   }
-
-  .toastify .toast-close {
-    display: inline-block;
-    float: none;
-    margin-left: 6px;
-  }
+  .toastify .toast-close { display: inline-block; float: none; margin-left: 6px; }
 }
+
+/* ===== Utilidades opcionales ===== */
+/* Título móvil (si lo usas) solo visible en móvil */
+/* ===== Utilidades (web vs móvil) ===== */
+.only-desktop { display: none; }
+.only-mobile  { display: block; }
+
+@media (min-width: 768px){
+  .only-desktop { display: flex; }
+  .only-mobile  { display: none; }
+}
+
+/* ancho completo para botones en la tarjeta móvil */
+.btn-full { width: 100%; }
+
+/* ===== MÓVIL: tarjeta centrada sobre la imagen ===== */
+@media (max-width: 767px){
+  .hero{ position: relative; }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.65));
+    z-index: 0;
+  }
+
+  .home-overlay-card{
+    position:absolute;
+    left:50%; top:45%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 380px;
+    background: rgba(17,17,17,.88);
+    color: #fff;
+    border-radius: 14px;
+    padding: 18px 16px 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25);
+    z-index: 1;
+  }
+
+  .home-card-title{
+    margin: 0 0 12px 0;
+    text-align:center;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .home-actions{ display: grid; gap: 12px; }
+
+  /* botones iguales al header pero a todo el ancho */
+  .only-mobile .home-btn,
+  .only-mobile .dropbtn{
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 2px solid #fff;
+    background: transparent;
+    color: #fff;
+    font-weight: 700;
+    width: 100%;
+  }
+  .only-mobile .home-btn:hover,
+  .only-mobile .dropbtn:hover{
+    background:#fff; color:#111;
+  }
+
+  /* el menú del dropdown ocupa el mismo ancho del botón */
+  .only-mobile .dropdown{ width: 100%; }
+  .only-mobile .dropdown-content{
+    left: 0; right: 0;
+    min-width: 100%;
+  }
+
+  /* ===== Fix scroll extra en móvil ===== */
+html, body { overflow-x: hidden; }   
+html, body { overflow-y: hidden; }       /* sin desplazamiento lateral */
+.hero { overflow: hidden; }                 /* nada se sale del viewport */
+
+
+/* ===== Logo dentro de la tarjeta ===== */
+/* ==== Quitar franja blanca y scroll en móvil ==== */
+html, body, #root { height: 100%; }
+body { overflow-x: hidden; }
+
+.hero {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  min-height: 100dvh;      /* alto del viewport visible */
+}
+
+/* La imagen llena el viewport visible */
+.hero .background {
+  display: block;
+  width: 100%;
+  height: 100dvh;          /* evita hueco blanco inferior */
+  object-fit: cover;
+}
+
+/* Fallback para navegadores sin dvh/svh */
+@supports not (height: 100dvh) {
+  .hero { min-height: 100vh; }
+  .hero .background { height: 100vh; }
+}
+
+}
+
+
+
