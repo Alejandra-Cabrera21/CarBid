@@ -27,7 +27,7 @@ const notificacionesRoutes = require('./routes/notificaciones');
 const historialPujasRoutes = require('./routes/historialPujas'); // 🆕 nueva ruta
 const perfilRoutes = require('./routes/perfil');   // ⬅️ NUEVO
 // server.js
-const historialSubastasRoutes = require('./routes/historialSubastas');
+const historialSubastasRoutes = require('../docs/js/historialSubastas');
 app.use('/api/historial-subastas', historialSubastasRoutes);
 
 app.use('/api/usuario', usuarioRoutes);
