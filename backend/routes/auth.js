@@ -109,7 +109,7 @@ router.post("/login", (req, res) => {
 
       res.json({
         message: "Inicio de sesión exitoso",
-        redirect: "/indexcomprador",
+        redirect: "/fronted/indexcomprador",
         token,
         usuario: { id: user.id, correo: user.correo, rol: "comprador" },
       });
@@ -162,7 +162,7 @@ router.post("/login-vendedor", (req, res) => {
 
       res.json({
         message: "Inicio de sesión exitoso",
-        redirect: "/indexvendedor",
+        redirect: "/fronted/indexvendedor",
         token,
         usuario: { id: user.id, correo: user.correo, rol: "vendedor" },
       });
