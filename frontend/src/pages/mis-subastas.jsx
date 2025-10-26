@@ -53,11 +53,8 @@ function SubastaItem({ subasta, onChangeEstado }) {
     }
 
     const ok = await onChangeEstado(subasta.id, nuevo);
-    if (ok) {
-      setEstado(nuevo);
-    } else {
-      setEstado(subasta.estado);
-    }
+    if (ok) setEstado(nuevo);
+    else setEstado(subasta.estado);
   };
 
   const selectClass = `select ${estado === "ABIERTA" ? "abierta" : "cerrada"}`;
@@ -98,12 +95,18 @@ export default function MisSubastas() {
   const [items, setItems] = useState([]);
   const emptyRef = useRef(null);
 
+  // Por si vienes de una pantalla que bloqueó el scroll (p. ej. un modal)
+  useEffect(() => {
+    document.body.classList.remove("modal-open", "login-page");
+  }, []);
+
   /* ---- Cargar mis subastas ---- */
   const loadMyAuctions = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
       setItems([]);
-      if (emptyRef.current) emptyRef.current.textContent = "Necesitas iniciar sesión como vendedor.";
+      if (emptyRef.current)
+        emptyRef.current.textContent = "Necesitas iniciar sesión como vendedor.";
       return;
     }
 
@@ -129,8 +132,8 @@ export default function MisSubastas() {
         setItems(data);
       } else {
         setItems([]);
-        if (emptyRef.current) emptyRef.current.textContent =
-          data?.message || text || `Error ${res.status}`;
+        if (emptyRef.current)
+          emptyRef.current.textContent = data?.message || text || `Error ${res.status}`;
       }
     } catch (e) {
       setItems([]);
@@ -181,7 +184,7 @@ export default function MisSubastas() {
     loadMyAuctions();
   }, []);
 
-  // Similar a pageshow/visibilitychange del HTML
+  // Refrescar al volver a la pestaña o hacer back/forward cache
   useEffect(() => {
     const onPageShow = (ev) => {
       if (ev.persisted) loadMyAuctions();
@@ -197,7 +200,7 @@ export default function MisSubastas() {
     };
   }, []);
 
-  // Socket.IO para refrescar cuando haya cambios externos
+  // Socket.IO para refrescar
   useEffect(() => {
     let socket;
     try {
@@ -221,12 +224,28 @@ export default function MisSubastas() {
         --ok:#a3e635; --err:#ef4444;
         --card:#111; --fg:#fff; --muted:#9ca3af; --border:#1f2937;
       }
-      html,body{margin:0;background:#0b0b0b;color:var(--fg)}
-      header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0f0f0f}
+
+      /* 🔒 Forzamos scroll vertical y bloqueamos horizontal,
+         venciendo cualquier height:100% global con !important */
+      :root, html, body, #root {
+        height: auto !important;
+        min-height: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        background:#0b0b0b;
+        color: var(--fg);
+      }
+
+      header{
+        display:flex;align-items:center;justify-content:space-between;
+        padding:12px 16px;background:#0f0f0f
+      }
       header a, header button{color:#fff;text-decoration:none;font-size:20px}
       header img{height:32px}
 
-      .wrap{max-width:920px;margin:24px auto;padding:0 12px}
+      .wrap{
+        max-width:920px;margin:24px auto;padding:0 12px 24px; /* padding-bottom para que no corte al final */
+      }
       h1{text-align:center;margin:18px 0 22px}
 
       .list{display:flex;flex-direction:column;gap:16px}
@@ -240,18 +259,14 @@ export default function MisSubastas() {
       .estado{display:flex;align-items:center;gap:12px}
 
       .badge{
-        padding:4px;
-        border-radius:999px;
-        border:1px solid var(--border);
-        display:inline-flex;align-items:center;justify-content:center;
-        width:26px;height:26px;
+        padding:4px;border-radius:999px;border:1px solid var(--border);
+        display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
       }
       .badge.abierta{background:rgba(163,230,53,.15);border-color:rgba(163,230,53,.35)}
       .badge.cerrada{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.35)}
       .icon{
         display:inline-flex;align-items:center;justify-content:center;
-        width:18px;height:18px;border-radius:50%;
-        font-size:12px;font-weight:700; line-height:1;
+        width:18px;height:18px;border-radius:50%;font-size:12px;font-weight:700;line-height:1;
       }
       .icon.ok{background:rgba(163,230,53,.25)}
       .icon.err{background:rgba(239,68,68,.25)}
@@ -274,9 +289,7 @@ export default function MisSubastas() {
       `}</style>
 
       <header>
-        {/* 👇 Enlace SPA correcto (sin .html) */}
         <Link to="/indexvendedor" aria-label="Regresar">←</Link>
-
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <img src="img/logo.png" alt="CarBid" />
           <strong>Mis subastas</strong>

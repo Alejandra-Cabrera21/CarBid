@@ -1,5 +1,6 @@
 // src/pages/IndexComprador.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
@@ -23,7 +24,13 @@ function Slider({ imagenes }) {
     : "img/no-image.png";
 
   if (!hasImgs) {
-    return <img src={src} alt="Sin imagen" style={{ height: 220, objectFit: "cover", borderRadius: 8, width: "100%" }} />;
+    return (
+      <img
+        src={src}
+        alt="Sin imagen"
+        style={{ height: 220, objectFit: "cover", borderRadius: 8, width: "100%" }}
+      />
+    );
   }
 
   const prev = () => setIdx((p) => (p - 1 + imagenes.length) % imagenes.length);
@@ -174,6 +181,9 @@ function DialogPuja({ open, onClose, onAccept }) {
 
 /* ==================== Página Principal ==================== */
 export default function IndexComprador() {
+  const navigate = useNavigate();
+  const [userId, setUserId] = useState(null);
+
   const [search, setSearch] = useState("");
   const [subastas, setSubastas] = useState([]);
   const [notifs, setNotifs] = useState([]);
@@ -182,16 +192,17 @@ export default function IndexComprador() {
   const bellRef = useRef(null);
   const notifRef = useRef(null);
 
-  /* ===== Guardia de sesión + flash + links ===== */
+  /* ===== Guardia de sesión + flash + rol ===== */
   useEffect(() => {
     const uStr = localStorage.getItem("usuario");
     let uObj = uStr ? JSON.parse(uStr) : null;
-    const userId = localStorage.getItem("userId") || (uObj && uObj.id);
+    const uid = localStorage.getItem("userId") || (uObj && uObj.id);
 
-    if (!userId) {
-      window.location.href = "login.html";
+    if (!uid) {
+      navigate("/login");
       return;
     }
+    setUserId(uid);
 
     localStorage.setItem("rolActual", "comprador");
 
@@ -212,14 +223,14 @@ export default function IndexComprador() {
             borderRadius: "10px",
           },
         }).showToast();
-        if (f.kickTo) setTimeout(() => (window.location.href = f.kickTo), f.timeout || 1800);
+        if (f.kickTo) setTimeout(() => navigate(f.kickTo), f.timeout || 1800);
       } catch {}
     }
 
     (async () => {
       if (!uObj || uObj.es_comprador !== "S") {
         try {
-          const r = await fetch(`${API}/usuario/${encodeURIComponent(userId)}`);
+          const r = await fetch(`${API}/usuario/${encodeURIComponent(uid)}`);
           if (r.ok) {
             uObj = await r.json();
             localStorage.setItem("usuario", JSON.stringify(uObj));
@@ -235,10 +246,10 @@ export default function IndexComprador() {
           close: true,
           style: { background: "#f59e0b", color: "#fff", borderRadius: "10px" },
         }).showToast();
-        setTimeout(() => (window.location.href = "index.html"), 1800);
+        setTimeout(() => navigate("/"), 1800);
       }
     })();
-  }, []);
+  }, [navigate]);
 
   /* ===== Carga subastas ===== */
   const loadSubastas = async (term = "") => {
@@ -252,7 +263,6 @@ export default function IndexComprador() {
       );
     }
 
-    // Enriquecer con detalles/imagenes/oferta_actual
     const enriched = await Promise.all(
       data.map(async (s) => {
         const resImg = await fetch(`${API}/subastas/${s.id}`);
@@ -298,7 +308,7 @@ export default function IndexComprador() {
         }))
       );
     } catch (e) {
-      // opcional: log
+      // opcional
     }
   };
 
@@ -395,7 +405,7 @@ export default function IndexComprador() {
     }
   };
 
-  /* ===== Salir: limpiar storage ===== */
+  /* ===== Salir ===== */
   const onSalir = () => {
     localStorage.removeItem("rolActual");
     localStorage.removeItem("userId");
@@ -462,7 +472,6 @@ export default function IndexComprador() {
       background:#374151; padding:8px 10px; border-radius:8px; font-size:14px;
     }
     .notif-item .txt{flex:1 1 auto; min-width:0}
-    .notif-item .txt b{white-space:nowrap}
     .notif-del{
       background:transparent; border:none; cursor:pointer; padding:4px; flex:0 0 auto;
       display:inline-flex; align-items:center; justify-content:center; border-radius:6px;
@@ -530,13 +539,10 @@ export default function IndexComprador() {
         </div>
 
         <div className="right" style={{ position: "relative" }}>
-          <a href="historial-subastas.html">Historial Subastas</a>
-          <a href={`perfil.html${localStorage.getItem("userId") ? `?id=${encodeURIComponent(localStorage.getItem("userId"))}` : ""}`}>
-            Mi perfil
-          </a>
-          <a href="index.html" onClick={onSalir}>
-            Salir
-          </a>
+          {/* ⇨ SPA links */}
+          <Link to="/historial-subastas">Historial Subastas</Link>
+          <Link to={`/perfil?id=${encodeURIComponent(userId || "")}`}>Mi perfil</Link>
+          <Link to="/" onClick={onSalir}>Salir</Link>
 
           <button
             id="bell"
@@ -574,7 +580,7 @@ export default function IndexComprador() {
         onAccept={onAcceptPuja}
       />
 
-      {/* Fallback toast local (por si algún día no cargara Toastify) */}
+      {/* Fallback toast local */}
       <div id="toast" role="status" aria-live="polite" />
     </>
   );
