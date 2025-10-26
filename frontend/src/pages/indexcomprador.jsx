@@ -6,7 +6,8 @@ import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
 
 const API = "http://localhost:3000/api";
-const FAST_POLL_MS = 10000;
+const FAST_POLL_MS = 10000;           // notificaciones
+const AUCTION_POLL_MS = 15000;        // ⬅️ polling de subastas (fallback)
 
 function fmtQ(n) {
   return "Q" + Number(n ?? 0).toLocaleString();
@@ -185,6 +186,9 @@ export default function IndexComprador() {
   const [userId, setUserId] = useState(null);
 
   const [search, setSearch] = useState("");
+  const searchRef = useRef("");                      // ⬅️ guardamos el término actual
+  useEffect(() => { searchRef.current = search; }, [search]);
+
   const [subastas, setSubastas] = useState([]);
   const [notifs, setNotifs] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -279,9 +283,34 @@ export default function IndexComprador() {
     setSubastas(enriched);
   };
 
+  // Carga inicial + polling + focus/visibility refresh
   useEffect(() => {
-    loadSubastas();
+    let stop = false;
+
+    const refresh = async () => {
+      if (stop) return;
+      await loadSubastas(searchRef.current);
+    };
+
+    refresh(); // inicial
+
+    const poll = setInterval(refresh, AUCTION_POLL_MS);
+
+    const onFocus = () => refresh();
+    const onVisibility = () => { if (!document.hidden) refresh(); };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stop = true;
+      clearInterval(poll);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, []);
+
+  // Debounce por búsqueda (conservado)
   useEffect(() => {
     const id = setTimeout(() => loadSubastas(search), 250);
     return () => clearTimeout(id);
@@ -367,15 +396,27 @@ export default function IndexComprador() {
 
   /* ===== Socket.io ===== */
   useEffect(() => {
-    const socket = io("http://localhost:3000", { transports: ["websocket"] });
-    socket.on("auction:created", loadSubastas);
-    socket.on("auction:closed", loadSubastas);
-    socket.on("auction:bid", loadSubastas);
-    socket.on("auction:updated", loadSubastas);
+    const socket = io("http://localhost:3000", {
+      path: "/socket.io",
+      transports: ["websocket", "polling"],
+      withCredentials: false,
+    });
+
+    const refresh = () => loadSubastas(searchRef.current);
+
+    socket.on("connect", refresh);
+    socket.on("reconnect", refresh);
+    socket.on("auction:created", refresh);
+    socket.on("auction:closed", refresh);
+    socket.on("auction:updated", refresh);
+    socket.on("auction:bid", refresh);
+
     socket.on("auction:won", async (data) => {
       await loadNotificaciones();
       toast(`Ganaste la subasta #${data.id_subasta}`);
+      refresh();
     });
+
     return () => {
       socket.disconnect();
     };
@@ -398,7 +439,7 @@ export default function IndexComprador() {
       if (r.ok) {
         toast("✅ Puja registrada correctamente");
         onCloseDialog();
-        loadSubastas(search);
+        loadSubastas(searchRef.current); // ⬅️ refrescar usando el término actual
       } else toast("⚠️ " + (data.message || "Error desconocido"));
     } catch {
       toast("❌ No se pudo conectar con el servidor.");
