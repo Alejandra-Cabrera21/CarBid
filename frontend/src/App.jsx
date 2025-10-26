@@ -13,6 +13,7 @@ import Perfil from "./pages/perfil.jsx";
 
 export default function App() {
   return (
+       
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/register" element={<Register />} />
@@ -25,5 +26,6 @@ export default function App() {
          <Route path="/perfil" element={<Perfil />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+   
   );
 }
