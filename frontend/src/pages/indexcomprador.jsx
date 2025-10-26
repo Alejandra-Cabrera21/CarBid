@@ -1,11 +1,13 @@
 // src/pages/IndexComprador.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
 
 const API = "http://localhost:3000/api";
-const FAST_POLL_MS = 10000;
+const FAST_POLL_MS = 10000;           // notificaciones
+const AUCTION_POLL_MS = 15000;        // ⬅️ polling de subastas (fallback)
 
 function fmtQ(n) {
   return "Q" + Number(n ?? 0).toLocaleString();
@@ -23,7 +25,13 @@ function Slider({ imagenes }) {
     : "img/no-image.png";
 
   if (!hasImgs) {
-    return <img src={src} alt="Sin imagen" style={{ height: 220, objectFit: "cover", borderRadius: 8, width: "100%" }} />;
+    return (
+      <img
+        src={src}
+        alt="Sin imagen"
+        style={{ height: 220, objectFit: "cover", borderRadius: 8, width: "100%" }}
+      />
+    );
   }
 
   const prev = () => setIdx((p) => (p - 1 + imagenes.length) % imagenes.length);
@@ -174,7 +182,13 @@ function DialogPuja({ open, onClose, onAccept }) {
 
 /* ==================== Página Principal ==================== */
 export default function IndexComprador() {
+  const navigate = useNavigate();
+  const [userId, setUserId] = useState(null);
+
   const [search, setSearch] = useState("");
+  const searchRef = useRef("");                      // ⬅️ guardamos el término actual
+  useEffect(() => { searchRef.current = search; }, [search]);
+
   const [subastas, setSubastas] = useState([]);
   const [notifs, setNotifs] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -182,16 +196,17 @@ export default function IndexComprador() {
   const bellRef = useRef(null);
   const notifRef = useRef(null);
 
-  /* ===== Guardia de sesión + flash + links ===== */
+  /* ===== Guardia de sesión + flash + rol ===== */
   useEffect(() => {
     const uStr = localStorage.getItem("usuario");
     let uObj = uStr ? JSON.parse(uStr) : null;
-    const userId = localStorage.getItem("userId") || (uObj && uObj.id);
+    const uid = localStorage.getItem("userId") || (uObj && uObj.id);
 
-    if (!userId) {
-      window.location.href = "login.html";
+    if (!uid) {
+      navigate("/login");
       return;
     }
+    setUserId(uid);
 
     localStorage.setItem("rolActual", "comprador");
 
@@ -212,14 +227,14 @@ export default function IndexComprador() {
             borderRadius: "10px",
           },
         }).showToast();
-        if (f.kickTo) setTimeout(() => (window.location.href = f.kickTo), f.timeout || 1800);
+        if (f.kickTo) setTimeout(() => navigate(f.kickTo), f.timeout || 1800);
       } catch {}
     }
 
     (async () => {
       if (!uObj || uObj.es_comprador !== "S") {
         try {
-          const r = await fetch(`${API}/usuario/${encodeURIComponent(userId)}`);
+          const r = await fetch(`${API}/usuario/${encodeURIComponent(uid)}`);
           if (r.ok) {
             uObj = await r.json();
             localStorage.setItem("usuario", JSON.stringify(uObj));
@@ -235,10 +250,10 @@ export default function IndexComprador() {
           close: true,
           style: { background: "#f59e0b", color: "#fff", borderRadius: "10px" },
         }).showToast();
-        setTimeout(() => (window.location.href = "index.html"), 1800);
+        setTimeout(() => navigate("/"), 1800);
       }
     })();
-  }, []);
+  }, [navigate]);
 
   /* ===== Carga subastas ===== */
   const loadSubastas = async (term = "") => {
@@ -252,7 +267,6 @@ export default function IndexComprador() {
       );
     }
 
-    // Enriquecer con detalles/imagenes/oferta_actual
     const enriched = await Promise.all(
       data.map(async (s) => {
         const resImg = await fetch(`${API}/subastas/${s.id}`);
@@ -269,9 +283,34 @@ export default function IndexComprador() {
     setSubastas(enriched);
   };
 
+  // Carga inicial + polling + focus/visibility refresh
   useEffect(() => {
-    loadSubastas();
+    let stop = false;
+
+    const refresh = async () => {
+      if (stop) return;
+      await loadSubastas(searchRef.current);
+    };
+
+    refresh(); // inicial
+
+    const poll = setInterval(refresh, AUCTION_POLL_MS);
+
+    const onFocus = () => refresh();
+    const onVisibility = () => { if (!document.hidden) refresh(); };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stop = true;
+      clearInterval(poll);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, []);
+
+  // Debounce por búsqueda (conservado)
   useEffect(() => {
     const id = setTimeout(() => loadSubastas(search), 250);
     return () => clearTimeout(id);
@@ -298,7 +337,7 @@ export default function IndexComprador() {
         }))
       );
     } catch (e) {
-      // opcional: log
+      // opcional
     }
   };
 
@@ -357,15 +396,27 @@ export default function IndexComprador() {
 
   /* ===== Socket.io ===== */
   useEffect(() => {
-    const socket = io("http://localhost:3000", { transports: ["websocket"] });
-    socket.on("auction:created", loadSubastas);
-    socket.on("auction:closed", loadSubastas);
-    socket.on("auction:bid", loadSubastas);
-    socket.on("auction:updated", loadSubastas);
+    const socket = io("http://localhost:3000", {
+      path: "/socket.io",
+      transports: ["websocket", "polling"],
+      withCredentials: false,
+    });
+
+    const refresh = () => loadSubastas(searchRef.current);
+
+    socket.on("connect", refresh);
+    socket.on("reconnect", refresh);
+    socket.on("auction:created", refresh);
+    socket.on("auction:closed", refresh);
+    socket.on("auction:updated", refresh);
+    socket.on("auction:bid", refresh);
+
     socket.on("auction:won", async (data) => {
       await loadNotificaciones();
       toast(`Ganaste la subasta #${data.id_subasta}`);
+      refresh();
     });
+
     return () => {
       socket.disconnect();
     };
@@ -388,14 +439,14 @@ export default function IndexComprador() {
       if (r.ok) {
         toast("✅ Puja registrada correctamente");
         onCloseDialog();
-        loadSubastas(search);
+        loadSubastas(searchRef.current); // ⬅️ refrescar usando el término actual
       } else toast("⚠️ " + (data.message || "Error desconocido"));
     } catch {
       toast("❌ No se pudo conectar con el servidor.");
     }
   };
 
-  /* ===== Salir: limpiar storage ===== */
+  /* ===== Salir ===== */
   const onSalir = () => {
     localStorage.removeItem("rolActual");
     localStorage.removeItem("userId");
@@ -462,7 +513,6 @@ export default function IndexComprador() {
       background:#374151; padding:8px 10px; border-radius:8px; font-size:14px;
     }
     .notif-item .txt{flex:1 1 auto; min-width:0}
-    .notif-item .txt b{white-space:nowrap}
     .notif-del{
       background:transparent; border:none; cursor:pointer; padding:4px; flex:0 0 auto;
       display:inline-flex; align-items:center; justify-content:center; border-radius:6px;
@@ -530,13 +580,10 @@ export default function IndexComprador() {
         </div>
 
         <div className="right" style={{ position: "relative" }}>
-          <a href="historial-subastas.html">Historial Subastas</a>
-          <a href={`perfil.html${localStorage.getItem("userId") ? `?id=${encodeURIComponent(localStorage.getItem("userId"))}` : ""}`}>
-            Mi perfil
-          </a>
-          <a href="index.html" onClick={onSalir}>
-            Salir
-          </a>
+          {/* ⇨ SPA links */}
+          <Link to="/historial-subastas">Historial Subastas</Link>
+          <Link to={`/perfil?id=${encodeURIComponent(userId || "")}`}>Mi perfil</Link>
+          <Link to="/" onClick={onSalir}>Salir</Link>
 
           <button
             id="bell"
@@ -574,7 +621,7 @@ export default function IndexComprador() {
         onAccept={onAcceptPuja}
       />
 
-      {/* Fallback toast local (por si algún día no cargara Toastify) */}
+      {/* Fallback toast local */}
       <div id="toast" role="status" aria-live="polite" />
     </>
   );

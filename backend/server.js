@@ -27,8 +27,9 @@ const notificacionesRoutes = require('./routes/notificaciones');
 const historialPujasRoutes = require('./routes/historialPujas'); // 🆕 nueva ruta
 const perfilRoutes = require('./routes/perfil');   // ⬅️ NUEVO
 // server.js
-const historialSubastasRoutes = require('../docs/js/historialSubastas');
-app.use('/api/historial-subastas', historialSubastasRoutes);
+// backend/server.js
+const historialSubastas = require('./routes/historialSubastas');
+
 
 app.use('/api/usuario', usuarioRoutes);
 app.use('/api/auth', authRoutes);
@@ -36,6 +37,7 @@ app.use('/api/subastas', auctionsRoutes);
 app.use('/api/pujas', bidsRoutes);
 app.use('/api/notificaciones', notificacionesRoutes);
 app.use('/api/historial-pujas', historialPujasRoutes); // 🧩 nueva línea añadida
+app.use('/api/historial-subastas', historialSubastas);
 
 /* ===== Pings de prueba ===== */
 app.get('/__ping', (_req, res) => res.json({ ok: true, where: 'root' }));

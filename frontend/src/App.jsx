@@ -8,11 +8,13 @@ import CrearPublicacion from "./pages/crear-publicacion.jsx";
 import MisSubastas from "./pages/mis-subastas.jsx";
 import HistorialPujas from "./pages/historial-pujas.jsx";
 import Perfil from "./pages/perfil.jsx";
+import HistorialSubastas from "./pages/historial-subastas.jsx";
 // ...
 
 
 export default function App() {
   return (
+       
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/register" element={<Register />} />
@@ -23,7 +25,9 @@ export default function App() {
        <Route path="/mis-subastas" element={<MisSubastas />} />
          <Route path="/historial-pujas" element={<HistorialPujas />} />
          <Route path="/perfil" element={<Perfil />} />
+             <Route path="/historial-subastas" element={<HistorialSubastas />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+   
   );
 }
