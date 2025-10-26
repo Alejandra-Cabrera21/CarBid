@@ -142,3 +142,115 @@ p a:hover { color: #ccc; }
   form button[type="submit"] { height: 46px; font-size: 1rem; }
   p { font-size: .95rem; margin-top: 16px; }
 }
+/* ====== MODAL "Olvidé mi contraseña" ====== */
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  display: flex;                 /* visible cuando se renderiza */
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.6);
+  z-index: 9999;                 /* por encima de todo */
+}
+
+/* Caja del modal (blanca) */
+.modal{
+  background:#ffffff;
+  color:#111;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  max-width:420px;
+  width:92vw;
+  padding:20px 18px;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);
+  animation: modalIn .15s ease-out;
+}
+
+@keyframes modalIn{
+  from{ transform: translateY(8px); opacity: 0; }
+  to{   transform: translateY(0);   opacity: 1; }
+}
+
+.modal h3{ margin:0 0 12px; }
+
+/* Inputs blancos dentro del modal */
+.modal input{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #cfd4dc;
+  background:#ffffff;
+  color:#111;
+  outline:none;
+  box-sizing: border-box;
+}
+.modal input::placeholder{ color:#6b7280; }
+.modal input:focus{
+  border-color:#2563eb;
+  box-shadow:0 0 0 3px rgba(37,99,235,.15);
+}
+
+/* Acciones del modal */
+.modal .actions{
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+  margin-top:14px;
+  flex-wrap:wrap;
+}
+
+/* Botones del modal */
+.btn{
+  background:#2563eb;
+  border:none;
+  color:#fff;
+  border-radius:10px;
+  padding:10px 14px;
+  cursor:pointer;
+  font-weight:600;
+}
+.btn:hover{ filter: brightness(.95); }
+.btn.secondary{
+  background:#e5e7eb;
+  color:#111;
+}
+
+/* Mensajes del modal */
+.hint{ font-size:.9rem; color:#374151; margin-top:6px; min-height:18px; }
+.hint.ok{ color:#16a34a; }
+.hint.bad{ color:#dc2626; }
+
+/* Evita que el contenido del fondo se desplace cuando aparece el modal (opcional) */
+body.modal-open{
+  overflow: hidden;
+}
+/* Header del modal con botón cerrar */
+.modal-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+}
+
+.modal-close{
+  appearance:none;
+  background:transparent;
+  border:none;
+  font-size:22px;     /* tamaño de la X */
+  line-height:1;
+  padding:6px 10px;
+  cursor:pointer;
+  color:#111;
+  border-radius:8px;
+}
+
+.modal-close:hover{
+  background:#f3f4f6;
+}
+
+.modal-close:focus{
+  outline:2px solid #2563eb;
+  outline-offset:2px;
+}
+

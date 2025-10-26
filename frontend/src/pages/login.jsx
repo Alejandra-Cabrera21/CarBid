@@ -127,8 +127,8 @@ export default function Login() {
       setHint2("Código inválido.");
       return;
     }
-    if (fpPass.length < 6) {
-      setHint2("La contraseña debe tener al menos 6 caracteres.");
+    if (fpPass.length < 8) {
+      setHint2("La contraseña debe tener al menos 8 caracteres.");
       return;
     }
     if (fpPass !== fpPass2) {
@@ -276,90 +276,127 @@ export default function Login() {
 
       {/* ===== Modal Olvidé mi contraseña ===== */}
       {forgotOpen && (
-        <div
-          className="modal-backdrop"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setForgotOpen(false);
-          }}
+  <div
+    className="modal-backdrop"
+    onClick={(e) => {
+      if (e.target === e.currentTarget) setForgotOpen(false);
+    }}
+  >
+    <div className="modal" role="dialog" aria-modal="true">
+      <div className="modal-header">
+        <h3>Recuperar contraseña</h3>
+        <button
+          type="button"
+          className="modal-close"
+          aria-label="Cerrar"
+          onClick={() => setForgotOpen(false)}
         >
-          <div className="modal" role="dialog" aria-modal="true">
-            <h3>Recuperar contraseña</h3>
+          ×
+        </button>
+      </div>
 
-            {step === 1 && (
-              <div id="step1">
-                <label htmlFor="fpEmail">Correo de tu cuenta</label>
-                <input
-                  type="email"
-                  id="fpEmail"
-                  placeholder="tu@correo.com"
-                  value={fpEmail}
-                  onChange={(e) => setFpEmail(e.target.value)}
-                />
-                <div className="hint">{hint1}</div>
-                <div className="actions">
-                  <button
-                    className="btn secondary"
-                    type="button"
-                    onClick={() => setForgotOpen(false)}
-                  >
-                    Cancelar
-                  </button>
-                  <button className="btn" type="button" onClick={sendCode}>
-                    Enviar código
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div id="step2">
-                <label htmlFor="fpCode">Código de verificación (6 dígitos)</label>
-                <input
-                  type="text"
-                  id="fpCode"
-                  maxLength={6}
-                  value={fpCode}
-                  onChange={(e) => setFpCode(e.target.value)}
-                />
-
-                <label htmlFor="fpPass" style={{ marginTop: 8 }}>
-                  Nueva contraseña
-                </label>
-                <input
-                  type="password"
-                  id="fpPass"
-                  value={fpPass}
-                  onChange={(e) => setFpPass(e.target.value)}
-                />
-
-                <label htmlFor="fpPass2" style={{ marginTop: 8 }}>
-                  Confirmar contraseña
-                </label>
-                <input
-                  type="password"
-                  id="fpPass2"
-                  value={fpPass2}
-                  onChange={(e) => setFpPass2(e.target.value)}
-                />
-
-                <div className="hint">{hint2}</div>
-                <div className="actions">
-                  <button
-                    className="btn secondary"
-                    type="button"
-                    onClick={() => setStep(1)}
-                  >
-                    Atrás
-                  </button>
-                  <button className="btn" type="button" onClick={resetPass}>
-                    Cambiar contraseña
-                  </button>
-                </div>
-              </div>
-            )}
+      {step === 1 && (
+        <div id="step1">
+          <label htmlFor="fpEmail">Correo de tu cuenta</label>
+          <input
+            type="email"
+            id="fpEmail"
+            placeholder="tu@correo.com"
+            value={fpEmail}
+            onChange={(e)=>setFpEmail(e.target.value)}
+            spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="none"
+            inputMode="email"
+            autoComplete="email"
+          />
+          <div className="hint" aria-live="polite">{hint1}</div>
+          <div className="actions">
+            <button className="btn secondary" type="button" onClick={()=>setForgotOpen(false)}>Cancelar</button>
+            <button className="btn" type="button" onClick={sendCode}>Enviar código</button>
           </div>
         </div>
       )}
+
+      {step === 2 && (() => {
+        // ===== Validaciones en vivo =====
+        const codeOK      = /^\d{6}$/.test(fpCode.trim());
+        const passLenOK   = fpPass.length >= 6;         // mínimo 6 (como tu backend)
+        const passUpperOK = /[A-Z]/.test(fpPass);
+        const passLowerOK = /[a-z]/.test(fpPass);
+        const passDigitOK = /\d/.test(fpPass);
+        const passMatchOK = fpPass.length > 0 && fpPass === fpPass2;
+
+        const allOK = codeOK && passLenOK && passUpperOK && passLowerOK && passDigitOK && passMatchOK;
+
+        const bullet = (ok, text) => (
+          <li style={{color: ok ? "#16a34a" : "#6b7280"}}>
+            {ok ? "✓ " : "• "}{text}
+          </li>
+        );
+
+        return (
+          <div id="step2">
+            <label htmlFor="fpCode">Código de verificación (6 dígitos)</label>
+            <input
+              type="text"
+              id="fpCode"
+              maxLength={6}
+              value={fpCode}
+              onChange={(e)=>setFpCode(e.target.value)}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+            />
+
+            <label htmlFor="fpPass" style={{marginTop:8}}>Nueva contraseña</label>
+            <input
+              type="password"
+              id="fpPass"
+              value={fpPass}
+              onChange={(e)=>setFpPass(e.target.value)}
+              autoComplete="new-password"
+            />
+
+            <label htmlFor="fpPass2" style={{marginTop:8}}>Confirmar contraseña</label>
+            <input
+              type="password"
+              id="fpPass2"
+              value={fpPass2}
+              onChange={(e)=>setFpPass2(e.target.value)}
+              autoComplete="new-password"
+            />
+
+            {/* Reglas en vivo (como en crear cuenta) */}
+            <ul style={{marginTop:8, marginBottom:4, paddingLeft:18, lineHeight:1.4}}>
+              {bullet(passLenOK,   "Mínimo 8 caracteres")}
+              {bullet(passUpperOK, "Al menos 1 mayúscula (A-Z)")}
+              {bullet(passLowerOK, "Al menos 1 minúscula (a-z)")}
+              {bullet(passDigitOK, "Al menos 1 número (0-9)")}
+              {bullet(passMatchOK, "Ambas contraseñas coinciden")}
+            </ul>
+
+            <div className="hint" aria-live="polite">{hint2}</div>
+
+            <div className="actions">
+              <button className="btn secondary" type="button" onClick={()=>setStep(1)}>Atrás</button>
+              <button
+                className="btn"
+                type="button"
+                onClick={resetPass}
+                disabled={!allOK}
+                aria-disabled={!allOK}
+                title={!allOK ? "Completa los requisitos para continuar" : "Cambiar contraseña"}
+              >
+                Cambiar contraseña
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  </div>
+)}
+
     </>
   );
 }
