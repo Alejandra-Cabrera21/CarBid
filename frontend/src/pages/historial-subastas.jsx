@@ -27,7 +27,7 @@ export default function HistorialSubastas() {
   const fmtDate = useMemo(
     () =>
       new Intl.DateTimeFormat("es-GT", {
-        day: "numeric",
+        day: "2-digit",
         month: "2-digit",
         year: "numeric",
       }),
@@ -159,86 +159,119 @@ export default function HistorialSubastas() {
 
   return (
     <>
-      <style>{`
-      :root{
-        --bg:#1b1b1b; --panel:#0f0f0f; --fg:#fff;
-        --table-bg:#0d0d0d; --table-bd:#2b2b2b; --thead:#e5e7eb; --thead-text:#111;
-        --muted:#cbd5e1; --chip:#222; --chip-bd:#2c2c2c;
-      }
-      *{box-sizing:border-box}
-      html,body{height:100%}
-      body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,Segoe UI,Roboto,Arial}
+     <style>{`
+  :root{
+    --bg:#1b1b1b; --panel:#0f0f0f; --fg:#fff;
+    --table-bg:#0d0d0d; --table-bd:#2b2b2b;
+    --muted:#cbd5e1; --chip:#222; --chip-bd:#2c2c2c;
+    --topbar-h:56px;                 /* altura de la barra superior para sticky */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:system-ui,Segoe UI,Roboto,Arial;
+    overflow-y:auto;                 /* ⬅ scroll vertical de toda la página */
+    overflow-x:hidden;               /* ⬅ sin scroll horizontal */
+  }
 
-      .topbar{
-        display:flex;align-items:center;justify-content:space-between;
-        padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.08);
-        background:var(--panel); position:sticky; top:0; z-index:10;
-      }
-      .back{
-        display:inline-flex;align-items:center;gap:8px;color:#fff;font-weight:600;
-        background:transparent;border:none;padding:0;cursor:pointer;font:inherit
-      }
-      .logo{height:36px}
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 18px;
+    min-height:var(--topbar-h);
+    border-bottom:1px solid rgba(255,255,255,.08);
+    background:var(--panel);
+    position:sticky; top:0; z-index:10;
+  }
+  .back{
+    display:inline-flex;align-items:center;gap:8px;color:#fff;font-weight:600;
+    background:transparent;border:none;padding:0;cursor:pointer;font:inherit
+  }
+  .logo{height:36px}
 
-      .wrap{max-width:1100px;margin:0 auto;padding:26px 14px 60px}
-      h1{text-align:center;margin:8px 0 24px;font-size:clamp(22px,3.4vw,32px)}
+  .wrap{
+    max-width:1100px;margin:0 auto;padding:26px 14px 60px;
+    min-height:100vh;
+    overflow-x:hidden;               /* seguridad extra contra scroll X */
+  }
+  h1{text-align:center;margin:8px 0 24px;font-size:clamp(22px,3.4vw,32px)}
 
-      .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}
-      .controls label{color:var(--muted);font-size:.92rem}
-      .controls input,.controls select{
-        background:var(--chip);color:#fff;border:1px solid var(--chip-bd);
-        border-radius:8px;padding:8px 10px;outline:none
-      }
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}
+  .controls label{color:var(--muted);font-size:.92rem}
+  .controls input,.controls select{
+    background:var(--chip);color:#fff;border:1px solid var(--chip-bd);
+    border-radius:8px;padding:8px 10px;outline:none
+  }
 
-      .table-wrap{width:100%}
-      table{width:100%;border-collapse:collapse;table-layout:fixed}
-      thead th{
-        background:var(--thead); color:var(--thead-text); font-weight:800; padding:12px; text-align:left;
-        border:1px solid var(--table-bd);
-      }
-      tbody td{
-        background:var(--table-bg); color:#e5e7eb; padding:12px; border:1px solid var(--table-bd);
-        word-break:break-word;
-      }
-      tbody tr:hover td{background:#121212}
+  /* ===== Tabla SIN scroll propio ===== */
+  .table-wrap{
+    width:100%;
+    /* sin max-height ni overflow: la página es la que scrollea */
+  }
 
-      th:nth-child(1), td:nth-child(1){width:28%}
-      th:nth-child(2), td:nth-child(2){width:12%; text-align:right}
-      th:nth-child(3), td:nth-child(3){width:12%; text-align:right}
-      th:nth-child(4), td:nth-child(4){width:16%; text-align:right}
-      th:nth-child(5), td:nth-child(5){width:14%}
-      th:nth-child(6), td:nth-child(6){width:8%}
-      th:nth-child(7), td:nth-child(7){width:10%}
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
 
-      .vehiculo{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Encabezado rojo, sticky y respetando la topbar */
+  thead th{
+    position:sticky; top:var(--topbar-h); z-index:1;
+    background:#ef4444;
+    color:#fff;
+    font-weight:800;
+    padding:12px;
+    text-align:left;
+    border:1px solid var(--table-bd);
+    white-space:nowrap;               /* no cortar palabras del header */
+    word-break:normal;
+  }
 
-      .cards{display:none}
-      .card-item{
-        background:var(--table-bg); border:1px solid var(--table-bd);
-        border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px
-      }
-      .card-item + .card-item{margin-top:10px}
-      .ci-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-      .ci-title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      .chips{display:flex;gap:8px;flex-wrap:wrap}
-      .chip{background:var(--chip);border:1px solid var(--chip-bd);border-radius:999px;padding:4px 10px;font-size:.85rem}
-      .state{color:var(--muted);text-align:center;padding:18px 8px}
+  tbody td{
+    background:var(--table-bg); color:#e5e7eb; padding:12px; border:1px solid var(--table-bd);
+    word-break:break-word;
+  }
+  tbody tr:hover td{background:#121212}
 
-      .pager{
-        display:flex;align-items:center;justify-content:space-between;gap:10px;
-        margin-top:14px; flex-wrap:wrap;
-      }
-      .pager button{
-        background:#4507c0; color:#fff; border:1px solid #18034e; padding:8px 12px; border-radius:8px; cursor:pointer;
-      }
-      .pager button[disabled]{opacity:.4; cursor:not-allowed}
-      .pager .info{color:var(--muted); font-size:.95rem}
+  /* repartición de anchos */
+  th:nth-child(1), td:nth-child(1){width:26%}
+  th:nth-child(2), td:nth-child(2){width:12%; text-align:right}
+  th:nth-child(3), td:nth-child(3){width:12%; text-align:right}
+  th:nth-child(4), td:nth-child(4){width:16%; text-align:right}
+  th:nth-child(5), td:nth-child(5){width:12%}
+  th:nth-child(6), td:nth-child(6){width:10%}
+  th:nth-child(7), td:nth-child(7){width:12%}
 
-      @media (max-width: 640px){
-        .table-wrap{display:none}
-        .cards{display:block}
-      }
-      `}</style>
+  .vehiculo{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nowrap{white-space:nowrap} /* para que las fechas no se corten */
+
+  .cards{display:none}
+  .card-item{
+    background:var(--table-bg); border:1px solid var(--table-bd);
+    border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px
+  }
+  .card-item + .card-item{margin-top:10px}
+  .ci-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .ci-title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{background:var(--chip);border:1px solid var(--chip-bd);border-radius:999px;padding:4px 10px;font-size:.85rem}
+  .state{color:var(--muted);text-align:center;padding:18px 8px}
+
+  .pager{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin-top:14px; flex-wrap:wrap;
+  }
+  .pager button{
+    background:#4507c0; color:#fff; border:1px solid #18034e; padding:8px 12px; border-radius:8px; cursor:pointer;
+  }
+  .pager button[disabled]{opacity:.4; cursor:not-allowed}
+  .pager .info{color:var(--muted); font-size:.95rem}
+
+  @media (max-width: 640px){
+    .table-wrap{display:none}
+    .cards{display:block}
+  }
+`}</style>
+
 
       <div className="topbar">
         <button type="button" className="back" onClick={() => navigate(-1)}>
@@ -305,12 +338,12 @@ export default function HistorialSubastas() {
             <thead>
               <tr>
                 <th>Vehículo</th>
-                <th>Precio base (Q)</th>
-                <th>Mi oferta (Q)</th>
-                <th>Oferta ganadora (Q)</th>
+                <th>Precio base</th>
+                <th>Mi oferta</th>
+                <th>Oferta ganadora</th>
                 <th>Resultado</th>
                 <th>Estado</th>
-                <th>Fecha de cierre</th>
+                <th className="nowrap">Cierre</th>
               </tr>
             </thead>
             <tbody>
@@ -322,7 +355,7 @@ export default function HistorialSubastas() {
                   <td style={{ textAlign: "right" }}>Q{fmtGTQ.format(r.ganadora)}</td>
                   <td>{r.resultado}</td>
                   <td>{r.estado}</td>
-                  <td>{r.fecha}</td>
+                  <td className="nowrap">{r.fecha}</td>
                 </tr>
               ))}
             </tbody>
