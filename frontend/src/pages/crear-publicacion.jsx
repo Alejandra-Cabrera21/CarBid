@@ -19,6 +19,11 @@ export default function CrearPublicacion() {
   const [errs, setErrs] = useState({});
   const finMinRef = useRef("");
 
+  // 🔧 Asegura que no quede el body sin scroll si vienes de un modal
+  useEffect(() => {
+    document.body.classList.remove("modal-open");
+  }, []);
+
   const toast = (msg, type = "info") =>
     Toastify({
       text: msg,
@@ -27,7 +32,8 @@ export default function CrearPublicacion() {
       position: "right",
       close: true,
       stopOnFocus: true,
-      className: type,
+      className: type,          // success | error | info (mapeado en CSS)
+      style: { color: "#111" }, // asegura texto negro
     }).showToast();
 
   // Min datetime = ahora redondeado a 5 minutos
@@ -63,7 +69,8 @@ export default function CrearPublicacion() {
     if (!modelo.trim()) e.modelo = "Requerido";
     if (anio) {
       const a = parseInt(anio, 10);
-      if (Number.isNaN(a) || a < 1900 || a > 2099) e.anio = "Año inválido (1900–2099)";
+      if (Number.isNaN(a) || a < 1900 || a > 2099)
+        e.anio = "Año inválido (1900–2099)";
     }
     if (!precio || Number(precio) <= 0) e.precio = "Debe ser mayor a 0";
     if (!fin) e.fin = "Define fecha/hora";
@@ -125,7 +132,10 @@ export default function CrearPublicacion() {
     }
   };
 
-  const minAttr = useMemo(() => finMinRef.current || undefined, [finMinRef.current]);
+  const minAttr = useMemo(
+    () => finMinRef.current || undefined,
+    [finMinRef.current]
+  );
 
   return (
     <>
@@ -138,8 +148,21 @@ export default function CrearPublicacion() {
         --placeholder:#9aa4b2;
         --error:#ff4d4f;
       }
+
+      /* ✅ permite scroll vertical, bloquea horizontal */
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        min-height: 100%;
+        -webkit-overflow-scrolling: touch;
+      }
+
       .form-grid{
         max-width:920px; margin:40px auto; background:#111; padding:36px; border-radius:14px;
+        overflow-y: visible; overflow-x: visible;
+        width: min(920px, calc(100vw - 24px));
       }
       .row{ display:grid; grid-template-columns:1fr 1fr; column-gap:32px; row-gap:24px; }
       .row.full{ grid-template-columns:1fr; }
@@ -171,31 +194,68 @@ export default function CrearPublicacion() {
       .btn-ghost{ background:transparent; border:1px solid #444; color:#fff }
       small.error{ color:var(--error) }
 
-      .toastify.success{ background:linear-gradient(90deg,#00c853,#00e676) }
-      .toastify.error{ background:linear-gradient(90deg,#ff5252,#ff1744) }
-      .toastify.info{ background:linear-gradient(90deg,#2196f3,#42a5f5) }
+      /* ===== Toastify: colores sólidos y texto en negro ===== */
+      .toastify{
+        color:#111 !important;
+        border-radius:10px !important;
+        box-shadow:0 8px 24px rgba(0,0,0,.25) !important;
+        font-weight:600;
+      }
+      .toastify .toast-close{
+        color:#111 !important;
+        opacity:1 !important;
+      }
+      .toastify.success{ background:#bff7cc !important; border:1px solid #7cd69a !important; }
+      .toastify.error  { background:#ffc1c7 !important; border:1px solid #ff8a94 !important; }
+      .toastify.info   { background:#cfe6ff !important; border:1px solid #9cc7ff !important; }
+      .toastify:hover{ filter:brightness(.98); }
 
       @media (max-width:900px){
         .row{ grid-template-columns:1fr; column-gap:0; row-gap:18px }
       }
 
-      html, body { margin:0; padding:0; overflow-x:hidden; }
       *, *::before, *::after { box-sizing:border-box; }
+
       @media (max-width:600px){
         header{ padding-left:10px !important; padding-right:10px !important; }
         .form-grid{ width:100%; margin:12px auto; padding:16px; border-radius:12px; }
       }
+        /* Forzar que la página pueda crecer y scrollear en Y en esta vista */
+:root, html, body, #root {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
       `}</style>
 
       {/* Header */}
-      <header style={{ padding: "12px 20px", background: "#0f0f0f", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+      <header
+        style={{
+          padding: "12px 20px",
+          background: "#0f0f0f",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {/* Solo flecha */}
-          <a href="/indexvendedor" aria-label="Regresar" style={{ color: "#fff", textDecoration: "none" }}>
+          <a
+            href="/indexvendedor"
+            aria-label="Regresar"
+            style={{ color: "#fff", textDecoration: "none" }}
+          >
             ←
           </a>
           {/* Logo */}
-          <img src="img/logo.png" alt="CarBid" style={{ height: 36, display: "block" }} />
+          <img
+            src="img/logo.png"
+            alt="CarBid"
+            style={{ height: 36, display: "block" }}
+          />
         </div>
         <strong style={{ color: "#fff" }}>Crear publicación</strong>
         <div />
@@ -206,12 +266,20 @@ export default function CrearPublicacion() {
         <div className="row">
           <div>
             <label className="req">Marca</label>
-            <input value={marca} onChange={(e) => setMarca(e.target.value)} placeholder="Toyota" />
+            <input
+              value={marca}
+              onChange={(e) => setMarca(e.target.value)}
+              placeholder="Toyota"
+            />
             <small className="error">{errs.marca || ""}</small>
           </div>
           <div>
             <label className="req">Modelo</label>
-            <input value={modelo} onChange={(e) => setModelo(e.target.value)} placeholder="Corolla" />
+            <input
+              value={modelo}
+              onChange={(e) => setModelo(e.target.value)}
+              placeholder="Corolla"
+            />
             <small className="error">{errs.modelo || ""}</small>
           </div>
         </div>
@@ -268,8 +336,16 @@ export default function CrearPublicacion() {
             <small className="error">{errs.fin || ""}</small>
           </div>
           <div>
-            <label className="req">Imágenes (JPG/PNG, hasta 6, máx 2MB c/u)</label>
-            <input id="images" type="file" accept=".jpg,.jpeg,.png" multiple onChange={onFilesChange} />
+            <label className="req">
+              Imágenes (JPG/PNG, hasta 6, máx 2MB c/u)
+            </label>
+            <input
+              id="images"
+              type="file"
+              accept=".jpg,.jpeg,.png"
+              multiple
+              onChange={onFilesChange}
+            />
             <div className="thumbs">
               {thumbs.map((u, i) => (
                 <img key={i} src={u} alt={`thumb-${i}`} />

@@ -39,9 +39,29 @@ export default function IndexVendedor() {
   const [userName, setUserName] = useState("...");
   const [userId, setUserId] = useState(null);
 
+  // --- helpers ---
+  const putUserInStateAndCache = (user) => {
+    if (!user) return;
+    localStorage.setItem("usuario", JSON.stringify(user));
+    if (user.nombre) localStorage.setItem("userName", user.nombre);
+    setUserName(user.nombre || user.correo || "Usuario");
+  };
+
+  const fetchUser = async (id) => {
+    try {
+      const r = await fetch(`${API_BASE}/usuario/${encodeURIComponent(id)}`, {
+        headers: { "Cache-Control": "no-store" },
+      });
+      if (!r.ok) return null;
+      return await r.json();
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     const uStr = localStorage.getItem("usuario");
-    let uObj = uStr ? JSON.parse(uStr) : null;
+    const uObj = uStr ? JSON.parse(uStr) : null;
 
     const id = localStorage.getItem("userId") || (uObj && uObj.id);
     const name = localStorage.getItem("userName") || (uObj && uObj.nombre);
@@ -61,57 +81,43 @@ export default function IndexVendedor() {
     // muestra flash si venimos de otra pantalla
     if (flashFromLocalStorage(navigate)) return;
 
+    // ✅ SIEMPRE refrescar datos del backend (antes solo lo hacía si no era vendedor)
     const ensureVendedor = async () => {
-      let user = uObj;
+      const user = await fetchUser(id);
+      if (user) {
+        putUserInStateAndCache(user);
 
-      // ¿ya tenemos flag de vendedor en cache?
-      const hasVendorFlag =
-        user &&
-        (user.es_vendedor === "S" ||
-          user.es_vendedor === 1 ||
-          user.es_vendedor === true);
+        const isVendor =
+          user.es_vendedor === "S" || user.es_vendedor === 1 || user.es_vendedor === true;
 
-      // si no, intenta refrescar desde el backend
-      if (!hasVendorFlag) {
-        try {
-          const r = await fetch(`${API_BASE}/usuario/${encodeURIComponent(id)}`);
-          if (r.ok) {
-            user = await r.json();
-            localStorage.setItem("usuario", JSON.stringify(user));
-            if (user.nombre) localStorage.setItem("userName", user.nombre);
-            setUserName(user.nombre || user.correo || "Usuario");
-          } else {
-            // si falla la validación remota, no expulsamos
-            console.warn("No se pudo validar vendedor (status:", r.status, ")");
-            return;
-          }
-        } catch (e) {
-          console.warn("Error validando vendedor:", e);
-          return; // no expulsar por error de red
+        if (!isVendor) {
+          Toastify({
+            text: "Ya no eres vendedor. Te sacamos del panel.",
+            duration: 1800,
+            gravity: "top",
+            position: "right",
+            close: true,
+            style: { background: "#f59e0b", color: "#fff", borderRadius: "10px" },
+          }).showToast();
+          setTimeout(() => navigate("/"), 1800);
         }
-      }
-
-      // solo expulsar si CONFIRMAMOS que no es vendedor
-      const isVendor =
-        user &&
-        (user.es_vendedor === "S" ||
-          user.es_vendedor === 1 ||
-          user.es_vendedor === true);
-
-      if (!isVendor) {
-        Toastify({
-          text: "Ya no eres vendedor. Te sacamos del panel.",
-          duration: 1800,
-          gravity: "top",
-          position: "right",
-          close: true,
-          style: { background: "#f59e0b", color: "#fff", borderRadius: "10px" },
-        }).showToast();
-        setTimeout(() => navigate("/"), 1800);
+      } else {
+        // si falla el fetch no expulsamos; mantenemos lo que haya en cache
+        console.warn("No se pudo refrescar el usuario");
       }
     };
 
     ensureVendedor();
+
+    // 🔄 Opcional: refresca al volver a ver la pestaña (útil tras editar perfil)
+    const onVisible = async () => {
+      if (document.visibilityState === "visible") {
+        const freshed = await fetchUser(id);
+        if (freshed) putUserInStateAndCache(freshed);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, [navigate]);
 
   const logout = () => {
