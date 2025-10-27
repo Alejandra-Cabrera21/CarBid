@@ -1,3 +1,10 @@
+:root {
+  --bg-dark: #121212;
+  --bg-medium: #1c1c1c;
+  --text-light: #f3f3f3;
+  --accent: #2dd4bf; /* verde agua minimalista */
+  --accent-hover: #22bfa8;
+}
 /* ===== Reset general ===== */
 * {
   box-sizing: border-box;
@@ -14,8 +21,9 @@ html, body, #root {
 
 body {
   font-family: 'Poppins', Arial, sans-serif;
+  background: linear-gradient(180deg, var(--bg-dark), var(--bg-medium));
 }
-
+ 
 /* ===== Navbar (solo escritorio) ===== */
 .navbar {
   background: #111;
@@ -221,4 +229,89 @@ body {
     right: 0;
     width: 100%;
   }
+}
+
+/* ===== Ajuste global de contenedores ===== */
+.container, .panel-container, .form-side, .tabla-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ===== Textos e imágenes adaptables ===== */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+/* ===== Global media queries ===== */
+@media (max-width: 768px) {
+  body {
+    font-size: 0.95rem;
+  }
+
+  .navbar {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .menu {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  button, .home-btn {
+    width: 100%;
+    font-size: 1rem;
+    border-radius: 8px;
+  }
+
+  .card, .auction-card {
+    width: 100%;
+    margin: 0 auto 20px;
+  }
+
+  table {
+    font-size: 0.85rem;
+  }
+}
+
+/* === Modernización visual global === */
+.card, .auction-card, .modal, .form-side {
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  background: var(--bg-medium);
+}
+
+button, .home-btn, .btn {
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+
+button:hover, .home-btn:hover, .btn:hover {
+  background: var(--accent-hover);
+  color: #fff !important;
+}
+
+input, select, textarea {
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: var(--bg-dark);
+  color: var(--text-light);
+  padding: 10px 12px;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
 }

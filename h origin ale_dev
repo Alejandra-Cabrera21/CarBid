@@ -1,0 +1,198 @@
+*   [33md027b79[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32male_dev[m[33m)[m Merge branch 'main' of https://github.com/Alejandra-Cabrera21/CarBid into ale_dev
+[31m|[m[32m\[m  
+* [32m|[m [33mdbb557f[m Guardando mis cambios locales antes de traer main
+* [32m|[m   [33m1aaf946[m Merge branch 'main' into ale_dev
+[33m|[m[34m\[m [32m\[m  
+* [34m|[m [32m|[m [33mda27461[m[33m ([m[1;31morigin/ale_dev[m[33m)[m Configurado backend para servir archivos de docs y conexión MySQL estable
+* [34m|[m [32m|[m [33md85bc73[m Agregado historial de subastas funcional y corregida ruta en server.js
+* [34m|[m [32m|[m   [33m74efc86[m Resuelto conflicto: mantenido style.css desde ale_dev
+[35m|[m[36m\[m [34m\[m [32m\[m  
+* [36m|[m [34m|[m [32m|[m [33mb8de948[m Actualizado color del encabezado a negro uniforme
+* [36m|[m [34m|[m [32m|[m [33m6fdb9a4[m Actualizado color del encabezado a negro uniforme
+[36m|[m [36m|[m [34m|[m [32m|[m *   [33m7183097[m[33m ([m[1;31morigin/dev_angie[m[33m)[m Merge branch 'main' into dev_angie
+[36m|[m [36m|[m [34m|[m [32m|[m [1;31m|[m[32m\[m  
+[36m|[m [36m|[m [34m|[m [32m|[m [1;31m|[m[32m/[m  
+[36m|[m [36m|[m [34m|[m [32m|[m[32m/[m[1;31m|[m   
+[36m|[m [36m|[m [34m|[m * [1;31m|[m [33m8c46ff0[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m historial subastas y fronted terminado
+[36m|[m [36m|[m [34m|[m * [1;31m|[m [33m588db37[m fronted historial subastas
+[36m|[m [36m|[m [34m|[m * [1;31m|[m [33m5b01e7d[m Merge branch 'dev_angie'
+[36m|[m [36m|[m [34m|[m [1;33m|[m[1;31m\[m[1;31m|[m 
+[36m|[m [36m|[m [34m|[m [1;33m|[m * [33m9141146[m fronted
+[36m|[m [36m|[m [34m|[m [1;33m|[m * [33m03a1215[m cambio contraseña
+[36m|[m [36m|[m [34m|[m [1;33m|[m * [33mf90181c[m login funcioanndo
+[36m|[m [36m|[m [34m|[m [1;33m|[m *   [33mf400d41[m Merge branch 'main' into dev_angie
+[36m|[m [36m|[m [34m|[m [1;33m|[m [1;35m|[m[1;33m\[m  
+[36m|[m [36m|[m [34m|[m [1;33m|[m [1;35m|[m[1;33m/[m  
+[36m|[m [36m|[m [34m|[m [1;33m|[m[1;33m/[m[1;35m|[m   
+[36m|[m [36m|[m [34m|[m * [1;35m|[m [33m6f3ed37[m conexiones
+[36m|[m [36m|[m [34m|[m[34m/[m [1;35m/[m  
+[36m|[m [36m|[m * [1;35m/[m [33md55d681[m[33m ([m[1;32mmain[m[33m)[m Merge branch 'dev_angie'
+[36m|[m [36m|[m[36m/[m[1;35m|[m [1;35m|[m 
+[36m|[m [36m|[m [1;35m|[m[1;35m/[m  
+[36m|[m [36m|[m * [33mb77fdcd[m implementación fronted
+[36m|[m [36m|[m * [33m3c7bc3e[m implementacion fornted
+[36m|[m [36m|[m * [33me5343f3[m implementacioens fronted
+[36m|[m [36m|[m * [33ma308f09[m implentaciones fronted
+[36m|[m * [32m|[m [33m82a8677[m Merge branch 'dev_angie'
+[36m|[m [33m|[m[32m\[m[32m|[m 
+[36m|[m [33m|[m * [33mcf6fd9a[m no funciona historial subastas
+[36m|[m [33m|[m * [33mcb62942[m mejoras
+[36m|[m [33m|[m * [33m45e9407[m media funcion
+[36m|[m [33m|[m * [33m41cb471[m index vendedor
+[36m|[m [33m|[m * [33mb726cf5[m perfil
+[36m|[m [33m|[m * [33m8f47ec4[m perfil
+[36m|[m [33m|[m * [33m6c084f5[m hisotrial pujas
+[36m|[m [33m|[m * [33mb48c538[m casi lsito el hsitorial d epujas
+[36m|[m [33m|[m * [33mfdec929[m historial pujas
+[36m|[m [33m|[m * [33m0cd5305[m login bien
+[36m|[m [33m|[m * [33mfe15196[m envair codigo recuperacion
+[36m|[m [33m|[m * [33m7d30e71[m componer registro
+[36m|[m [33m|[m * [33m8c16724[m funcioan indexcomrador
+[36m|[m [33m|[m * [33m9557692[m funciona bien lo de abrir y cerrar
+[36m|[m [33m|[m *   [33m5977c92[m Merge branch 'main' into dev_angie
+[36m|[m [33m|[m [35m|[m[33m\[m  
+[36m|[m [33m|[m [35m|[m[33m/[m  
+[36m|[m [33m|[m[33m/[m[35m|[m   
+[36m|[m * [35m|[m [33m2ee9e3e[m actualizacion nice
+[36m|[m * [35m|[m [33mdcdcf47[m elimianr notirifaciones
+[36m|[m * [35m|[m [33mc0cb3e5[m notificaciones tiempo real funcioanndo
+[36m|[m * [35m|[m [33m96c8ef8[m cambios comprador
+[36m|[m * [35m|[m [33m47bd847[m cambios compador websocet
+[36m|[m * [35m|[m [33m1e898c4[m cambios vendedor websocket
+[36m|[m [1;31m|[m[35m\[m[35m|[m 
+[36m|[m [1;31m|[m * [33m4ee8414[m ventas precio base
+[36m|[m [1;31m|[m * [33mb0b675e[m crear subastas y abrirlas
+[36m|[m [1;31m|[m * [33m8f68b0e[m update comrosador
+[36m|[m [1;31m|[m * [33m88b7342[m funcional
+[36m|[m [1;31m|[m * [33md333d3b[m ddiseño aceptable y bonito
+[36m|[m [1;31m|[m * [33m50ff572[m diseñoa aceptable
+[36m|[m [1;31m|[m * [33mdff391b[m toast bonito
+[36m|[m [1;31m|[m * [33m310c569[m publicacion funcionando
+[36m|[m * [1;32m|[m [33md46ebdb[m gitignore
+[36m|[m * [1;32m|[m [33m615a391[m Merge branch 'dev_angie'
+[36m|[m [1;33m|[m[1;32m\[m[1;32m|[m 
+[36m|[m [1;33m|[m * [33md95c57f[m indexvendedor
+[36m|[m [1;33m|[m * [33mee3a572[m inexdelvendedor
+[36m|[m [1;33m|[m * [33m1451100[m validacion d eusuario completa
+[36m|[m [1;33m|[m * [33mabd6baa[m validacion de usuario completa
+[36m|[m [1;33m|[m * [33mf63fb36[m contendeor menor crear cuenta
+[36m|[m [1;33m|[m * [33m8504b50[m login botnito
+[36m|[m [1;33m|[m * [33m77f100f[m login botnito
+[36m|[m [1;33m|[m * [33m39015b2[m localstorage
+[36m|[m [1;33m|[m * [33m1706a43[m Funcion menú desplegable
+[36m|[m [1;33m|[m * [33mbbb4c35[m hacer pequeña la caja
+[36m|[m [1;33m|[m * [33m6b13675[m hacer pequeña la caja
+[36m|[m [1;33m|[m * [33m46535d6[m index responsivo
+[36m|[m [1;33m|[m * [33m98b33af[m Funciona al 100 el regsitro
+[36m|[m [1;33m|[m * [33m2f3b6d4[m mensajes
+[36m|[m [1;33m|[m * [33m4bd7d40[m responsividad login
+[36m|[m * [1;34m|[m [33m58d48dc[m Merge remote-tracking branch 'origin/dev_angie'
+[36m|[m [1;35m|[m[1;34m\[m[1;34m|[m 
+[36m|[m [1;35m|[m * [33m047bfa3[m Funciona el registro correctamente
+[36m|[m [1;35m|[m[36m/[m  
+[36m|[m[36m/[m[1;35m|[m   
+* [1;35m|[m [33m66f37d8[m funciona ocultar la contraseña y msotrar
+[1;36m|[m *   [33m6af2fc7[m Merge branch 'dev_angie'
+[1;36m|[m [31m|[m[1;36m\[m  
+[1;36m|[m [31m|[m[1;36m/[m  
+[1;36m|[m[1;36m/[m[31m|[m   
+* [31m|[m [33m672a85b[m funciona el registro
+[32m|[m *   [33m25358e6[m Merge branch 'dev_angie'
+[32m|[m [33m|[m[32m\[m  
+[32m|[m [33m|[m[32m/[m  
+[32m|[m[32m/[m[33m|[m   
+* [33m|[m [33m7c1ec2d[m cambios
+* [33m|[m [33m1e51807[m cambios
+[33m|[m[33m/[m  
+* [33m7327ed0[m actualizar color boton
+* [33m1e37a03[m actualizar color boton
+* [33mc184c08[m actualizar color boton
+* [33m1815990[m actualizar color boton
+* [33m9042d2e[m actualizar color boton
+* [33m4ebd502[m actualizar color boton
+* [33me9233c9[m actualizar color boton
+* [33mc3a8932[m actualizar color boton
+* [33m8f24412[m actualizar cambios
+* [33m7ad9a3a[m actualizar cambios
+* [33m5c8079c[m actualizar cambios
+* [33m7daf0c5[m actualizar cambios
+* [33me1895e9[m actualizar cambios
+* [33md079935[m actualizar cambios
+* [33mbfa0db5[m actualizar cambios
+* [33m8a85a6a[m actualizar cambios
+* [33m67ce47d[m actualizar cambios
+* [33m6ef2c7e[m actualizar cambios
+* [33m48d2f4c[m actualizar cambios
+* [33m522a709[m actualizar cambios
+* [33m168a51d[m actualizar cambios
+* [33m2420403[m actualizar cambios
+* [33mcd45309[m actualizar cambios
+* [33m6404fe0[m actualizar cambios
+* [33m70fc6dc[m actualizar cambios
+* [33m9925f16[m actualizar cambios
+* [33m2ab02a1[m actualizar cambios
+* [33m974118d[m actualizar cambios
+* [33m888610b[m actualizar cambios
+* [33md15598f[m actualizar cambios
+* [33m1ac5610[m actualizar cambios
+* [33m75edffa[m actualizar cambios
+* [33md2ee452[m actualizar cambios
+* [33m457ded5[m actualizar cambios
+* [33m9a7073d[m actualizar cambios
+* [33mc23dc13[m actualizar cambios
+* [33m884af10[m actualizar cambios
+* [33m70db244[m actualizar cambios
+* [33m6d2c918[m actualizar cambios
+* [33m11302ac[m actualizar cambios
+* [33m628571f[m actualizar cambios
+* [33m06a6a8d[m actualizar cambios
+* [33mae41f33[m actualizar cambios
+* [33mb39ec6a[m actualizar cambios
+* [33m541a841[m actualizar cambios
+* [33m9414c3d[m actualizar cambios
+* [33md756b55[m actualizar cambios
+* [33m28dcb0e[m actualizar cambios
+* [33mb932de8[m actualizar cambios
+* [33m5629eff[m actualizar cambios
+* [33mf69247a[m actualizar cambios
+* [33m8a35e77[m actualizar cambios
+* [33m7ad8d92[m actualizar cambios
+* [33m2885f40[m actualizar cambios
+* [33m202c5b6[m actualizar cambios
+* [33md9f3ff5[m actualizar cambios
+* [33mee6a469[m actualizar cambios
+* [33md4a44e6[m actualizar cambios
+* [33m08ced7b[m actualizar cambios
+* [33mb89ce90[m actualizar cambios
+* [33m817e679[m actualizar cambios
+* [33m176aadc[m actualizar cambios
+* [33m3635852[m actualizar cambios
+* [33m00ec0bc[m actualizar cambios
+* [33me7d6c4b[m Agregar historial de pujas comprador
+* [33me5c4937[m actualizar para cambio de contraseña
+* [33mb198568[m actualizar para crear subasta
+* [33m5cdfdb1[m actualizar para crear subasta
+* [33me850401[m actualizar para crear subasta
+* [33mb6137d1[m actualizar para crear subasta
+* [33m75a1aea[m actualizar para crear subasta
+* [33m299f8b4[m actualizar para crear subasta
+* [33m8143b60[m actualizar para crear subasta
+* [33m904c2e1[m Fix: dependencias express, pg, sequelize con versiones válidas
+* [33mbf5dda3[m Fix: instalar multer version 1.4.5-lts.1
+* [33ma5fcd75[m actualizar server
+* [33m2a3b10a[m Agregar soporte para subir fotos en subastas + ajustes en app.js
+* [33m1b174cd[m actualizar server
+* [33m5428226[m actualizar server
+* [33m8366f6b[m actualizar auth
+* [33m883c7b1[m actualizar auth
+* [33mc450dbd[m Eliminar carpeta frontend duplicada
+* [33ma7d5a89[m Mover frontend a docs para GitHub Pages
+* [33m99a4297[m actualizar app
+* [33m6d810a5[m actualizar db
+* [33m1e9b4f3[m Agregar pg y pg-hstore para PostgreSQL en Render
+* [33m2309500[m Eliminar sqlite3 y usar PostgreSQL en Render
+* [33mbcfb6cd[m Cambio a PostgreSQL con pg en Render
+* [33mc9c699a[m Migración a PostgreSQL en Render
+* [33maf273e5[m Frontend actualizado con API_URL de Render
+* [33m0f962a0[m Agregando script start para Render
+* [33m3b67786[m Primera versión de CarBid

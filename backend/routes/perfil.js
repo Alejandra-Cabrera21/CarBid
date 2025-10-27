@@ -6,6 +6,32 @@ const router = express.Router();
 const Perfil = require('../models/perfilModel');
 const Usuario = require('../models/usuarioModel'); // solo para validar correo único
 
+function validarContraseña(password) {
+  const minLongitud = 8;
+  const tieneMayuscula = /[A-Z]/.test(password);
+  const tieneMinuscula = /[a-z]/.test(password);
+  const tieneNumero = /[0-9]/.test(password);
+  const tieneSimbolo = /[^A-Za-z0-9]/.test(password);
+
+  if (password.length < minLongitud) {
+    return "La contraseña debe tener al menos 8 caracteres.";
+  }
+  if (!tieneMayuscula) {
+    return "Debe incluir al menos una letra mayúscula.";
+  }
+  if (!tieneMinuscula) {
+    return "Debe incluir al menos una letra minúscula.";
+  }
+  if (!tieneNumero) {
+    return "Debe incluir al menos un número.";
+  }
+  if (!tieneSimbolo) {
+    return "Debe incluir al menos un símbolo (ej: !@#$.).";
+  }
+  return null; // ✅ válida
+}
+
+
 // GET /api/perfil/:id  -> { id, nombre, correo, es_vendedor, es_comprador }
 router.get('/:id', (req, res) => {
   Perfil.obtenerPerfilPorId(req.params.id, (err, user) => {
@@ -35,7 +61,13 @@ router.patch('/:id', (req, res) => {
     if (correo !== undefined)       payload.correo = correo;
     if (es_vendedor !== undefined)  payload.es_vendedor = es_vendedor;
     if (es_comprador !== undefined) payload.es_comprador = es_comprador;
-    if (contraseña)                 payload.contraseña = bcrypt.hashSync(contraseña, 10);
+
+    if (contraseña) {
+      const error = validarContraseña(contraseña);
+      if (error) return res.status(400).json({ mensaje: error });
+
+      payload.contraseña = bcrypt.hashSync(contraseña, 10);
+    }
 
     Perfil.actualizarPerfil(id, payload, (err2, r) => {
       if (err2) return res.status(500).json({ mensaje: 'Error al actualizar.' });

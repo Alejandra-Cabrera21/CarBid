@@ -10,9 +10,9 @@
             "server": "localhost",
             "port": 3306,
             "driver": "MySQL",
+            "name": "proyecto",
             "database": "carbid_db",
             "username": "root",
-            "name": "proyecto",
             "password": ""
         }
     ]

@@ -5,20 +5,10 @@ const db = require("../db");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
+const { sendMail } = require("../mailer");
 
 // Usa variable de entorno en producción
 const SECRET_KEY = process.env.JWT_SECRET || "carbid-secret";
-
-// === Nodemailer (SMTP) ===
-const mailer = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
 
 // 🕒 Suma horas a la fecha actual (para fecha_expiracion)
 function sumarHoras(horas) {
@@ -109,7 +99,7 @@ router.post("/login", (req, res) => {
 
       res.json({
         message: "Inicio de sesión exitoso",
-        redirect: "/indexcomprador",
+        redirect: "/fronted/indexcomprador",
         token,
         usuario: { id: user.id, correo: user.correo, rol: "comprador" },
       });
@@ -162,7 +152,7 @@ router.post("/login-vendedor", (req, res) => {
 
       res.json({
         message: "Inicio de sesión exitoso",
-        redirect: "/indexvendedor",
+        redirect: "/fronted/indexvendedor",
         token,
         usuario: { id: user.id, correo: user.correo, rol: "vendedor" },
       });
@@ -214,7 +204,7 @@ router.post("/forgot", (req, res) => {
         ...(process.env.NODE_ENV !== "production" ? { devHint: "xxxxxx" } : {}),
       });
     }
-
+ 
     // Insertar el código en la tabla EXISTENTE password_resets
     const insert = `
       INSERT INTO password_resets (email, code, expires_at)
@@ -225,7 +215,7 @@ router.post("/forgot", (req, res) => {
 
       // Enviar email (best-effort, no rompemos si falla)
       try {
-        await mailer.sendMail({
+        await sendMail({
           from: process.env.MAIL_FROM || process.env.SMTP_USER,
           to: email,
           subject: "CarBid – Código para restablecer tu contraseña",
