@@ -34,19 +34,19 @@ form label { font-weight: 600; margin-bottom: 4px; }
 
 .input-wrapper input {
   width: 100%;
-  height: 48px; /* ✅ aumenta para que todos tengan el mismo alto */
+  height: 30px; /* ✅ aumenta para que todos tengan el mismo alto */
   padding: 0 14px; /* ✅ igual padding a todos */
   background: #1e1e1e; /* o #fff, según tu fondo */
   color: #fff;
   border: 1px solid #333;
-  border-radius: 8px;
+  border-radius: 5px;
   font-size: 1rem;
   box-sizing: border-box;
 }
 form input:not([type="checkbox"]),
 form select {
   width: 100%;
-  height: 48px;
+  height: 30px;
   border-radius: 8px;
   border: 1px solid #333;
   padding: 0 14px;
