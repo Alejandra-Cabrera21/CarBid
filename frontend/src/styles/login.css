@@ -34,15 +34,17 @@ form label { font-weight: 600; margin-bottom: 4px; }
 
 .input-wrapper input {
   width: 100%;
-  height: 30px; /* ✅ aumenta para que todos tengan el mismo alto */
-  padding: 0 14px; /* ✅ igual padding a todos */
-  background: #1e1e1e; /* o #fff, según tu fondo */
+  height: 38px;
+  padding: 0 38px; /* 🔧 más espacio lateral para íconos */
+  padding-left: 38px; /* 🔧 espacio para el ícono a la izquierda */
+  background: #1e1e1e;
   color: #fff;
   border: 1px solid #333;
-  border-radius: 5px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
   box-sizing: border-box;
 }
+
 form input:not([type="checkbox"]),
 form select {
   width: 100%;
@@ -63,8 +65,17 @@ form select {
   font-weight: 500;
 }
 
-.input-wrapper input::placeholder { color: #9aa0a6; }
-.input-wrapper input:focus { box-shadow: 0 0 0 3px rgba(255,255,255,.25); }
+/* 🔧 Oculta el ícono cuando el input tiene texto */
+.input-wrapper input:not(:placeholder-shown) ~ .input-icon {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Asegura que los íconos vuelvan a mostrarse cuando el input está vacío */
+.input-wrapper .input-icon {
+  transition: opacity 0.2s ease;
+}
 
 /* Iconos */
 .input-icon {
@@ -272,25 +283,3 @@ body.modal-open{
   outline-offset:2px;
 }
 
-/* Oculta el ícono cuando el input no está vacío */
-.input-wrapper input:not(:placeholder-shown) ~ .input-icon {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-
-/* Asegura que los íconos estén visibles por defecto */
-.input-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6b7280;
-  transition: opacity 0.2s ease;
-  z-index: 2;
-}
-
-/* Ajusta el padding del input para que no tape el texto */
-.input-wrapper input {
-  padding-left: 38px; /* espacio suficiente para el ícono */
-}
