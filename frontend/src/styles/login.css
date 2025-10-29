@@ -271,3 +271,26 @@ body.modal-open{
   outline:2px solid #2563eb;
   outline-offset:2px;
 }
+
+/* Oculta el ícono cuando el input no está vacío */
+.input-wrapper input:not(:placeholder-shown) ~ .input-icon {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Asegura que los íconos estén visibles por defecto */
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+}
+
+/* Ajusta el padding del input para que no tape el texto */
+.input-wrapper input {
+  padding-left: 38px; /* espacio suficiente para el ícono */
+}
