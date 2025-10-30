@@ -1,110 +1,312 @@
+// routes/auth.js
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
-const Vendor = require("../models/Vendor");
+const db = require("../db");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const nodemailer = require("nodemailer");
+const { sendMail } = require("../mailer");
 
-// === REGISTRO DE COMPRADOR ===
-router.post("/register", async (req, res) => {
+// Usa variable de entorno en producción
+const SECRET_KEY = process.env.JWT_SECRET || "carbid-secret";
+
+// 🕒 Suma horas a la fecha actual (para fecha_expiracion)
+function sumarHoras(horas) {
+  const fecha = new Date();
+  fecha.setHours(fecha.getHours() + horas);
+  return fecha;
+}
+
+/* ------------------------------------------------------
+   Middleware: requiere token válido y sesión no vencida
+-------------------------------------------------------*/
+function authRequired(req, res, next) {
+  const auth = req.headers.authorization || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+  if (!token) return res.status(401).json({ message: "Falta token" });
+
+  let payload;
   try {
-    const { email, password } = req.body;
+    payload = jwt.verify(token, SECRET_KEY);
+  } catch (_e) {
+    return res.status(401).json({ message: "Token inválido o expirado" });
+  }
 
-    // Verificar si ya existe comprador
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ error: "Ya existe un comprador con este correo." });
+  const q = `
+    SELECT id, fecha_expiracion 
+    FROM sesiones 
+    WHERE token = ? AND id_usuario = ?
+    LIMIT 1
+  `;
+  db.query(q, [token, payload.id], (err, rows) => {
+    if (err) return res.status(500).json({ message: "Error DB" });
+    if (rows.length === 0)
+      return res.status(401).json({ message: "Sesión no válida" });
+
+    const ses = rows[0];
+    if (new Date(ses.fecha_expiracion) <= new Date())
+      return res.status(401).json({ message: "Sesión expirada" });
+
+    req.user = payload;
+    req.sessionId = ses.id;
+    req.token = token;
+    next();
+  });
+}
+
+/* ======================================================
+   🔹 LOGIN COMPRADOR
+====================================================== */
+router.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).json({ message: "Correo y contraseña requeridos." });
+
+  const sql = "SELECT * FROM usuarios WHERE correo = ?";
+  db.query(sql, [email], (err, results) => {
+    if (err) {
+      console.error("❌ Error DB:", err);
+      return res.status(500).json({ message: "Error en el servidor." });
+    }
+    if (results.length === 0)
+      return res.status(401).json({ message: "Usuario no encontrado." });
+
+    const user = results[0];
+
+    if (user.es_comprador !== "S") {
+      return res.status(403).json({
+        message: "Este usuario no tiene permisos de comprador.",
+      });
     }
 
-    // Crear nuevo comprador
-    const newUser = await User.create({ email, password });
-    res.json({
-      id: newUser.id,
-      email: newUser.email,
-      role: "comprador"
+    const esValida = bcrypt.compareSync(password, user.contraseña);
+    if (!esValida)
+      return res.status(401).json({ message: "Contraseña incorrecta." });
+
+    const token = jwt.sign({ id: user.id, correo: user.correo }, SECRET_KEY, {
+      expiresIn: "2h",
     });
-  } catch (err) {
-    console.error("Error al registrar comprador:", err);
-    res.status(500).json({ error: err.message });
-  }
+
+    const insert = `
+      INSERT INTO sesiones (id_usuario, token, tipo_vendedor, tipo_comprador, fecha_inicio, fecha_expiracion)
+      VALUES (?, ?, ?, ?, NOW(), ?)
+    `;
+    db.query(insert, [user.id, token, "N", "S", sumarHoras(2)], (err2) => {
+      if (err2) {
+        console.error("❌ Error al registrar sesión:", err2);
+        return res.status(500).json({ message: "Error al registrar sesión." });
+      }
+
+      res.json({
+        message: "Inicio de sesión exitoso",
+        redirect: "/fronted/indexcomprador",
+        token,
+        usuario: { id: user.id, correo: user.correo, rol: "comprador" },
+      });
+    });
+  });
 });
 
-// === LOGIN COMPRADOR ===
-router.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ where: { email } });
+/* ======================================================
+   🔹 LOGIN VENDEDOR
+====================================================== */
+router.post("/login-vendedor", (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).json({ message: "Correo y contraseña requeridos." });
 
-    if (!user || user.password !== password) {
-      return res.status(400).json({ error: "Correo o contraseña incorrectos." });
+  const sql = "SELECT * FROM usuarios WHERE correo = ?";
+  db.query(sql, [email], (err, results) => {
+    if (err) {
+      console.error("❌ Error DB:", err);
+      return res.status(500).json({ message: "Error en el servidor." });
+    }
+    if (results.length === 0)
+      return res.status(401).json({ message: "Usuario no encontrado." });
+
+    const user = results[0];
+
+    if (user.es_vendedor !== "S") {
+      return res.status(403).json({
+        message: "Este usuario no tiene permisos de vendedor.",
+      });
     }
 
-    res.json({
-      id: user.id,
-      email: user.email,
-      role: "comprador"
+    const esValida = bcrypt.compareSync(password, user.contraseña);
+    if (!esValida)
+      return res.status(401).json({ message: "Contraseña incorrecta." });
+
+    const token = jwt.sign({ id: user.id, correo: user.correo }, SECRET_KEY, {
+      expiresIn: "2h",
     });
-  } catch (err) {
-    console.error("Error en login comprador:", err);
-    res.status(500).json({ error: err.message });
-  }
+
+    const insert = `
+      INSERT INTO sesiones (id_usuario, token, tipo_vendedor, tipo_comprador, fecha_inicio, fecha_expiracion)
+      VALUES (?, ?, ?, ?, NOW(), ?)
+    `;
+    db.query(insert, [user.id, token, "S", "N", sumarHoras(2)], (err2) => {
+      if (err2) {
+        console.error("❌ Error al registrar sesión:", err2);
+        return res.status(500).json({ message: "Error al registrar sesión." });
+      }
+
+      res.json({
+        message: "Inicio de sesión exitoso",
+        redirect: "/fronted/indexvendedor",
+        token,
+        usuario: { id: user.id, correo: user.correo, rol: "vendedor" },
+      });
+    });
+  });
 });
 
-// === REGISTRO DE VENDEDOR ===
-router.post("/register-vendedor", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Verificar si ya existe como vendedor
-    const existingVendor = await Vendor.findOne({ where: { email } });
-    if (existingVendor) {
-      return res.status(400).json({ error: "Ya existe un vendedor con este correo." });
-    }
-
-    // Si ya existe como comprador, lo permitimos
-    const existingBuyer = await User.findOne({ where: { email } });
-    if (existingBuyer) {
-      console.log("Correo ya registrado como comprador, también se registrará como vendedor.");
-    }
-
-    // Crear nuevo vendedor con código único
-    const vendorCode = "V-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-    const newVendor = await Vendor.create({ email, password, vendorCode });
-
-    res.json({
-      id: newVendor.id,
-      email: newVendor.email,
-      vendorCode: newVendor.vendorCode,
-      role: "vendedor"
-    });
-  } catch (err) {
-    console.error("Error al registrar vendedor:", err);
-    res.status(500).json({ error: err.message });
-  }
+/* ======================================================
+   🔹 PING protegido (para validar sesión en el cliente)
+====================================================== */
+router.get("/ping", authRequired, (_req, res) => {
+  res.json({ ok: true });
 });
 
-// === LOGIN DE VENDEDOR ===
-router.post("/login-vendedor", async (req, res) => {
-  try {
-    const { email, password, vendorCode } = req.body;
+/* ======================================================
+   🔹 LOGOUT: expira la sesión en BD de inmediato
+====================================================== */
+router.post("/logout", authRequired, (req, res) => {
+  const q = "UPDATE sesiones SET fecha_expiracion = NOW() WHERE id = ?";
+  db.query(q, [req.sessionId], (err) => {
+    if (err) return res.status(500).json({ message: "Error al cerrar sesión" });
+    return res.json({ message: "Sesión cerrada" });
+  });
+});
 
-    const vendor = await Vendor.findOne({ where: { email, vendorCode } });
-    if (!vendor) {
-      return res.status(400).json({ error: "Correo o código de vendedor incorrecto." });
+/* ======================================================
+   🔹 OLVIDÉ MI CONTRASEÑA (solicitar código)
+   POST /api/auth/forgot  { email }
+   - Genera un código de 6 dígitos, válido 15 min
+   - En dev devuelve devHint con el código
+   - NO crea la tabla (ya existe)
+====================================================== */
+router.post("/forgot", (req, res) => {
+  const { email } = req.body || {};
+  if (!email) return res.status(400).json({ message: "Correo requerido" });
+
+  const qUser = "SELECT id FROM usuarios WHERE correo = ? LIMIT 1";
+  db.query(qUser, [email], (err, rows) => {
+    if (err) return res.status(500).json({ message: "Error DB" });
+
+    // Siempre respondemos 200 para no filtrar existencia del email
+    const code = ("" + Math.floor(100000 + Math.random() * 900000)).slice(-6);
+    const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+
+    // Si NO existe el usuario → no guardamos nada, pero respondemos igual
+    if (!rows.length) {
+      return res.json({
+        message: "Si el correo existe, te enviamos un código.",
+        ...(process.env.NODE_ENV !== "production" ? { devHint: "xxxxxx" } : {}),
+      });
     }
+ 
+    // Insertar el código en la tabla EXISTENTE password_resets
+    const insert = `
+      INSERT INTO password_resets (email, code, expires_at)
+      VALUES (?, ?, ?)
+    `;
+    db.query(insert, [email, code, expires], async (e2) => {
+      if (e2) return res.status(500).json({ message: "Error generando código" });
 
-    if (vendor.password !== password) {
-      return res.status(400).json({ error: "Contraseña incorrecta." });
-    }
+      // Enviar email (best-effort, no rompemos si falla)
+      try {
+        await sendMail({
+          from: process.env.MAIL_FROM || process.env.SMTP_USER,
+          to: email,
+          subject: "CarBid – Código para restablecer tu contraseña",
+          html: `
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#111">
+              <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+              <p>Tu código es:</p>
+              <p style="font-size:28px;font-weight:700;letter-spacing:2px;margin:10px 0">${code}</p>
+              <p>Este código caduca en <strong>15 minutos</strong>.</p>
+              <p>Si no hiciste esta solicitud, ignora este correo.</p>
+              <hr/>
+              <p style="font-size:12px;color:#555">CarBid</p>
+            </div>
+          `,
+          text: `Tu código de recuperación es: ${code} (válido 15 minutos)`,
+        });
+      } catch (mailErr) {
+        console.warn("⚠️ Error enviando correo de reset:", mailErr.message);
+      }
 
-    res.json({
-      id: vendor.id,
-      email: vendor.email,
-      vendorCode: vendor.vendorCode,
-      role: "vendedor"
+      const dev = process.env.NODE_ENV !== "production";
+      return res.json({
+        message: "Si el correo existe, te enviamos un código.",
+        ...(dev ? { devHint: code } : {}),
+      });
     });
-  } catch (err) {
-    console.error("Error en login vendedor:", err);
-    res.status(500).json({ error: err.message });
+  });
+});
+
+/* ======================================================
+   🔹 VERIFICAR CÓDIGO Y CAMBIAR CONTRASEÑA
+   POST /api/auth/forgot/verify
+   body: { email, code, newPassword }
+====================================================== */
+router.post("/forgot/verify", (req, res) => {
+  const { email, code, newPassword } = req.body || {};
+  if (!email || !code || !newPassword) {
+    return res.status(400).json({ message: "Faltan datos" });
   }
+  if (String(newPassword).length < 6) {
+    return res.status(400).json({ message: "La contraseña debe tener al menos 6 caracteres" });
+  }
+
+  const qSel = `
+    SELECT id, expires_at, used
+    FROM password_resets
+    WHERE email = ? AND code = ?
+    ORDER BY id DESC
+    LIMIT 1
+  `;
+  db.query(qSel, [email, code], (err, rows) => {
+    if (err) return res.status(500).json({ message: "Error DB" });
+    if (!rows.length) return res.status(400).json({ message: "Código inválido" });
+
+    const row = rows[0];
+    if (row.used) return res.status(400).json({ message: "Código ya utilizado" });
+    if (new Date(row.expires_at) <= new Date()) {
+      return res.status(400).json({ message: "Código expirado" });
+    }
+
+    const hash = bcrypt.hashSync(newPassword, 10);
+
+    // Cambiar contraseña del usuario
+    const qUpdUser = `UPDATE usuarios SET contraseña = ? WHERE correo = ? LIMIT 1`;
+    db.query(qUpdUser, [hash, email], (e2, result2) => {
+      if (e2) return res.status(500).json({ message: "Error actualizando contraseña" });
+      if (result2.affectedRows === 0) {
+        // Si no existe el usuario (edge case), marcamos usado igual para invalidar el código
+        db.query(`UPDATE password_resets SET used = 1 WHERE id = ?`, [row.id], () => {});
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+
+      // Marcar reset como usado
+      db.query(`UPDATE password_resets SET used = 1 WHERE id = ?`, [row.id], () => {});
+
+      // Invalidar sesiones activas del usuario de ese correo
+      const qDelSes = `
+        DELETE s
+        FROM sesiones s
+        JOIN usuarios u ON u.id = s.id_usuario
+        WHERE u.correo = ?
+      `;
+      db.query(qDelSes, [email], () => {});
+
+      return res.json({ message: "Contraseña actualizada" });
+    });
+  });
 });
 
 module.exports = router;
+
+/* ====== Sugerencia SQL opcional para índice ======
+CREATE INDEX idx_sesiones_token ON sesiones (token(120));
+==================================================== */

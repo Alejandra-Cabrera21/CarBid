@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crear publicación - CarBid</title>
+
+  <link rel="stylesheet" href="css/panel-vendedor.css"/>
+
+  <!-- Toastify -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+  <style>
+    :root{
+      /* tonos suaves en gris */
+      --border:#cbd5e1;        /* gris claro para borde */
+      --border-focus:#94a3b8;  /* gris medio al enfocar */
+      --field-bg:#f2f4f7;      /* gris claro de fondo */
+      --field-text:#0f172a;
+      --placeholder:#9aa4b2;
+      --error:#ff4d4f;
+    }
+
+    /* ===== Desktop/Web (deja tu layout como estaba) ===== */
+    .form-grid{
+      max-width:920px;
+      margin:40px auto;
+      background:#111;
+      padding:36px;
+      border-radius:14px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      column-gap:32px;
+      row-gap:24px;
+    }
+    .row.full{ grid-template-columns:1fr; }
+    .row>div{ margin-bottom:8px; }
+
+    label{display:block;margin:4px 0 10px;color:#fff}
+    .req::after{content:" *"; color:var(--error); font-weight:600}
+
+    input,textarea,select{
+      width:100%;
+      padding:12px;
+      border-radius:10px;
+      border:1.5px solid var(--border);
+      background:var(--field-bg);
+      color:var(--field-text);
+      outline:none;
+      box-shadow:none;
+      transition:box-shadow .15s ease,border-color .15s ease;
+      max-width:100%;
+    }
+    input::placeholder,textarea::placeholder{ color:var(--placeholder); }
+
+    input:focus,textarea:focus,select:focus{
+      border-color:var(--border-focus);
+      box-shadow:0 0 0 3px rgba(148,163,184,.18);
+    }
+
+    textarea{ min-height:120px; }
+
+    input[type="file"]{
+      background:var(--field-bg);
+      color:var(--field-text);
+      border:1.5px solid var(--border);
+      display:block;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width:100%;
+    }
+
+    input:focus-visible,textarea:focus-visible,select:focus-visible{ outline:none; }
+
+    input:-webkit-autofill,textarea:-webkit-autofill,select:-webkit-autofill{
+      -webkit-box-shadow:0 0 0 1000px var(--field-bg) inset !important;
+      -webkit-text-fill-color:var(--field-text) !important;
+    }
+
+    .thumbs{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;max-width:100%;overflow-x:auto}
+    .thumbs img{width:110px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #333}
+
+    .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:20px}
+    .btn{padding:10px 16px;border-radius:10px;border:none;cursor:pointer}
+    .btn-primary{background:#67c7d6}
+    .btn-ghost{background:transparent;border:1px solid #444;color:#fff}
+    small.error{color:var(--error)}
+
+    /* Toastify */
+    .toastify.success{background:linear-gradient(90deg,#00c853,#00e676)}
+    .toastify.error{background:linear-gradient(90deg,#ff5252,#ff1744)}
+    .toastify.info{background:linear-gradient(90deg,#2196f3,#42a5f5)}
+
+    @media (max-width:900px){
+      .row{grid-template-columns:1fr; column-gap:0; row-gap:18px}
+    }
+
+    /* ===== Ajustes SOLO para móvil (≤600px) ===== */
+    html, body { margin:0; padding:0; overflow-x:hidden; }
+    *, *::before, *::after { box-sizing:border-box; }
+
+    @media (max-width:600px){
+      /* gutters simétricos en móvil */
+      header{
+        padding-left:10px !important;
+        padding-right:10px !important;
+      }
+      .form-grid{
+        width:100%;
+        margin:12px auto;
+        padding:16px;
+        border-radius:12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header style="padding:12px 20px;background:#0f0f0f;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <!-- Solo flecha -->
+      <a href="indexvendedor.html" aria-label="Regresar" style="color:#fff;text-decoration:none">←</a>
+      <!-- Logo -->
+      <img src="img/logo.png" alt="CarBid" style="height:36px;display:block"/>
+    </div>
+    <strong style="color:#fff">Crear publicación</strong>
+    <div></div>
+  </header>
+
+  <main class="form-grid">
+    <div class="row">
+      <div>
+        <label class="req">Marca</label>
+        <input id="marca" placeholder="Toyota" />
+        <small class="error" id="err-marca"></small>
+      </div>
+      <div>
+        <label class="req">Modelo</label>
+        <input id="modelo" placeholder="Corolla" />
+        <small class="error" id="err-modelo"></small>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Año</label>
+        <input id="anio" type="number" min="1900" max="2099" step="1" placeholder="2020" />
+        <small class="error" id="err-anio"></small>
+      </div>
+      <div>
+        <label class="req">Precio base (Q)</label>
+        <input id="precio" type="number" step="0.01" min="0.01" placeholder="5000.00" />
+        <small class="error" id="err-precio"></small>
+      </div>
+    </div>
+
+    <div class="row full">
+      <div>
+        <label>Descripción</label>
+        <textarea id="descripcion" rows="3" placeholder="Características, estado, etc."></textarea>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label class="req">Fecha y hora de cierre</label>
+        <input id="fin" type="datetime-local" />
+        <small class="error" id="err-fin"></small>
+      </div>
+      <div>
+        <label class="req">Imágenes (JPG/PNG, hasta 6, máx 2MB c/u)</label>
+        <input id="images" type="file" accept=".jpg,.jpeg,.png" multiple />
+        <div class="thumbs" id="thumbs"></div>
+        <small class="error" id="err-images"></small>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="history.back()">Cancelar</button>
+      <button class="btn btn-primary" id="btnCrear">Crear</button>
+    </div>
+  </main>
+
+  <script>
+    /* Toast helper */
+    function toast(msg,type="info"){
+      Toastify({text:msg,duration:3000,gravity:"top",position:"right",close:true,stopOnFocus:true,className:type}).showToast();
+    }
+
+    /* Previsualización */
+    const inputFiles = document.getElementById('images');
+    const thumbs = document.getElementById('thumbs');
+    inputFiles.addEventListener('change', () => {
+      thumbs.innerHTML = '';
+      [...inputFiles.files].slice(0,6).forEach(f => {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(f);
+        thumbs.appendChild(img);
+      });
+    });
+
+    /* Min de fecha = ahora (redondeado a 5 min) */
+    const finInput = document.getElementById('fin');
+    (function setMinDatetime(){
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + (5 - (now.getMinutes()%5))%5);
+      const pad = n => String(n).padStart(2,'0');
+      const iso = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      finInput.min = iso;
+    })();
+
+    /* Crear */
+    document.getElementById('btnCrear').addEventListener('click', async () => {
+      // limpia errores
+      ['marca','modelo','anio','precio','fin','images'].forEach(id=>{
+        const e = document.getElementById('err-'+id); if(e) e.textContent='';
+      });
+
+      const marca = document.getElementById('marca').value.trim();
+      const modelo = document.getElementById('modelo').value.trim();
+      const anio = document.getElementById('anio').value.trim();
+      const precio = document.getElementById('precio').value.trim();
+      const descripcion = document.getElementById('descripcion').value.trim();
+      const fin = document.getElementById('fin').value;
+      const files = [...inputFiles.files];
+
+      let ok = true;
+      if(!marca){ document.getElementById('err-marca').textContent='Requerido'; ok=false; }
+      if(!modelo){ document.getElementById('err-modelo').textContent='Requerido'; ok=false; }
+
+      if(anio){
+        const a = parseInt(anio,10);
+        if(isNaN(a) || a < 1900 || a > 2099){
+          document.getElementById('err-anio').textContent='Año inválido (1900–2099)';
+          ok=false;
+        }
+      }
+      if(!precio || Number(precio) <= 0){
+        document.getElementById('err-precio').textContent='Debe ser mayor a 0';
+        ok=false;
+      }
+      if(!fin){
+        document.getElementById('err-fin').textContent='Define fecha/hora';
+        ok=false;
+      }else{
+        const finDate = new Date(fin);
+        if(finDate <= new Date()){
+          document.getElementById('err-fin').textContent='Debe ser posterior a ahora';
+          ok=false;
+        }
+      }
+      if(!files.length){ document.getElementById('err-images').textContent='Sube al menos 1 imagen'; ok=false; }
+
+      if(!ok){ toast("Revisa los campos marcados", "error"); return; }
+
+      // form-data
+      const fd = new FormData();
+      fd.append('marca', marca);
+      fd.append('modelo', modelo);
+      if(anio) fd.append('anio', anio);
+      fd.append('descripcion', descripcion);
+      fd.append('precio_base', precio);
+
+      // normaliza 'YYYY-MM-DDTHH:MM' -> 'YYYY-MM-DD HH:MM:SS'
+      const finSQL = fin.replace('T',' ').padEnd(19, ':00');
+      fd.append('fin', finSQL);
+
+      files.slice(0,6).forEach(f => fd.append('images', f));
+
+      const token = localStorage.getItem('token');
+      if(!token){ toast('Sesión no válida','error'); return; }
+
+      try {
+        const res = await fetch('http://localhost:3000/api/subastas?principal=0', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token },
+          body: fd
+        });
+
+        let data = null;
+        const text = await res.text();
+        try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+
+        if(res.ok){
+          toast((data && data.message) || "Publicación creada", "success");
+          setTimeout(()=>{ window.location.href = 'indexvendedor.html'; }, 900);
+        }else{
+          const msg = (data && data.message) || text || `Error ${res.status}`;
+          toast(msg, "error");
+        }
+      } catch (e) {
+        console.error(e);
+        toast("Error de conexión con el servidor", "error");
+      }
+    });
+  </script>
+</body>
+</html>

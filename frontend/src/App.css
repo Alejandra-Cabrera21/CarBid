@@ -1,0 +1,38 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Animaciones suaves */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.logo {
+  height: 5em;
+  padding: 1.2em;
+  transition: transform 0.3s ease;
+}
+.logo:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 0.6em var(--accent));
+}
+ 
+/* Layout adaptable */
+@media (max-width: 768px) {
+  #root {
+    padding: 1rem;
+  }
+
+  .logo {
+    height: 4em;
+    padding: 0.8em;
+  }
+}

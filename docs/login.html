@@ -1,28 +1,308 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Login Comprador - CarBid</title>
-  <link rel="stylesheet" href="styles.css">
-  <script defer src="app.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iniciar sesión - CarBid</title>
+
+  <!-- Iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Tus estilos -->
+  <link rel="stylesheet" href="css/login.css" />
+
+  <style>
+    /* Errores bajo cada campo */
+    .error{color:#ff4d4f!important;font-size:.9rem;font-weight:600;margin-top:5px;transition:all .3s ease}
+
+    /* Inputs con icono */
+    .input-wrapper{position:relative;width:100%}
+    .input-wrapper input{width:100%;padding:10px 42px 10px 38px;border:none;border-radius:4px;outline:none}
+    .input-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#888;font-size:18px;z-index:2}
+    .toggle-pass{position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#888;font-size:18px;z-index:2}
+    .toggle-pass:hover{color:#ddd}
+    input::placeholder{color:#aaa;font-size:.95rem}
+
+    /* Enlace extra con línea blanca garantizada */
+    .inline-link{
+      color:#fff;
+      text-decoration:none;
+      border-bottom:1px solid #fff;
+      padding-bottom:2px;
+    }
+
+    /* ===== Modal ===== */
+    .modal-backdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,.6);
+      display:none;align-items:center;justify-content:center;z-index:9999
+    }
+
+    /* MODAL BLANCO */
+    .modal{
+      background:#ffffff;           /* <— blanco */
+      color:#111;                   /* texto oscuro */
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      max-width:420px;width:92vw;
+      padding:20px 18px;
+      box-shadow:0 20px 50px rgba(0,0,0,.25);
+    }
+    .modal h3{margin:0 0 12px}
+
+    /* Inputs blancos dentro del modal */
+    .modal input{
+      width:100%;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #cfd4dc;
+      background:#ffffff;          /* <— blanco */
+      color:#111;
+      outline:none;
+    }
+    .modal input::placeholder{color:#6b7280}
+    .modal input:focus{
+      border-color:#2563eb;
+      box-shadow:0 0 0 3px rgba(37,99,235,.15);
+    }
+
+    .modal .actions{
+      display:flex;gap:10px;justify-content:flex-end;
+      margin-top:14px;flex-wrap:wrap
+    }
+    .btn{background:#2563eb;border:none;color:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .btn.secondary{background:#e5e7eb;color:#111}
+    .btn:hover{filter:brightness(.95)}
+    .hint{font-size:.9rem;color:#374151;margin-top:6px;min-height:18px}
+    .ok{color:#16a34a}
+    .bad{color:#dc2626}
+  </style>
 </head>
 <body>
-  <header>
-    <h1><a href="index.html">🚗 CarBid</a></h1>
-    <nav id="menu"></nav>
-  </header>
-
-  <main>
-    <div class="form-container">
-      <h2>Iniciar sesión (Comprador)</h2>
-      <form id="loginForm">
-        <input type="email" id="email" placeholder="Correo electrónico" required>
-        <input type="password" id="password" placeholder="Contraseña" required>
-        <button type="submit">Ingresar</button>
-      </form>
-      <p>¿No tienes cuenta? <a href="register.html">Crear cuenta de comprador</a></p>
-      <p>¿Quieres vender? <a href="register-vendedor.html">Crear cuenta de vendedor</a></p>
+  <div class="register-container">
+    <!-- Lado izquierdo con imagen -->
+    <div class="image-side">
+      <img src="img/auto.png" alt="Fondo CarBid" />
     </div>
-  </main>
+
+    <!-- Lado derecho con formulario -->
+    <div class="form-side">
+      <div class="form-header">
+        <img src="img/logo.png" alt="CarBid" width="70" />
+        <h2 id="loginTitle">INICIAR SESIÓN</h2>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <label for="email">Correo electrónico:</label>
+        <div class="input-wrapper">
+          <i class="fa fa-user input-icon"></i>
+          <input type="email" id="email" placeholder="Ingresa tu correo" required />
+        </div>
+        <div id="error-email" class="error"></div>
+
+        <label for="password">Contraseña:</label>
+        <div class="input-wrapper">
+          <i class="fa fa-lock input-icon"></i>
+          <input type="password" id="password" placeholder="Ingresa tu contraseña" required />
+          <span class="toggle-pass" id="togglePassword" aria-label="Mostrar u ocultar contraseña" tabindex="0">
+            <i class="fa fa-eye"></i>
+          </span>
+        </div>
+        <div id="error-password" class="error"></div>
+
+        <button type="submit">INGRESAR</button>
+      </form>
+
+      <p>¿No tienes cuenta? <a href="register.html">Crear una cuenta</a></p>
+      <p><a id="openForgot" class="inline-link" href="javascript:void(0)">¿Olvidaste tu contraseña?</a></p>
+    </div>
+  </div>
+
+  <!-- Modal Olvidé mi contraseña -->
+  <div class="modal-backdrop" id="forgotModal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>Recuperar contraseña</h3>
+
+      <!-- Paso 1 -->
+      <div id="step1">
+        <label for="fpEmail">Correo de tu cuenta</label>
+        <input type="email" id="fpEmail" placeholder="tu@correo.com" />
+        <div class="hint" id="fpHint1"></div>
+        <div class="actions">
+          <button class="btn secondary" id="fpCancel1" type="button">Cancelar</button>
+          <button class="btn" id="fpSendCode" type="button">Enviar código</button>
+        </div>
+      </div>
+
+      <!-- Paso 2 -->
+      <div id="step2" style="display:none">
+        <label for="fpCode">Código de verificación (6 dígitos)</label>
+        <input type="text" id="fpCode" placeholder="123456" maxlength="6" />
+
+        <label for="fpPass" style="margin-top:8px">Nueva contraseña</label>
+        <input type="password" id="fpPass" placeholder="Mínimo 6 caracteres" />
+
+        <label for="fpPass2" style="margin-top:8px">Confirmar contraseña</label>
+        <input type="password" id="fpPass2" placeholder="Repite la contraseña" />
+
+        <div class="hint" id="fpHint2"></div>
+        <div class="actions">
+          <button class="btn secondary" id="fpBack" type="button">Atrás</button>
+          <button class="btn" id="fpReset" type="button">Cambiar contraseña</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    /* ===== Título según tipo ===== */
+    const tipo = localStorage.getItem("tipoSeleccionado");
+    const title = document.getElementById("loginTitle");
+    title.textContent = tipo === "vendedor" ? "INICIAR SESIÓN (VENDEDOR)" : "INICIAR SESIÓN (COMPRADOR)";
+
+    /* ===== Mostrar / ocultar contraseña ===== */
+    const passInput = document.getElementById("password");
+    const togglePass = document.getElementById("togglePassword");
+    togglePass.addEventListener("click", () => {
+      const show = passInput.type === "password";
+      passInput.type = show ? "text" : "password";
+      togglePass.innerHTML = show ? '<i class="fa fa-eye-slash"></i>' : '<i class="fa fa-eye"></i>';
+    });
+
+    /* ===== Login ===== */
+    const form = document.getElementById("loginForm");
+    const email = document.getElementById("email");
+    const errorEmail = document.getElementById("error-email");
+    const errorPassword = document.getElementById("error-password");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorEmail.textContent = "";
+      errorPassword.textContent = "";
+
+      let ok = true;
+      if (!email.value.trim()) { errorEmail.textContent = "Ingresa un correo electrónico."; ok = false; }
+      else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value)) { errorEmail.textContent = "Correo inválido."; ok = false; }
+      if (!passInput.value.trim()) { errorPassword.textContent = "Ingresa tu contraseña."; ok = false; }
+      if (!ok) return;
+
+      const endpoint = tipo === "vendedor"
+        ? "http://localhost:3000/api/auth/login-vendedor"
+        : "http://localhost:3000/api/auth/login";
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.value, password: passInput.value }),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("usuario", JSON.stringify(data.usuario));
+           localStorage.setItem("userId", String(data.usuario.id));     // ← necesario para perfil.html
+  localStorage.setItem("userName", data.usuario.nombre || "");
+          localStorage.removeItem("tipoSeleccionado");
+          window.location.href = data.redirect;
+        } else {
+          if ((data.message||'').match(/(comprador|vendedor|usuario|Usuario|correo)/i)) errorEmail.textContent = data.message;
+          else errorPassword.textContent = data.message;
+        }
+      } catch (err) {
+        console.error(err);
+        errorPassword.textContent = "Error de conexión con el servidor.";
+      }
+    });
+
+    /* ===== Modal: Olvidé mi contraseña ===== */
+    const modal = document.getElementById("forgotModal");
+    const openForgot = document.getElementById("openForgot");
+    const step1 = document.getElementById("step1");
+    const step2 = document.getElementById("step2");
+    const fpEmail = document.getElementById("fpEmail");
+    const fpHint1 = document.getElementById("fpHint1");
+    const fpHint2 = document.getElementById("fpHint2");
+    const fpCode = document.getElementById("fpCode");
+    const fpPass = document.getElementById("fpPass");
+    const fpPass2 = document.getElementById("fpPass2");
+
+    // abrir
+    openForgot.addEventListener("click", () => {
+      fpEmail.value=""; fpCode.value=""; fpPass.value=""; fpPass2.value="";
+      fpHint1.textContent=""; fpHint2.textContent="";
+      step1.style.display='block'; step2.style.display='none';
+      modal.style.display='flex';
+      fpEmail.focus();
+    });
+
+    // cerrar
+    document.getElementById("fpCancel1").onclick = () => modal.style.display='none';
+    modal.addEventListener("click",(e)=>{ if(e.target===modal) modal.style.display='none'; });
+
+    // atrás
+    document.getElementById("fpBack").onclick = () => { step1.style.display='block'; step2.style.display='none'; };
+
+    // Paso 1: solicitar código
+    document.getElementById("fpSendCode").onclick = async () => {
+      fpHint1.textContent="";
+      const correo = fpEmail.value.trim();
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)){
+        fpHint1.textContent="Correo inválido."; fpHint1.className='hint bad'; return;
+      }
+      try{
+        const r = await fetch("http://localhost:3000/api/auth/forgot",{
+          method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ email: correo })
+        });
+        const data = await r.json();
+        if(r.ok){
+          // SIN mostrar devHint ni código en pantalla
+          fpHint1.textContent = "Si el correo existe, te enviamos un código.";
+          fpHint1.className = 'hint';
+          step1.style.display='none'; step2.style.display='block';
+          fpCode.focus();
+        }else{
+          fpHint1.textContent = data.message || "No se pudo enviar el código.";
+          fpHint1.className = 'hint bad';
+        }
+      }catch(e){
+        fpHint1.textContent = "Error de conexión.";
+        fpHint1.className = 'hint bad';
+      }
+    };
+
+    // Paso 2: cambiar contraseña
+    document.getElementById("fpReset").onclick = async () => {
+      fpHint2.textContent="";
+      const correo = fpEmail.value.trim();
+      const code = fpCode.value.trim();
+      const p1 = fpPass.value.trim();
+      const p2 = fpPass2.value.trim();
+
+      if(!/^\d{6}$/.test(code)){ fpHint2.textContent="Código inválido."; fpHint2.className='hint bad'; return; }
+      if(p1.length<6){ fpHint2.textContent="La contraseña debe tener al menos 6 caracteres."; fpHint2.className='hint bad'; return; }
+      if(p1!==p2){ fpHint2.textContent="Las contraseñas no coinciden."; fpHint2.className='hint bad'; return; }
+
+      try{
+        const r = await fetch("http://localhost:3000/api/auth/forgot/verify",{
+          method:"POST", headers:{ "Content-Type":"application/json" },
+          body:JSON.stringify({ email: correo, code, newPassword: p1 })
+        });
+        const data = await r.json();
+        if(r.ok){
+          fpHint2.textContent = "¡Contraseña actualizada! Ya puedes iniciar sesión.";
+          fpHint2.className = 'hint ok';
+          setTimeout(()=>{ modal.style.display='none'; }, 900);
+        }else{
+          fpHint2.textContent = data.message || "No se pudo cambiar la contraseña.";
+          fpHint2.className = 'hint bad';
+        }
+      }catch(e){
+        fpHint2.textContent = "Error de conexión.";
+        fpHint2.className = 'hint bad';
+      }
+    };
+  });
+  </script>
 </body>
 </html>

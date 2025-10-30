@@ -1,0 +1,224 @@
+/* ===== Reset general ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000;
+}
+
+body {
+  font-family: 'Poppins', Arial, sans-serif;
+}
+
+/* ===== Navbar (solo escritorio) ===== */
+.navbar {
+  background: #111;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 40px;
+  height: 70px;
+  position: relative;
+  z-index: 10;
+}
+
+.logo img {
+  height: 50px;
+  display: block;
+}
+
+.menu {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+/* ===== Botones ===== */
+.home-btn,
+.dropbtn {
+  background: transparent;
+  color: #fff;
+  border: 2px solid #fff;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 6px;
+  font-weight: 500;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.4rem;
+
+  transition: all 0.2s ease;
+}
+
+.home-btn:hover,
+.dropbtn:hover {
+  background: #fff;
+  color: #000;
+}
+
+.dropbtn .caret {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.dropbtn.open .caret {
+  transform: rotate(180deg);
+}
+
+/* ===== Dropdown ===== */
+.dropdown {
+  position: relative;
+  display: inline-block;
+  width: fit-content; /* se ajusta al botón */
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%; /* ✅ igual ancho que el botón */
+  background-color: #000;
+  border-radius: 6px;
+  border: 1px solid #333;
+  overflow: hidden;
+  z-index: 20;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.dropdown-content.active {
+  display: block;
+}
+
+.dropdown-content a {
+  color: #fff;
+  font-weight: 500;
+  padding: 10px 0;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.dropdown-content a:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+.dropdown-content a:visited,
+.dropdown-content a:focus {
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ===== Hero ===== */
+.hero {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: calc(100vh - 70px);
+  background-color: #000;
+}
+
+.hero img.background {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  margin-top: -2px;
+}
+
+/* ===== Visibilidad ===== */
+.only-desktop { display: flex; }
+.only-mobile { display: none; }
+
+/* ===== Móvil ===== */
+@media (max-width: 768px) {
+  .only-desktop { display: none; }
+  .only-mobile { display: block; }
+
+  .navbar {
+    display: none !important;
+  }
+
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .hero {
+    position: relative;
+    height: 100vh;
+    background-color: #000;
+    margin-top: 0;
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,.4), rgba(0,0,0,.7));
+    z-index: 0;
+  }
+
+  /* Tarjeta centrada */
+  .home-overlay-card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 380px;
+    background: rgba(17,17,17,0.9);
+    color: #fff;
+    border-radius: 14px;
+    padding: 24px 18px 28px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25);
+    z-index: 1;
+    text-align: center;
+  }
+
+  .home-card-title {
+    margin-bottom: 14px;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .home-actions {
+    display: grid;
+    gap: 12px;
+  }
+
+  .home-btn,
+  .dropbtn {
+    width: 100%;
+    justify-content: center;
+    font-weight: 700;
+    height: 42px;
+    border-radius: 10px;
+  }
+
+  .dropdown {
+    width: 100%;
+  }
+
+  .dropdown-content {
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+}
