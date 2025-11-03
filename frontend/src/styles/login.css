@@ -267,24 +267,26 @@ body.modal-open{
   outline-offset:2px;
 }
 
-/* ===== Checkboxes alineados en fila ===== */
+/* ===== Checkboxes alineados y del mismo ancho que los inputs ===== */
 .checkbox-group {
   display: flex;
+  justify-content: flex-start; /* se alinean al inicio */
   align-items: center;
-  justify-content: center;
-  gap: 18px; /* espacio entre los dos */
+  gap: 24px; /* separación entre los dos */
   width: 100%;
+  margin-top: 4px;
 }
 
 .checkbox-group label {
   display: flex;
   align-items: center;
+  gap: 8px; /* espacio entre texto y checkbox */
   font-weight: 500;
-  gap: 6px; /* espacio entre el cuadrito y el texto */
+  cursor: pointer;
 }
 
 .checkbox-group input[type="checkbox"] {
-  accent-color: #e91e63; /* color rosa como el de tu captura */
+  accent-color: #e91e63;
   width: 18px;
   height: 18px;
   cursor: pointer;
