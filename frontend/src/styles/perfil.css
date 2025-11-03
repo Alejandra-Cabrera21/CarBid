@@ -1,0 +1,235 @@
+:root {
+  --bg: #11131a;          /* Fondo más profundo, sin ser negro */
+  --surface: #1e2432;     /* Tarjeta gris azulado */
+  --surface-2: #262d3d;   /* Sutil degradado más claro */
+  --text: #f2f4f8;        /* Texto más claro para contraste */
+  --muted: #a4acc2;       /* Texto secundario más legible */
+  --brand: #2563eb;       /* Azul limpio */
+  --ok: #22c55e;
+  --bd: #2f3549;
+  --focus: #3b82f6;
+}
+
+/* ===== Layout general ===== */
+.perfil-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(900px 400px at 10% -20%, #27304a50, transparent),
+              radial-gradient(900px 320px at 120% 10%, #3b245060, transparent),
+              var(--bg);
+  color: var(--text);
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, Inter,
+    Arial, sans-serif;
+}
+
+/* ===== Barra superior ===== */
+.perfil-topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--bd);
+  background: rgba(20, 24, 34, 0.95);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.perfil-btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text);
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+.perfil-btn-back:hover {
+  background: #ffffff15;
+}
+.perfil-topbar img {
+  height: 36px;
+}
+
+/* ===== Contenido ===== */
+.perfil-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  text-align: center;
+}
+
+.perfil-title {
+  font-size: clamp(26px, 4vw, 42px);
+  margin-bottom: 8px;
+  font-weight: 800;
+}
+
+.perfil-subtitle {
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+
+/* ===== Tarjeta ===== */
+.perfil-card {
+  width: 100%;
+  max-width: 720px;
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  border: 1px solid #3a4155;
+  border-radius: 22px;
+  padding: 28px 28px 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  text-align: left;
+  backdrop-filter: blur(8px);
+}
+
+/* ===== Form ===== */
+#profileForm {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr 1fr;
+}
+.perfil-full-row {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 820px) {
+  #profileForm {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Campos ===== */
+.perfil-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.perfil-field label {
+  font-weight: 600;
+  font-size: 14px;
+}
+.perfil-required {
+  color: #ff7a7a;
+}
+
+.perfil-input-wrapper {
+  position: relative;
+}
+
+.perfil-input {
+  width: 100%;
+  border: 1px solid #ccc;
+  background: #f9fafc;
+  color: #111;
+  border-radius: 12px;
+  padding: 10px 44px 10px 56px;
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+.perfil-input:focus {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px #2563eb30;
+}
+
+/* ===== Iconos ===== */
+.perfil-icon-left {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  font-size: 15px;
+}
+
+/* Botón del ojo */
+.perfil-toggle-pass {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.perfil-toggle-pass:hover {
+  background: #e5e7eb;
+  color: #111;
+}
+.perfil-toggle-pass:active {
+  background: #d1d5db;
+}
+
+/* ===== Checkboxes ===== */
+.perfil-checkboxes {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 14px;
+  border: 1px dashed var(--bd);
+  border-radius: 12px;
+  background: #1b2030;
+}
+.perfil-chk span {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* ===== Botones ===== */
+.perfil-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+.perfil-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 11px 22px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+.perfil-btn-primary {
+  background: var(--brand);
+  color: #fff;
+}
+.perfil-btn-primary:hover:not(:disabled) {
+  background: #004de6;
+}
+.perfil-btn-ghost {
+  background: #ffffff18;
+  color: #fff;
+}
+.perfil-btn-ghost:hover {
+  background: #ffffff25;
+}
+
+/* ===== Textos pequeños ===== */
+.perfil-error {
+  color: #ff7676;
+  font-size: 12px;
+  font-weight: 600;
+}
+.perfil-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
