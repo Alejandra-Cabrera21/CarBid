@@ -237,19 +237,20 @@ html, body {
   font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, Inter, Arial, sans-serif;
 }
 
-/* ===== BARRA SUPERIOR ===== */
+/* ===== NAVBAR SUPERIOR ===== */
 .topbar {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px 20px;
+  padding: 14px 20px;
   border-bottom: 1px solid var(--bd);
-  background: linear-gradient(0deg, rgba(21,24,34,.6), rgba(21,24,34,.6));
+  background: linear-gradient(0deg, rgba(21,24,34,.75), rgba(21,24,34,.75));
   backdrop-filter: blur(6px);
   position: sticky;
   top: 0;
   z-index: 10;
 }
+
 .btn-back {
   display: inline-flex;
   align-items: center;
@@ -264,50 +265,54 @@ html, body {
   border-radius: 10px;
 }
 .btn-back:hover { background: #ffffff12; }
-.topbar img { height: 36px; }
 
-/* ===== CONTENEDOR PRINCIPAL ===== */
+.topbar img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
 .profile-wrapper {
   min-height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 30px 16px 60px;
+  padding: 40px 16px 80px;
   text-align: center;
 }
 
 .page-title {
-  font-size: clamp(26px, 4vw, 48px);
+  font-size: clamp(28px, 4vw, 48px);
   margin-bottom: 6px;
   font-weight: 800;
 }
 
 .subtitle {
   color: var(--muted);
-  margin-bottom: 28px;
+  margin-bottom: 30px;
   font-size: 15px;
 }
 
-/* ===== TARJETA DEL FORMULARIO ===== */
+/* ===== TARJETA ===== */
 .card {
-  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  background: rgba(21, 24, 34, 0.85);
   border: 1px solid var(--bd);
   border-radius: 20px;
-  padding: 36px 30px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
+  padding: 40px 32px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
   width: 100%;
-  max-width: 540px;
+  max-width: 560px;
+  backdrop-filter: blur(8px);
 }
 
 /* ===== FORMULARIO ===== */
 form#profileForm {
-  display: grid;
-  gap: 20px;
-  grid-template-columns: 1fr 1fr;
-}
-@media (max-width: 768px) {
-  form#profileForm { grid-template-columns: 1fr; }
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
 }
 
 /* ===== CAMPOS ===== */
@@ -373,9 +378,9 @@ form#profileForm {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: 26px;
   flex-wrap: wrap;
-  padding: 16px;
+  padding: 14px;
   border: 1px dashed var(--bd);
   border-radius: 12px;
   background: #0d1020;
@@ -400,7 +405,7 @@ form#profileForm {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 16px;
   flex-wrap: wrap;
   gap: 14px;
 }
