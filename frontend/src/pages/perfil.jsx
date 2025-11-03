@@ -224,21 +224,28 @@ export default function Perfil() {
       .btn-back{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--text);
         border:none;cursor:pointer;font-weight:600;font-size:15px;padding:8px 10px;border-radius:10px}
       .btn-back:hover{background:#ffffff12}.topbar img{height:36px}
-.profile-wrapper {
-  width: 100%;
-  min-height: calc(100vh - 80px); /* ocupa toda la pantalla menos la barra superior */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;  /* ✅ centra verticalmente */
-  align-items: center;      /* ✅ centra horizontalmente */
-  text-align: center;
-  padding: 40px 16px;
-}
+      .profile-wrapper{max-width:980px;margin:40px auto;padding:0 16px}
       .page-title{font-size: clamp(22px, 3.5vw, 48px);margin:0 0 10px;font-weight:800}
       .subtitle{color:var(--muted);margin:0 0 22px}
       .card{background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--bd);
         border-radius:18px;padding:22px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
-      form#profileForm{display:grid;gap:18px;grid-template-columns:1fr 1fr}
+      form#profileForm {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr; /* ✅ todos los inputs en una sola columna */
+  width: 100%;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--bd);
+  border-radius: 18px;
+  padding: 32px 28px; /* un poco más de padding */
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
+  width: 100%;
+  max-width: 600px; /* ✅ el cuadro total es un poco más ancho */
+}
+
       @media (max-width:820px){form#profileForm{grid-template-columns:1fr}}
       .field{display:flex;flex-direction:column;gap:8px}.field label{font-weight:700;font-size:14px}
       .hint{font-size:12px;color:var(--muted);margin-top:-4px}
