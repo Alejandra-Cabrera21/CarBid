@@ -224,7 +224,16 @@ export default function Perfil() {
       .btn-back{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--text);
         border:none;cursor:pointer;font-weight:600;font-size:15px;padding:8px 10px;border-radius:10px}
       .btn-back:hover{background:#ffffff12}.topbar img{height:36px}
-      .profile-wrapper{max-width:980px;margin:40px auto;padding:0 16px}
+.profile-wrapper {
+  width: 100%;
+  min-height: calc(100vh - 80px); /* ocupa toda la pantalla menos la barra superior */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;  /* ✅ centra verticalmente */
+  align-items: center;      /* ✅ centra horizontalmente */
+  text-align: center;
+  padding: 40px 16px;
+}
       .page-title{font-size: clamp(22px, 3.5vw, 48px);margin:0 0 10px;font-weight:800}
       .subtitle{color:var(--muted);margin:0 0 22px}
       .card{background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--bd);
