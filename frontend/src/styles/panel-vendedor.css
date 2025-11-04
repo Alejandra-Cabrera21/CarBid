@@ -132,3 +132,17 @@ header.navbar .menu .linklike:focus-visible {
     margin: 0 auto;
   }
 }
+/* limitar el nombre de usuario para que no se salga */
+.panel-container h2 {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 4px;               /* espacio entre Bienvenid@ y el nombre */
+}
+
+#nombreUsuario {
+  max-width: 60vw;        /* ancho máximo del nombre */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;    /* no dejar que haga salto de línea */
+}
