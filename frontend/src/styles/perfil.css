@@ -60,19 +60,14 @@
 
 /* ===== Contenido ===== */
 .perfil-wrapper {
-  width: 100%;
-  min-height: calc(100vh - 80px);
+  flex: 1;
   display: flex;
-  justify-content: center;   /* ✅ centra verticalmente */
-  align-items: center;       /* ✅ centra horizontalmente */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
   text-align: center;
-  padding: 0 16px;
 }
-
-.perfil-card {
-  margin: 0 auto;            /* ✅ asegura centrado en contenedor */
-}
-
 
 .perfil-title {
   font-size: clamp(26px, 4vw, 42px);
@@ -138,15 +133,10 @@
   background: #f9fafc;
   color: #111;
   border-radius: 12px;
-  height: 48px;
-  padding: 0 44px 0 56px;
-  font-size: 15px;
-  display: flex;
-  align-items: center; /* ✅ centra verticalmente el texto */
+  padding: 10px 44px 10px 56px;
+  font-size: 14px;
   transition: all 0.15s ease;
 }
-
-
 .perfil-input:focus {
   border-color: var(--focus);
   box-shadow: 0 0 0 3px #2563eb30;
@@ -188,13 +178,9 @@
 
 /* ===== Checkboxes ===== */
 .perfil-checkboxes {
-  grid-column: 1 / -1; /* ✅ ocupa todo el ancho */
-  margin-top: 10px;
-  margin-bottom: 14px; /* ✅ espacio antes de los botones */
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 22px;
+  gap: 24px;
   flex-wrap: wrap;
   padding: 14px;
   border: 1px dashed var(--bd);
