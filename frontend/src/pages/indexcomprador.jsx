@@ -333,7 +333,7 @@ export default function IndexComprador() {
       setNotifs(
         data.map((n) => ({
           id_subasta: n.id_subasta,
-          text: `🏁 Ganaste <b>${n.marca} ${n.modelo}</b> por Q${Number(n.monto).toLocaleString()}`,
+          text: ` Ganaste <b>${n.marca} ${n.modelo}</b> por Q${Number(n.monto).toLocaleString()}`,
         }))
       );
     } catch (e) {
@@ -437,12 +437,12 @@ export default function IndexComprador() {
       });
       const data = await r.json();
       if (r.ok) {
-        toast("✅ Puja registrada correctamente");
+        toast("Puja registrada correctamente");
         onCloseDialog();
         loadSubastas(searchRef.current); // ⬅️ refrescar usando el término actual
       } else toast("⚠️ " + (data.message || "Error desconocido"));
     } catch {
-      toast("❌ No se pudo conectar con el servidor.");
+      toast("No se pudo conectar con el servidor.");
     }
   };
 
@@ -486,26 +486,61 @@ export default function IndexComprador() {
     header a{color:#fff; text-decoration:none; white-space:nowrap}
 
     #bell{
-      position:relative; cursor:pointer; background:transparent; border:none; padding:0;
-      display:inline-flex; align-items:center; justify-content:center;
-      width:28px; height:28px;
-    }
-    #bell svg{width:24px; height:24px; stroke:#fff; fill:none}
-    #notif-count{
-      position:absolute; top:-6px; right:-8px;
-      min-width:18px; height:18px; padding:0 5px;
-      background:#ef4444; color:#fff; border-radius:999px;
-      font-size:12px; line-height:18px; text-align:center;
-    }
+  position:relative;
+  cursor:pointer;
+  background:transparent;
+  border:none;
+  outline:none;          /* 👈 quita la orilla */
+  box-shadow:none;       /* 👈 por si algún estilo global le pone sombra */
+  padding:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:28px;
+  height:28px;
+}
 
-    #notif-box{
-      position:absolute; right:10px; top:60px;
-      background:#1f2937; color:#fff; border-radius:10px; padding:10px;
-      display:flex; flex-direction:column; gap:8px;
-      width:min(320px, 94vw); max-height:70vh; overflow:auto;
-      box-shadow:0 12px 24px rgba(0,0,0,.35);
-      z-index:10000;
-    }
+/* fuerza a que en foco tampoco pinte borde */
+#bell:focus,
+#bell:focus-visible,
+#bell:active {
+  outline:none !important;
+  box-shadow:none !important;
+  border:none !important;
+}
+
+#bell svg{
+  width:24px;
+  height:24px;
+  stroke:#fff;
+  fill:none;
+}
+
+#notif-count{
+  position:absolute; top:-6px; right:-8px;
+  min-width:18px; height:18px; padding:0 5px;
+  background:#ef4444; color:#fff; border-radius:999px;
+  font-size:12px; line-height:18px; text-align:center;
+}
+
+
+   #notif-box{
+  position:absolute;
+  right:0;                         /* pegado al borde derecho / campana */
+  top: calc(100% + 18px);           /* justo debajo del header/right */
+  background:#1f2937;
+  color:#fff;
+  border-radius:10px;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  width:min(320px, 94vw);
+  max-height:70vh;
+  overflow:auto;
+  box-shadow:0 12px 24px rgba(0,0,0,.35);
+  z-index:10000;
+}
     .notif-empty{ text-align:center; font-size:13px; color:#9ca3af; padding:6px 2px}
 
     .notif-item{
@@ -550,10 +585,50 @@ export default function IndexComprador() {
     }
     .slider button.prev{left:5px}
     .slider button.next{right:5px}
+    #dialog{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.7);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:10;
+    }
 
-    #dialog{position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center; z-index:10}
-    #dialog .box{background:#fff; color:#000; padding:20px; border-radius:10px; min-width:min(380px, 92vw); text-align:center}
-    #dialog input{width:100%; padding:10px; margin:10px 0; border:1px solid #ddd; border-radius:8px}
+    #dialog .box{
+      background:#fff;
+      color:#000;
+      padding:20px;
+      border-radius:10px;
+      min-width:min(380px, 92vw);
+      text-align:center;
+    }
+
+    #dialog input{
+      width:100%;
+      padding:10px;
+      margin:10px 0;
+      border:1px solid #ddd;
+      border-radius:8px;
+    }
+
+    /* ===== Botones del diálogo ===== */
+
+    /* Aceptar: se queda con el color general (brand) */
+    #dialog .box #btnAceptar{
+      background:var(--brand);
+    }
+    #dialog .box #btnAceptar:hover{
+      background:var(--brand-hover);
+    }
+
+    /* Cancelar: rojo */
+    #dialog .box button[type="button"]{
+      background:#b91c1c;
+    }
+    #dialog .box button[type="button"]:hover{
+      background:#dc2626;
+    }
 
     @media (max-width:820px){
       header .left input{max-width:44vw}

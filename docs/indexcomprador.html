@@ -505,7 +505,7 @@
         });
         const data = await r.json();
         if (r.ok) {
-          showToast("✅ Puja registrada correctamente");
+          showToast("Puja registrada correctamente");
           cerrarDialog();
           load();
         } else showToast("⚠️ " + (data.message || "Error desconocido"));

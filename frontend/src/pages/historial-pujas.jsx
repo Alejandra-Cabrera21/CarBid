@@ -3,7 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
-const API = "https://carbid-backend.us-east-2.elasticbeanstalk.com/api";
+
+const API = "http://localhost:3000/api";
 
 
 export default function HistorialPujas() {
