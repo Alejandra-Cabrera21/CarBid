@@ -6,35 +6,58 @@ body {
 }
 
 /* ===== NAVBAR ===== */
-.navbar {
-  background: #111;
-  display: flex;
+header.navbar {
+  /* forzamos que SIEMPRE exista la barra, en cualquier ancho */
+  display: flex !important;
   justify-content: space-between;
   align-items: center;
   padding: 8px 20px;
+  background: #111;
   border-bottom: 2px solid #fff;
+  position: relative;
+  z-index: 10;
 }
 
-.logo img {
+header.navbar .logo img {
   width: 120px;
+  display: block;
 }
 
-.menu a {
+/* menú (desktop y mobile) */
+header.navbar .menu {
+  display: flex !important;            /* forzamos que nunca se oculte */
+  align-items: center;
+  gap: 20px;
+}
+
+/* links + botón Salir con el mismo estilo */
+header.navbar .menu a,
+header.navbar .menu .linklike {
   color: #fff;
   text-decoration: none;
-  margin-left: 20px;
   font-size: 14px;
   font-weight: 500;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px 0;
 }
 
-.menu a:hover {
-  text-decoration: underline;
+/* hover / focus: azul, sin subrayado */
+header.navbar .menu a:hover,
+header.navbar .menu a:focus-visible,
+header.navbar .menu .linklike:hover,
+header.navbar .menu .linklike:focus-visible {
+  color: #2563eb;
+  text-decoration: none;
+  outline: none;
 }
 
 /* ===== PANEL PRINCIPAL ===== */
 .panel-container {
   text-align: center;
-  margin-top: 60px;
+  margin-top: 60px;   /* deja espacio debajo de la navbar */
+  padding: 0 16px;
 }
 
 .panel-container h2 {
@@ -48,6 +71,7 @@ body {
   display: flex;
   justify-content: center;
   gap: 30px;
+  flex-wrap: wrap;
 }
 
 .botones button {
@@ -68,14 +92,43 @@ body {
 }
 
 /* ===== Responsivo ===== */
-@media (max-width: 600px) {
-  .botones {
+@media (max-width: 768px) {
+  header.navbar {
     flex-direction: column;
-    gap: 20px;
+    align-items: flex-start;
+    padding: 8px 16px;
   }
 
-  .menu a {
-    margin-left: 12px;
+  header.navbar .logo img {
+    width: 110px;
+    margin-bottom: 6px;
+  }
+
+  header.navbar .menu {
+    display: flex !important;
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  header.navbar .menu a,
+  header.navbar .menu .linklike {
     font-size: 13px;
+  }
+
+  .panel-container {
+    margin-top: 50px;
+  }
+
+  .botones {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .botones button {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
   }
 }
