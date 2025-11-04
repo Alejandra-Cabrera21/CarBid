@@ -6,31 +6,31 @@ const router = express.Router();
 
 /**
  * GET /api/historial-pujas
- * Devuelve las pujas del usuario autenticado.
- * Si es vendedor → pujas en sus subastas.
- * Si es comprador → pujas que él realizó.
+ * Devuelve TODAS las pujas de TODAS las subastas creadas por el vendedor logueado.
+ * Campos devueltos: vehiculo, nombre_postor, oferta, hora, id_subasta, id_puja
  */
 router.get('/', authRequired, (req, res) => {
-  const userId = req.user.id;
+  const vendedorId = req.user.id;
 
   const sql = `
-    SELECT
-      p.id AS id_puja,
-      s.id AS id_subasta,
-      COALESCE(NULLIF(CONCAT_WS(' ', s.marca, s.modelo, s.anio), ''), s.descripcion, 'Publicación') AS vehiculo,
-      u.nombre AS nombre_postor,
-      p.monto AS oferta,
-      DATE_FORMAT(p.created_at, '%Y-%m-%d') AS fecha,
-      DATE_FORMAT(p.created_at, '%H:%i') AS hora,
-      p.created_at
-    FROM pujas p
-    INNER JOIN subastas s ON s.id = p.id_subasta
-    INNER JOIN usuarios u ON u.id = p.id_postor
-    WHERE s.id_vendedor = ? OR p.id_postor = ?
-    ORDER BY p.created_at DESC, p.id DESC
-  `;
+  SELECT
+    p.id                  AS id_puja,
+    s.id                  AS id_subasta,
+    COALESCE(NULLIF(CONCAT_WS(' ', s.marca, s.modelo, s.anio), ''), s.descripcion, 'Publicación') AS vehiculo,
+    u.nombre              AS nombre_postor,
+    p.monto               AS oferta,
+    DATE_FORMAT(p.created_at, '%Y-%m-%d') AS fecha,
+    DATE_FORMAT(p.created_at, '%H:%i')     AS hora,
+    p.created_at
+  FROM pujas p
+  INNER JOIN subastas s ON s.id = p.id_subasta
+  INNER JOIN usuarios u ON u.id = p.id_postor
+  WHERE s.id_vendedor = ?
+  ORDER BY p.created_at DESC, p.id DESC
+`;
 
-  db.query(sql, [userId, userId], (err, rows) => {
+
+  db.query(sql, [vendedorId], (err, rows) => {
     if (err) {
       console.error('❌ Error DB (historial-pujas):', err);
       return res.status(500).json({ message: 'Error en el servidor' });
