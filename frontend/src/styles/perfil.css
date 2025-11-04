@@ -60,14 +60,15 @@
 
 /* ===== Contenido ===== */
 .perfil-wrapper {
-  flex: 1;
+  min-height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  justify-content: center; /* ✅ centra verticalmente */
+  align-items: center;     /* ✅ centra horizontalmente */
   padding: 40px 16px;
   text-align: center;
 }
+
 
 .perfil-title {
   font-size: clamp(26px, 4vw, 42px);
@@ -133,10 +134,30 @@
   background: #f9fafc;
   color: #111;
   border-radius: 12px;
-  padding: 10px 44px 10px 56px;
-  font-size: 14px;
+  height: 48px; /* ✅ altura fija */
+  padding: 0 44px 0 56px; /* ✅ centrado vertical del texto */
+  font-size: 15px;
+  line-height: 48px; /* ✅ centra el texto verticalmente */
   transition: all 0.15s ease;
 }
+
+/* ✅ Los checkboxes ocupan toda la fila y se colocan debajo de los inputs */
+.perfil-checkboxes {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  padding: 14px;
+  border: 1px dashed var(--bd);
+  border-radius: 12px;
+  background: #1b2030;
+}
+
+
 .perfil-input:focus {
   border-color: var(--focus);
   box-shadow: 0 0 0 3px #2563eb30;
