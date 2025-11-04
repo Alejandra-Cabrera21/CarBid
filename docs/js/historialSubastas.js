@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
 
         CASE
           WHEN COALESCE(wg.ganador_id, wf.ganador_id) = ? THEN 'Ganaste'
-          ELSE 'Perdí la puja'
+          ELSE 'Perdiste'
         END AS resultado
 
       FROM subastas s
