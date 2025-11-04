@@ -70,7 +70,7 @@ function SubastaItem({ subasta, onChangeEstado }) {
           Precio base: Q{Number(subasta.precio_base).toLocaleString("en-US")}
           &nbsp;•&nbsp; Oferta más alta:{" "}
           <strong>Q{Number(subasta.oferta_max || 0).toLocaleString("en-US")}</strong>
-          &nbsp;•&nbsp; Cierra: {subasta.fin ? new Date(subasta.fin).toLocaleString() : "—"}
+          &nbsp;•&nbsp; Cierre: {subasta.fin ? new Date(subasta.fin).toLocaleString() : "—"}
         </div>
       </div>
 

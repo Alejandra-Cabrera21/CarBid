@@ -101,7 +101,7 @@ function SubastaCard({ sub, onPujar }) {
         <b>Oferta más alta:</b> {fmtQ(sub.oferta_max || 0)}
       </div>
 
-      <div className="muted" title={`Cierra: ${finExacto}`}>
+      <div className="muted" title={`Cierre: ${finExacto}`}>
         <b>Cierra en:</b>{" "}
         <span className="countdown">
           {finalizada ? "Finalizada" : `${d}d ${two(h)}:${two(m)}:${two(s)} restantes`}
@@ -351,13 +351,13 @@ export default function IndexComprador() {
         headers: { Authorization: "Bearer " + token },
       });
       if (r.ok) {
-        toast("🗑️ Notificación eliminada");
+        toast("Notificación eliminada");
         setNotifs((arr) => arr.filter((_, i) => i !== idx));
       } else {
-        toast("⚠️ Error al eliminar");
+        toast("Error al eliminar");
       }
     } catch {
-      toast("❌ No se pudo eliminar");
+      toast(" No se pudo eliminar");
     }
   };
 

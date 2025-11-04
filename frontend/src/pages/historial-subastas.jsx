@@ -308,7 +308,7 @@ export default function HistorialSubastas() {
                   <div className="ci-title" title={r.vehiculo}>
                     {r.vehiculo}
                   </div>
-                  <div className="ci-fecha">Cierra: {r.fecha}</div>
+                  <div className="ci-fecha">Cierre: {r.fecha}</div>
                 </div>
                 <div className="chips">
                   <span className="chip">

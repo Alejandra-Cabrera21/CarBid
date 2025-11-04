@@ -1,3 +1,5 @@
+/* src/styles/historialpujas.css */
+
 :root {
   --bg: #1b1b1b;
   --panel: #0f0f0f;
@@ -57,7 +59,7 @@ body {
   cursor: pointer;
   font: inherit;
   outline: none;
-  -webkit-tap-highlight-color: transparent; /* sin flash al tocar en móvil */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .back:focus,
@@ -160,34 +162,24 @@ tbody tr:hover td {
 /* Anchos de columnas */
 th:nth-child(1),
 td:nth-child(1) {
-  width: 26%;
+  width: 28%;
 }
 th:nth-child(2),
 td:nth-child(2) {
-  width: 12%;
-  text-align: right;
+  width: 24%;
 }
 th:nth-child(3),
 td:nth-child(3) {
-  width: 12%;
+  width: 16%;
   text-align: right;
 }
 th:nth-child(4),
 td:nth-child(4) {
   width: 16%;
-  text-align: right;
 }
 th:nth-child(5),
 td:nth-child(5) {
-  width: 12%;
-}
-th:nth-child(6),
-td:nth-child(6) {
-  width: 10%;
-}
-th:nth-child(7),
-td:nth-child(7) {
-  width: 12%;
+  width: 16%;
 }
 
 .vehiculo {
@@ -243,7 +235,7 @@ td:nth-child(7) {
   display: none;
 }
 
-/* tarjeta completa con borde de color (sin degradado) */
+/* tarjeta con borde de color (sin degradado) */
 .card-item {
   background: #020617;
   border: 2px solid var(--accent);
@@ -263,7 +255,7 @@ td:nth-child(7) {
   gap: 8px;
   padding: 8px 12px;
   border-radius: 14px;
-  background: #0f172a; /* color sólido, sin degradado */
+  background: #0f172a; /* color sólido */
 }
 
 .ci-title {
@@ -274,11 +266,11 @@ td:nth-child(7) {
 }
 
 .ci-fecha {
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   color: #e5e7eb;
 }
 
-/* chips en grid para que se vean ordenados */
+/* chips en grid */
 .chips {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -297,25 +289,6 @@ td:nth-child(7) {
   justify-content: center;
   align-items: center;
   text-align: center;
-}
-
-/* Resultado: Ganaste / Perdí */
-.chip-ganaste {
-  background: rgba(22, 163, 74, 0.18);
-  border-color: #22c55e;
-  color: #bbf7d0;
-}
-
-.chip-perdi {
-  background: rgba(220, 38, 38, 0.18);
-  border-color: #f97373;
-  color: #fecaca;
-}
-
-/* Estado (CERRADA, etc.) */
-.chip-estado {
-  border-style: dashed;
-  opacity: 0.9;
 }
 
 /* ===== Responsive ===== */
