@@ -41,6 +41,9 @@ export default function Perfil() {
     }).showToast();
 
   // ---------- validación al enviar ----------
+  const correoTrim = correo.trim();
+  const [correoState, _setCorreoState] = useState(correoTrim); // opcional si lo necesitas
+
   const validar = () => {
     let ok = true;
     setErrNombre("");
@@ -82,7 +85,6 @@ export default function Perfil() {
   };
 
   // ---------- validación en vivo para habilitar botón ----------
-  const correoTrim = correo.trim();
   const nombreTrim = nombre.trim();
 
   const nombreOk = nombreTrim.length >= 3 && nombreTrim.length <= 30;
@@ -240,6 +242,7 @@ export default function Perfil() {
     delete newUser.password;
     localStorage.setItem("usuario", JSON.stringify(newUser));
 
+    // 🔵 Solo usamos flash; el toast se mostrará en IndexComprador/IndexVendedor
     localStorage.setItem(
       "flash",
       JSON.stringify({
@@ -249,7 +252,6 @@ export default function Perfil() {
       })
     );
 
-    toast("Perfil actualizado", "success");
     setSaving(false);
     navigate(destinoPanel, { replace: true });
   };
@@ -309,9 +311,7 @@ export default function Perfil() {
             <small id="err-nombre" className="perfil-error">
               {errNombre}
             </small>
-            <p className="perfil-hint perfil-hint-red">
-              
-            </p>
+            <p className="perfil-hint perfil-hint-red"></p>
           </div>
 
           {/* Password */}
@@ -338,7 +338,7 @@ export default function Perfil() {
               </button>
             </div>
             <p className="perfil-hint perfil-hint-red">
-             Mínimo 8 caracteres con mayúscula, minúscula,
+              Mínimo 8 caracteres con mayúscula, minúscula,
               número y símbolo (máx. 30).
             </p>
             <small id="err-password" className="perfil-error">

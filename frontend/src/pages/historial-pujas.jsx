@@ -5,6 +5,7 @@ import { io } from "socket.io-client";
 
 const API = "https://carbid-backend.us-east-2.elasticbeanstalk.com/api";
 
+
 export default function HistorialPujas() {
   const navigate = useNavigate();
 
