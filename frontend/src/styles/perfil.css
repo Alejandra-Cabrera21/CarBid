@@ -49,14 +49,17 @@
   font-size: 15px;
   padding: 8px 10px;
   border-radius: 10px;
-  transition: 0.2s;
+  transition: none;     /* sin animación */
 }
-.perfil-btn-back:hover {
-  background: #ffffff15;
+
+/* Sin cambio visual al pasar el mouse o hacer clic */
+.perfil-btn-back:hover,
+.perfil-btn-back:active,
+.perfil-btn-back:focus-visible {
+  background: transparent;
+  outline: none;
 }
-.perfil-topbar img {
-  height: 36px;
-}
+
 
 /* ===== Contenido ===== */
 .perfil-wrapper {

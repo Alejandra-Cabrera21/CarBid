@@ -1,4 +1,4 @@
-// src/pages/mis-subastas.jsx
+// src/pages/mis-subastas.jsx 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { io } from "socket.io-client";
@@ -93,6 +93,9 @@ function SubastaItem({ subasta, onChangeEstado }) {
 /* =============== Página =============== */
 export default function MisSubastas() {
   const [items, setItems] = useState([]);
+  const [q, setQ] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
   const emptyRef = useRef(null);
 
   // Por si vienes de una pantalla que bloqueó el scroll (p. ej. un modal)
@@ -217,16 +220,49 @@ export default function MisSubastas() {
     };
   }, []);
 
+  /* ---- Filtro de búsqueda ---- */
+  const filteredItems = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return items;
+    return items.filter((s) => {
+      const texto = `${s.marca || ""} ${s.modelo || ""} ${s.anio || ""} ${
+        s.precio_base || ""
+      } ${s.estado || ""}`.toLowerCase();
+      return texto.includes(term);
+    });
+  }, [q, items]);
+
+  // Resetear página cuando cambie el filtro o el listado
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [q, items.length]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const pagedItems = filteredItems.slice(startIndex, startIndex + pageSize);
+
+  const handlePrev = () => {
+    setCurrentPage((p) => (p > 1 ? p - 1 : p));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((p) => (p < totalPages ? p + 1 : p));
+  };
+
   return (
     <>
       <style>{`
       :root{
-        --ok:#a3e635; --err:#ef4444;
-        --card:#111; --fg:#fff; --muted:#9ca3af; --border:#1f2937;
+        --ok:#a3e635;
+        --err:#ef4444;
+        --card:#111;
+        --fg:#fff;
+        --muted:#9ca3af;
+        --border:#1f2937;
+        --card-border:#2563eb; /* azul que resalta más */
       }
 
-      /* 🔒 Forzamos scroll vertical y bloqueamos horizontal,
-         venciendo cualquier height:100% global con !important */
+      /* 🔒 Forzamos scroll vertical y bloqueamos horizontal */
       :root, html, body, #root {
         height: auto !important;
         min-height: 100% !important;
@@ -244,14 +280,58 @@ export default function MisSubastas() {
       header img{height:32px}
 
       .wrap{
-        max-width:920px;margin:24px auto;padding:0 12px 24px; /* padding-bottom para que no corte al final */
+        max-width:920px;margin:24px auto;padding:0 12px 24px;
       }
       h1{text-align:center;margin:18px 0 22px}
+
+      /* ===== Barra de búsqueda ===== */
+      .toolbar{
+        display:flex;
+        justify-content:flex-end;
+        margin-bottom:18px;
+      }
+      .search-box{
+        position:relative;
+        width:100%;
+        max-width:280px;
+      }
+      .search-box input{
+        width:100%;
+        padding:8px 12px 8px 32px;
+        border-radius:999px;
+        border:1px solid #e5e7eb;
+        background:#ffffff;       /* blanca */
+        color:#111827;            /* texto oscuro */
+        font-size:.9rem;
+        outline:none;
+      }
+      .search-box input::placeholder{
+        color:#6b7280;
+      }
+      .search-box svg{
+        position:absolute;
+        left:10px;
+        top:50%;
+        transform:translateY(-50%);
+        width:14px;
+        height:14px;
+        opacity:.7;
+        color:#6b7280;
+      }
 
       .list{display:flex;flex-direction:column;gap:16px}
       .item{
         display:grid;grid-template-columns:1fr auto;align-items:center;gap:18px;
-        background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;
+        background:var(--card);
+        border:1px solid var(--card-border); /* borde azul más fuerte */
+        border-radius:12px;
+        padding:16px;
+        box-shadow:0 0 0 1px rgba(37,99,235,.4);
+      }
+      .item:hover{
+        box-shadow:0 0 0 2px rgba(37,99,235,.7);
+        transform:translateY(-1px);
+        transition:box-shadow .15s ease, transform .15s ease;
       }
       .item-title{font-size:1.05rem;font-weight:600}
       .meta{font-size:.9rem;color:var(--muted);margin-top:4px}
@@ -284,6 +364,32 @@ export default function MisSubastas() {
       .select.abierta{box-shadow:0 0 0 2px rgba(163,230,53,.25) inset}
       .select.cerrada{box-shadow:0 0 0 2px rgba(239,68,68,.25) inset}
 
+      /* ===== Paginación ===== */
+      .pagination{
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        gap:12px;
+        margin-top:20px;
+      }
+      .pagination button{
+        border:none;
+        border-radius:999px;
+        padding:6px 14px;
+        font-size:.9rem;
+        cursor:pointer;
+        background:#2563eb;
+        color:#fff;
+      }
+      .pagination button[disabled]{
+        opacity:.4;
+        cursor:default;
+      }
+      .pagination span{
+        font-size:.85rem;
+        color:var(--muted);
+      }
+
       #empty{opacity:.8;text-align:center;margin:28px 0}
       @media (max-width:700px){.item{grid-template-columns:1fr;gap:12px}}
       `}</style>
@@ -300,15 +406,66 @@ export default function MisSubastas() {
       <main className="wrap">
         <h1>Subastas creadas</h1>
 
+        {/* Barra de búsqueda blanca */}
+        <div className="toolbar">
+          <div className="search-box">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L19 20.5 20.5 19 15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+              />
+            </svg>
+            <input
+              type="search"
+              placeholder="Buscar..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </div>
+        </div>
+
         <section className="list">
-          {items.map((sub) => (
+          {pagedItems.map((sub) => (
             <SubastaItem key={sub.id} subasta={sub} onChangeEstado={changeStatus} />
           ))}
         </section>
 
-        <p id="empty" ref={emptyRef} style={{ display: items.length ? "none" : "block" }}>
-          {items.length ? "" : "No tienes subastas aún."}
+        {/* Mensaje cuando no hay subastas en absoluto */}
+        <p
+          id="empty"
+          ref={emptyRef}
+          style={{ display: !items.length ? "block" : "none" }}
+        >
+          {!items.length ? "No tienes subastas aún." : ""}
         </p>
+
+        {/* Mensaje cuando sí hay subastas, pero el filtro no encuentra nada */}
+        {items.length > 0 && filteredItems.length === 0 && (
+          <p
+            style={{
+              marginTop: 16,
+              textAlign: "center",
+              opacity: 0.8,
+            }}
+          >
+            No hay subastas que coincidan con tu búsqueda.
+          </p>
+        )}
+
+        {/* Paginación: solo si hay más de 5 resultados */}
+        {filteredItems.length > pageSize && (
+          <div className="pagination">
+            <button onClick={handlePrev} disabled={currentPage === 1}>
+              Anterior
+            </button>
+            <span>
+              Página {currentPage} de {totalPages}
+            </span>
+            <button onClick={handleNext} disabled={currentPage === totalPages}>
+              Siguiente
+            </button>
+          </div>
+        )}
       </main>
     </>
   );
