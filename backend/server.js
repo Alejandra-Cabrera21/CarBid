@@ -12,8 +12,16 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /* ===== Middleware base ===== */
-app.use(cors());
+
+const corsOptions = {
+  origin: "*", // acepta peticiones desde cualquier dominio (por ahora)
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
+
 
 /* ===== Servir imágenes subidas ===== */
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
