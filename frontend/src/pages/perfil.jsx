@@ -21,7 +21,7 @@ export default function Perfil() {
   const [vendedor, setVendedor] = useState(false);
   const [comprador, setComprador] = useState(false);
 
-  const [errCorreo, setErrCorreo] = useState("");
+  // errores (solo para nombre y contraseña)
   const [errNombre, setErrNombre] = useState("");
   const [errPassword, setErrPassword] = useState("");
   const [saving, setSaving] = useState(false);
@@ -43,23 +43,10 @@ export default function Perfil() {
   // ---------- validación al enviar ----------
   const validar = () => {
     let ok = true;
-    setErrCorreo("");
     setErrNombre("");
     setErrPassword("");
 
-    const correoTrim = correo.trim();
     const nombreTrim = nombre.trim();
-
-    if (!correoTrim) {
-      setErrCorreo("El correo es obligatorio");
-      ok = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoTrim)) {
-      setErrCorreo("Correo inválido");
-      ok = false;
-    } else if (correoTrim.length > 50) {
-      setErrCorreo("Máximo 50 caracteres");
-      ok = false;
-    }
 
     if (!nombreTrim) {
       setErrNombre("El nombre de usuario es obligatorio");
@@ -85,6 +72,12 @@ export default function Perfil() {
       }
     }
 
+    // Validar que al menos haya un rol
+    if (!vendedor && !comprador) {
+      toast("Selecciona vender o comprar.", "error");
+      ok = false;
+    }
+
     return ok;
   };
 
@@ -92,21 +85,15 @@ export default function Perfil() {
   const correoTrim = correo.trim();
   const nombreTrim = nombre.trim();
 
-  const emailOk =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoTrim) && correoTrim.length <= 50;
-
-  const nombreOk =
-    nombreTrim.length >= 3 && nombreTrim.length <= 30;
+  const nombreOk = nombreTrim.length >= 3 && nombreTrim.length <= 30;
 
   const passwordOk =
     password === "" ||
     (password.length <= 30 && strongRegex.test(password));
 
-  // si quieres, aquí podrías requerir al menos un rol:
-  // const rolesOk = vendedor || comprador;
-  const rolesOk = true; // en perfil los roles los dejamos opcionales
+  const rolesOk = vendedor || comprador; // ahora obligatorio al menos uno
 
-  const isFormValid = emailOk && nombreOk && passwordOk && rolesOk;
+  const isFormValid = nombreOk && passwordOk && rolesOk;
 
   // ---------- detectar panel de origen ----------
   const origen = useMemo(() => {
@@ -193,6 +180,7 @@ export default function Perfil() {
     }
 
     const payload = {
+      // el correo va igual, solo lectura (no se puede cambiar en el front)
       correo: correoTrim,
       nombre: nombreTrim,
       es_vendedor: vendedor ? "S" : "N",
@@ -233,7 +221,18 @@ export default function Perfil() {
 
     if (!ok) {
       setSaving(false);
-      toast(lastText || "No se pudo actualizar", "error");
+
+      // intentar parsear JSON para sacar "mensaje"
+      let msg = lastText || "No se pudo actualizar";
+      try {
+        const parsed = JSON.parse(lastText);
+        if (parsed.mensaje) msg = parsed.mensaje;
+        else if (parsed.message) msg = parsed.message;
+      } catch {
+        // si no es JSON, se queda como está
+      }
+
+      toast(msg, "error");
       return;
     }
 
@@ -256,53 +255,9 @@ export default function Perfil() {
   };
 
   return (
-    <>
-      <style>{`
-      :root{
-        --bg:#0f1115; --surface:#151822; --surface-2:#1b2030; --text:#e5e7eb; --muted:#9aa3b2;
-        --brand:#ef4444; --ok:#22c55e; --bd:#262b3c; --focus:#3b82f6;
-      }
-      *{box-sizing:border-box} html,body{height:100%}
-      body{
-        margin:0;background: radial-gradient(1200px 400px at 10% -20%, #19203a40, transparent),
-                           radial-gradient(900px 320px at 120% 10%, #3a192140, transparent), var(--bg);
-        color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif;
-      }
-      .topbar{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--bd);
-        background:linear-gradient(0deg,rgba(21,24,34,.6),rgba(21,24,34,.6));backdrop-filter: blur(6px);position:sticky;top:0;z-index:10}
-      .btn-back{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--text);
-        border:none;cursor:pointer;font-weight:600;font-size:15px;padding:8px 10px;border-radius:10px}
-      .btn-back:hover{background:#ffffff12}.topbar img{height:36px}
-      .profile-wrapper{max-width:980px;margin:40px auto;padding:0 16px}
-      .page-title{font-size: clamp(22px, 3.5vw, 48px);margin:0 0 10px;font-weight:800}
-      .subtitle{color:var(--muted);margin:0 0 22px}
-      .card{background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--bd);
-        border-radius:18px;padding:22px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
-      form#profileForm{display:grid;gap:18px;grid-template-columns:1fr 1fr}
-      @media (max-width:820px){form#profileForm{grid-template-columns:1fr}}
-      .field{display:flex;flex-direction:column;gap:8px}.field label{font-weight:700;font-size:14px}
-      .hint{font-size:12px;color:var(--muted);margin-top:-4px}
-      .input-wrapper{position:relative}.input{
-        width:100%;border:1px solid var(--bd);background:#0d1020;color:var(--text);border-radius:12px;
-        padding:12px 14px 12px 42px;outline:none;transition:.15s ease;box-shadow: inset 0 0 0 1px transparent}
-      .input:focus{border-color:var(--focus);box-shadow:0 0 0 3px #3b82f622,inset 0 0 0 1px #3b82f6}
-      .icon-left{position:absolute;inset:0 auto 0 12px;display:grid;place-items:center;color:#7f8aa3;font-size:16px;pointer-events:none}
-      .toggle-pass{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:transparent;
-        color:#8ea2c0;font-size:18px;width:36px;height:36px;border-radius:10px;cursor:pointer}
-      .toggle-pass:hover{background:#ffffff12}
-      .checkboxes{display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:14px;border:1px dashed var(--bd);
-        border-radius:12px;background:#0d1020}
-      .chk{display:flex;align-items:center;gap:10px}.chk input{width:18px;height:18px;accent-color:var(--brand)}
-      .chk span{font-weight:600}
-      .actions{display:flex;gap:12px;justify-content:flex-end}
-      .btn{border:none;border-radius:12px;padding:12px 18px;font-weight:800;cursor:pointer;transition:.15s ease}
-      .btn-primary{background:var(--brand);color:#fff}.btn-primary[disabled]{opacity:.5;cursor:not-allowed}
-      .btn-ghost{background:#ffffff12;color:#fff}.btn-ghost:hover{background:#ffffff1f}
-      .error{color:#ff7676;font-size:12px;font-weight:700;min-height:14px}
-      `}</style>
-
-      <header className="topbar">
-        <button className="btn-back" onClick={() => navigate(-1)}>
+    <div className="perfil-page">
+      <header className="perfil-topbar">
+        <button className="perfil-btn-back" onClick={() => navigate(-1)}>
           <i className="fa fa-arrow-left" /> Regresar
         </button>
         <img src="img/logo.png" alt="CarBid" />
@@ -311,7 +266,7 @@ export default function Perfil() {
       <main className="perfil-wrapper">
         <h1 className="perfil-title">Mi perfil</h1>
         <p className="perfil-subtitle">
-          Actualiza tu información y tus roles de compra/venta.
+          Actualiza tu información, contraseña y roles de compra/venta.
         </p>
 
         <form
@@ -320,35 +275,26 @@ export default function Perfil() {
           noValidate
           onSubmit={onSubmit}
         >
+          {/* Correo solo lectura */}
           <div className="perfil-field">
-            <label htmlFor="correo">
-              Correo <span className="perfil-required">*</span>
-            </label>
+            <label htmlFor="correo">Correo</label>
             <div className="perfil-input-wrapper">
-              <i className="fa fa-envelope perfil-icon-left" />
               <input
                 type="email"
                 id="correo"
-                className="perfil-input"
-                placeholder="tu@correo.com"
-                required
+                className="perfil-input perfil-input-readonly"
                 value={correo}
-                onChange={(e) => setCorreo(e.target.value)}
-                maxLength={50}
+                readOnly
               />
             </div>
-            <small id="err-correo" className="perfil-error">
-              {errCorreo}
-            </small>
-            <p className="perfil-hint">Máximo 50 caracteres.</p>
           </div>
 
+          {/* Usuario */}
           <div className="perfil-field">
             <label htmlFor="nombre">
               Usuario <span className="perfil-required">*</span>
             </label>
             <div className="perfil-input-wrapper">
-              <i className="fa fa-user perfil-icon-left" />
               <input
                 type="text"
                 id="nombre"
@@ -363,18 +309,20 @@ export default function Perfil() {
             <small id="err-nombre" className="perfil-error">
               {errNombre}
             </small>
-            <p className="perfil-hint">Entre 3 y 30 caracteres.</p>
+            <p className="perfil-hint perfil-hint-red">
+              
+            </p>
           </div>
 
+          {/* Password */}
           <div className="perfil-field perfil-full-row">
             <label htmlFor="password">Nueva contraseña (opcional)</label>
             <div className="perfil-input-wrapper">
-              <i className="fa fa-lock perfil-icon-left" />
               <input
                 ref={passRef}
                 type="password"
                 id="password"
-                className="perfil-input"
+                className="perfil-input perfil-input-with-eye"
                 placeholder="Deja vacío para no cambiar"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -389,8 +337,8 @@ export default function Perfil() {
                 <i className={`fa ${showPass ? "fa-eye-slash" : "fa-eye"}`} />
               </button>
             </div>
-            <p className="perfil-hint">
-              Si la cambias, usa mínimo 8 caracteres con mayúscula, minúscula,
+            <p className="perfil-hint perfil-hint-red">
+             Mínimo 8 caracteres con mayúscula, minúscula,
               número y símbolo (máx. 30).
             </p>
             <small id="err-password" className="perfil-error">
@@ -398,6 +346,7 @@ export default function Perfil() {
             </small>
           </div>
 
+          {/* Roles */}
           <div className="perfil-field perfil-full-row">
             <div className="perfil-checkboxes">
               <label className="perfil-chk">
@@ -421,6 +370,7 @@ export default function Perfil() {
             </div>
           </div>
 
+          {/* Botones */}
           <div className="perfil-actions perfil-full-row">
             <button
               type="button"

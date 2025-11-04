@@ -1,7 +1,7 @@
 :root {
   --bg: #11131a;          /* Fondo más profundo, sin ser negro */
-  --surface: #1e2432;     /* Tarjeta gris azulado */
-  --surface-2: #262d3d;   /* Sutil degradado más claro */
+  --surface: #222a3a;     /* Tarjeta un poco más clara */
+  --surface-2: #2b3550;   /* Sutil degradado más claro */
   --text: #f2f4f8;        /* Texto más claro para contraste */
   --muted: #a4acc2;       /* Texto secundario más legible */
   --brand: #2563eb;       /* Azul limpio */
@@ -85,10 +85,10 @@
   width: 100%;
   max-width: 720px;
   background: linear-gradient(180deg, var(--surface), var(--surface-2));
-  border: 1px solid #3a4155;
+  border: 1px solid #474f66;          /* un poco más claro */
   border-radius: 22px;
   padding: 28px 28px 30px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
   text-align: left;
   backdrop-filter: blur(8px);
 }
@@ -123,17 +123,19 @@
   color: #ff7a7a;
 }
 
+/* wrapper de input */
 .perfil-input-wrapper {
   position: relative;
 }
 
+/* Inputs generales sin iconos a la izquierda */
 .perfil-input {
   width: 100%;
-  border: 1px solid #ccc;
+  border: 1px solid #cbd5f5;
   background: #f9fafc;
-  color: #111;
+  color: #111827;
   border-radius: 12px;
-  padding: 10px 44px 10px 56px;
+  padding: 10px 16px; /* texto centrado con margen normal */
   font-size: 14px;
   transition: all 0.15s ease;
 }
@@ -142,50 +144,58 @@
   box-shadow: 0 0 0 3px #2563eb30;
 }
 
-/* ===== Iconos ===== */
-.perfil-icon-left {
-  position: absolute;
-  left: 18px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6b7280;
-  font-size: 15px;
+/* Input con ojo (más espacio a la derecha) */
+.perfil-input-with-eye {
+  padding-right: 52px;
 }
 
-/* Botón del ojo */
+/* Input solo lectura (correo) */
+.perfil-input-readonly {
+  background: #e5e7eb;
+  color: #4b5563;
+  cursor: not-allowed;
+}
+.perfil-input-readonly:focus {
+  border-color: #cbd5f5;
+  box-shadow: none;
+}
+
+/* ===== Botón del ojo ===== */
 .perfil-toggle-pass {
   position: absolute;
-  right: 10px;
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
   border: none;
   background: transparent;
   color: #6b7280;
-  font-size: 16px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  font-size: 18px;
   cursor: pointer;
-  transition: 0.2s;
+  padding: 0;
+  width: auto;
+  height: auto;
 }
-.perfil-toggle-pass:hover {
-  background: #e5e7eb;
-  color: #111;
-}
+.perfil-toggle-pass:hover,
 .perfil-toggle-pass:active {
-  background: #d1d5db;
+  background: transparent;   /* sin círculo */
+  color: #111827;           /* solo cambia el color del icono */
+}
+.perfil-toggle-pass:focus,
+.perfil-toggle-pass:focus-visible {
+  outline: none;
+  box-shadow: none;         /* sin orilla negra al hacer focus */
 }
 
 /* ===== Checkboxes ===== */
 .perfil-checkboxes {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 40px;                 /* más separados */
   flex-wrap: wrap;
-  padding: 14px;
-  border: 1px dashed var(--bd);
+  padding: 10px 6px;
   border-radius: 12px;
-  background: #1b2030;
+  background: transparent;   /* mismo color que el fondo de la tarjeta */
+  border: none;
 }
 .perfil-chk span {
   font-weight: 600;
@@ -195,6 +205,7 @@
 /* ===== Botones ===== */
 .perfil-actions {
   display: flex;
+  flex-wrap: nowrap;         /* siempre en la misma línea */
   gap: 12px;
   justify-content: flex-end;
   margin-top: 10px;
@@ -207,6 +218,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 14px;
+  text-align: center;
+  flex: 1;                   /* mismo ancho para Cancelar y Aceptar */
 }
 .perfil-btn-primary {
   background: var(--brand);
@@ -216,12 +229,16 @@
   background: #004de6;
 }
 .perfil-btn-ghost {
-  background: #ffffff18;
-  color: #fff;
+  background: #e5e7eb;        /* fondo gris claro */
+  color: #111827;             /* texto oscuro */
+  border: 1px solid #cbd5f5;  /* bordecito suave */
 }
+
 .perfil-btn-ghost:hover {
-  background: #ffffff25;
+  background: #f3f4ff;        /* un poco más claro al pasar el mouse */
 }
+
+
 
 /* ===== Textos pequeños ===== */
 .perfil-error {
@@ -232,4 +249,7 @@
 .perfil-hint {
   font-size: 12px;
   color: var(--muted);
+}
+.perfil-hint-red {
+  color: #ff7676;
 }
