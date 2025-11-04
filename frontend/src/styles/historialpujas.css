@@ -139,13 +139,11 @@ thead th {
   color: #fff;
   font-weight: 800;
   padding: 12px;
-  text-align: center;           /* ← centrado */
+  text-align: center;
   border: 1px solid var(--table-bd);
   white-space: nowrap;
   word-break: normal;
 }
-
-
 
 tbody td {
   background: var(--table-bg);
@@ -159,27 +157,30 @@ tbody tr:hover td {
   background: #121212;
 }
 
-/* Anchos de columnas */
+/* Anchos de columnas (4 columnas) */
 th:nth-child(1),
 td:nth-child(1) {
-  width: 28%;
+  width: 34%;
 }
+
 th:nth-child(2),
 td:nth-child(2) {
-  width: 24%;
+  width: 26%;
 }
-th:nth-child(3),
+
+/* Oferta (Q): header centrado, valores a la derecha */
+th:nth-child(3) {
+  width: 20%;
+}
+
 td:nth-child(3) {
-  width: 16%;
+  width: 20%;
   text-align: right;
 }
+
 th:nth-child(4),
 td:nth-child(4) {
-  width: 16%;
-}
-th:nth-child(5),
-td:nth-child(5) {
-  width: 16%;
+  width: 20%;
 }
 
 .vehiculo {
@@ -255,7 +256,7 @@ td:nth-child(5) {
   gap: 8px;
   padding: 8px 12px;
   border-radius: 14px;
-  background: #0f172a; /* color sólido */
+  background: #0f172a;
 }
 
 .ci-title {

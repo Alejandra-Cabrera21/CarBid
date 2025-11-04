@@ -26,22 +26,13 @@ export default function HistorialPujas() {
     []
   );
 
-  // ⬅⬅ ahora configurado como dd/mm/aaaa
+  // formato de fecha dd/mm/aaaa
   const fmtDate = useMemo(
     () =>
       new Intl.DateTimeFormat("es-GT", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
-      }),
-    []
-  );
-
-  const fmtTime = useMemo(
-    () =>
-      new Intl.DateTimeFormat("es-GT", {
-        hour: "2-digit",
-        minute: "2-digit",
       }),
     []
   );
@@ -55,26 +46,26 @@ export default function HistorialPujas() {
 
     // --- normalizar fecha a dd/mm/aaaa ---
     let fechaStr = "";
+
     if (r.fecha && typeof r.fecha === "string") {
-      // si viene como "2025-11-04"
-      const raw = r.fecha.slice(0, 10);
+      // Preferimos la fecha que viene del backend
+      const raw = r.fecha.slice(0, 10); // "2025-11-04" o similar
       const parts = raw.split("-");
       if (parts.length === 3) {
         const [y, m, day] = parts;
         fechaStr = `${day}/${m}/${y}`;
+      } else if (!Number.isNaN(Date.parse(r.fecha))) {
+        // por si viene en otro formato válido
+        fechaStr = fmtDate.format(new Date(r.fecha));
       } else if (d && !Number.isNaN(d.getTime())) {
         fechaStr = fmtDate.format(d);
       }
     } else if (d && !Number.isNaN(d.getTime())) {
-      fechaStr = fmtDate.format(d);
-    }
-
-    // hora igual que antes
-    let horaStr = "";
-    if (r.hora) {
-      horaStr = r.hora;
-    } else if (d && !Number.isNaN(d.getTime())) {
-      horaStr = fmtTime.format(d);
+      // Si solo tenemos created_at, tomamos la fecha en UTC para evitar desfase
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const day = String(d.getUTCDate()).padStart(2, "0");
+      fechaStr = `${day}/${m}/${y}`;
     }
 
     return {
@@ -82,7 +73,6 @@ export default function HistorialPujas() {
       nombre: r.nombre_postor || r.postor || "—",
       monto: Number(r.oferta ?? r.monto ?? 0),
       fecha: fechaStr,
-      hora: horaStr,
       createdAt: d ? d.getTime() : 0,
     };
   }
@@ -294,7 +284,6 @@ export default function HistorialPujas() {
                 <th>Postor</th>
                 <th>Oferta (Q)</th>
                 <th>Fecha</th>
-                <th>Hora</th>
               </tr>
             </thead>
             <tbody>
@@ -308,7 +297,6 @@ export default function HistorialPujas() {
                     Q{fmtGTQ.format(r.monto)}
                   </td>
                   <td>{r.fecha}</td>
-                  <td>{r.hora}</td>
                 </tr>
               ))}
             </tbody>
@@ -360,7 +348,6 @@ export default function HistorialPujas() {
               <div className="chips">
                 <span className="chip">Postor: {r.nombre}</span>
                 <span className="chip">Fecha: {r.fecha}</span>
-                <span className="chip">Hora: {r.hora}</span>
               </div>
             </div>
           ))}
