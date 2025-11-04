@@ -256,9 +256,53 @@ export default function Perfil() {
   };
 
   return (
-    <div className="perfil-page">
-      <header className="perfil-topbar">
-        <button className="perfil-btn-back" onClick={() => navigate(-1)}>
+    <>
+      <style>{`
+      :root{
+        --bg:#0f1115; --surface:#151822; --surface-2:#1b2030; --text:#e5e7eb; --muted:#9aa3b2;
+        --brand:#ef4444; --ok:#22c55e; --bd:#262b3c; --focus:#3b82f6;
+      }
+      *{box-sizing:border-box} html,body{height:100%}
+      body{
+        margin:0;background: radial-gradient(1200px 400px at 10% -20%, #19203a40, transparent),
+                           radial-gradient(900px 320px at 120% 10%, #3a192140, transparent), var(--bg);
+        color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+      }
+      .topbar{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--bd);
+        background:linear-gradient(0deg,rgba(21,24,34,.6),rgba(21,24,34,.6));backdrop-filter: blur(6px);position:sticky;top:0;z-index:10}
+      .btn-back{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--text);
+        border:none;cursor:pointer;font-weight:600;font-size:15px;padding:8px 10px;border-radius:10px}
+      .btn-back:hover{background:#ffffff12}.topbar img{height:36px}
+      .profile-wrapper{max-width:980px;margin:40px auto;padding:0 16px}
+      .page-title{font-size: clamp(22px, 3.5vw, 48px);margin:0 0 10px;font-weight:800}
+      .subtitle{color:var(--muted);margin:0 0 22px}
+      .card{background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--bd);
+        border-radius:18px;padding:22px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+      form#profileForm{display:grid;gap:18px;grid-template-columns:1fr 1fr}
+      @media (max-width:820px){form#profileForm{grid-template-columns:1fr}}
+      .field{display:flex;flex-direction:column;gap:8px}.field label{font-weight:700;font-size:14px}
+      .hint{font-size:12px;color:var(--muted);margin-top:-4px}
+      .input-wrapper{position:relative}.input{
+        width:100%;border:1px solid var(--bd);background:#0d1020;color:var(--text);border-radius:12px;
+        padding:12px 14px 12px 42px;outline:none;transition:.15s ease;box-shadow: inset 0 0 0 1px transparent}
+      .input:focus{border-color:var(--focus);box-shadow:0 0 0 3px #3b82f622,inset 0 0 0 1px #3b82f6}
+      .icon-left{position:absolute;inset:0 auto 0 12px;display:grid;place-items:center;color:#7f8aa3;font-size:16px;pointer-events:none}
+      .toggle-pass{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:transparent;
+        color:#8ea2c0;font-size:18px;width:36px;height:36px;border-radius:10px;cursor:pointer}
+      .toggle-pass:hover{background:#ffffff12}
+      .checkboxes{display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:14px;border:1px dashed var(--bd);
+        border-radius:12px;background:#0d1020}
+      .chk{display:flex;align-items:center;gap:10px}.chk input{width:18px;height:18px;accent-color:var(--brand)}
+      .chk span{font-weight:600}
+      .actions{display:flex;gap:12px;justify-content:flex-end}
+      .btn{border:none;border-radius:12px;padding:12px 18px;font-weight:800;cursor:pointer;transition:.15s ease}
+      .btn-primary{background:var(--brand);color:#fff}.btn-primary[disabled]{opacity:.5;cursor:not-allowed}
+      .btn-ghost{background:#ffffff12;color:#fff}.btn-ghost:hover{background:#ffffff1f}
+      .error{color:#ff7676;font-size:12px;font-weight:700;min-height:14px}
+      `}</style>
+
+      <header className="topbar">
+        <button className="btn-back" onClick={() => navigate(-1)}>
           <i className="fa fa-arrow-left" /> Regresar
         </button>
         <img src="img/logo.png" alt="CarBid" />
