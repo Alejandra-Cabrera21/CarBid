@@ -60,13 +60,17 @@
 
 /* ===== Contenido ===== */
 .perfil-wrapper {
+  width: 100%;
   min-height: calc(100vh - 80px);
   display: flex;
-  flex-direction: column;
-  justify-content: center; /* ✅ centra verticalmente */
-  align-items: center;     /* ✅ centra horizontalmente */
-  padding: 40px 16px;
+  justify-content: center;   /* ✅ centra verticalmente */
+  align-items: center;       /* ✅ centra horizontalmente */
   text-align: center;
+  padding: 0 16px;
+}
+
+.perfil-card {
+  margin: 0 auto;            /* ✅ asegura centrado en contenedor */
 }
 
 
@@ -134,27 +138,12 @@
   background: #f9fafc;
   color: #111;
   border-radius: 12px;
-  height: 48px; /* ✅ altura fija */
-  padding: 0 44px 0 56px; /* ✅ centrado vertical del texto */
+  height: 48px;
+  padding: 0 44px 0 56px;
   font-size: 15px;
-  line-height: 48px; /* ✅ centra el texto verticalmente */
-  transition: all 0.15s ease;
-}
-
-/* ✅ Los checkboxes ocupan toda la fila y se colocan debajo de los inputs */
-.perfil-checkboxes {
-  grid-column: 1 / -1;
-  margin-top: 10px;
-  margin-bottom: 10px;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 22px;
-  flex-wrap: wrap;
-  padding: 14px;
-  border: 1px dashed var(--bd);
-  border-radius: 12px;
-  background: #1b2030;
+  align-items: center; /* ✅ centra verticalmente el texto */
+  transition: all 0.15s ease;
 }
 
 
@@ -199,9 +188,13 @@
 
 /* ===== Checkboxes ===== */
 .perfil-checkboxes {
+  grid-column: 1 / -1; /* ✅ ocupa todo el ancho */
+  margin-top: 10px;
+  margin-bottom: 14px; /* ✅ espacio antes de los botones */
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 24px;
+  gap: 22px;
   flex-wrap: wrap;
   padding: 14px;
   border: 1px dashed var(--bd);
