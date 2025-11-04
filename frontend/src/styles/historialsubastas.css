@@ -328,3 +328,32 @@ td:nth-child(7) {
     display: block;
   }
 }
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;              /* flecha + fecha + "Regresar" en blanco por defecto */
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease-in-out; /* animación suave */
+}
+
+/* al pasar el mouse: todo el texto del botón se pone azul */
+.back:hover {
+  color: var(--accent);      /* #2563eb */
+}
+
+.back:focus,
+.back:focus-visible,
+.back:active {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}

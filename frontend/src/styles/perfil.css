@@ -42,14 +42,27 @@
   align-items: center;
   gap: 8px;
   background: transparent;
-  color: var(--text);
+  color: var(--text);          /* flecha + fecha + "Regresar" en blanco */
   border: none;
   cursor: pointer;
   font-weight: 600;
   font-size: 15px;
   padding: 8px 10px;
   border-radius: 10px;
-  transition: none;     /* sin animación */
+  transition: color 0.15s ease-in-out; /* animación suave en el color */
+}
+
+/* al pasar el mouse: todo el contenido del botón se pone azul */
+.perfil-btn-back:hover {
+  color: var(--brand);         /* #2563eb */
+  background: transparent;
+}
+
+.perfil-btn-back:active,
+.perfil-btn-back:focus-visible {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
 }
 
 /* Sin cambio visual al pasar el mouse o hacer clic */
@@ -255,4 +268,33 @@
 }
 .perfil-hint-red {
   color: #ff7676;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;              /* flecha + fecha + "Regresar" en blanco por defecto */
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease-in-out; /* animación suave */
+}
+
+/* al pasar el mouse: todo el texto del botón se pone azul */
+.back:hover {
+  color: var(--accent);      /* #2563eb */
+}
+
+.back:focus,
+.back:focus-visible,
+.back:active {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
 }

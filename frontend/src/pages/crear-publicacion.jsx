@@ -32,8 +32,7 @@ export default function CrearPublicacion() {
       position: "right",
       close: true,
       stopOnFocus: true,
-      className: type,          // success | error | info (mapeado en CSS)
-      style: { color: "#111" }, // asegura texto negro
+      className: type, // success | error | info (mapeado en CSS)
     }).showToast();
 
   // Min datetime = ahora redondeado a 5 minutos
@@ -65,24 +64,65 @@ export default function CrearPublicacion() {
 
   const validar = () => {
     const e = {};
-    if (!marca.trim()) e.marca = "Requerido";
-    if (!modelo.trim()) e.modelo = "Requerido";
+
+    const marcaTrim = marca.trim();
+    const modeloTrim = modelo.trim();
+    const descTrim = descripcion.trim();
+
+    if (!marcaTrim) e.marca = "Requerido";
+    else if (marcaTrim.length > 30) e.marca = "Máx. 30 caracteres";
+
+    if (!modeloTrim) e.modelo = "Requerido";
+    else if (modeloTrim.length > 30) e.modelo = "Máx. 30 caracteres";
+
+    if (descTrim && descTrim.length > 50)
+      e.descripcion = "Máx. 50 caracteres";
+
     if (anio) {
       const a = parseInt(anio, 10);
       if (Number.isNaN(a) || a < 1900 || a > 2099)
         e.anio = "Año inválido (1900–2099)";
     }
     if (!precio || Number(precio) <= 0) e.precio = "Debe ser mayor a 0";
+
     if (!fin) e.fin = "Define fecha/hora";
     else {
       const finDate = new Date(fin);
       if (finDate <= new Date()) e.fin = "Debe ser posterior a ahora";
     }
+
     if (!files.length) e.images = "Sube al menos 1 imagen";
+
     setErrs(e);
     if (Object.keys(e).length) toast("Revisa los campos marcados", "error");
     return Object.keys(e).length === 0;
   };
+
+  // Para deshabilitar el botón hasta que todo esté correcto
+  const formOk = useMemo(() => {
+    const marcaTrim = marca.trim();
+    const modeloTrim = modelo.trim();
+    const descTrim = descripcion.trim();
+
+    if (!marcaTrim || marcaTrim.length > 30) return false;
+    if (!modeloTrim || modeloTrim.length > 30) return false;
+    if (descTrim && descTrim.length > 50) return false;
+
+    if (anio) {
+      const a = parseInt(anio, 10);
+      if (Number.isNaN(a) || a < 1900 || a > 2099) return false;
+    }
+
+    if (!precio || Number(precio) <= 0) return false;
+
+    if (!fin) return false;
+    const finDate = new Date(fin);
+    if (finDate <= new Date()) return false;
+
+    if (!files.length) return false;
+
+    return true;
+  }, [marca, modelo, descripcion, anio, precio, fin, files]);
 
   const onCrear = async () => {
     if (!validar()) return;
@@ -188,26 +228,56 @@ export default function CrearPublicacion() {
       .thumbs{ display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; max-width:100%; overflow-x:auto }
       .thumbs img{ width:110px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #333 }
 
-      .actions{ display:flex; gap:12px; justify-content:flex-end; margin-top:20px }
-      .btn{ padding:10px 16px; border-radius:10px; border:none; cursor:pointer }
-      .btn-primary{ background:#67c7d6 }
-      .btn-ghost{ background:transparent; border:1px solid #444; color:#fff }
-      small.error{ color:var(--error) }
+      .actions{
+  display:flex;
+  gap:12px;
+  justify-content:flex-end;
+  margin-top:20px;
+}
 
-      /* ===== Toastify: colores sólidos y texto en negro ===== */
+.btn{
+  padding:10px 16px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  font-weight:500;
+}
+
+/* HABILITADO = AZUL */
+.btn-primary{
+  background:#2563eb;   /* azul CarBid */
+  color:#fff;
+}
+
+/* DESHABILITADO = CELESTE */
+.btn-primary:disabled,
+.btn-primary[disabled]{
+  background:#67c7d6;   /* celeste clarito */
+  color:#0f172a;
+  cursor:not-allowed;
+  opacity:1;            /* para que no se vea apagado */
+}
+
+.btn-cancel{
+  background:#dc2626;
+  color:#fff;
+}
+
+
+      /* ===== Toastify: texto blanco y colores por tipo ===== */
       .toastify{
-        color:#111 !important;
+        color:#fff !important;
         border-radius:10px !important;
         box-shadow:0 8px 24px rgba(0,0,0,.25) !important;
         font-weight:600;
       }
       .toastify .toast-close{
-        color:#111 !important;
+        color:#fff !important;
         opacity:1 !important;
       }
-      .toastify.success{ background:#bff7cc !important; border:1px solid #7cd69a !important; }
-      .toastify.error  { background:#ffc1c7 !important; border:1px solid #ff8a94 !important; }
-      .toastify.info   { background:#cfe6ff !important; border:1px solid #9cc7ff !important; }
+      .toastify.success{ background:#16a34a !important; } /* verde */
+      .toastify.error  { background:#dc2626 !important; } /* rojo */
+      .toastify.info   { background:#2563eb !important; } /* azul */
       .toastify:hover{ filter:brightness(.98); }
 
       @media (max-width:900px){
@@ -220,46 +290,92 @@ export default function CrearPublicacion() {
         header{ padding-left:10px !important; padding-right:10px !important; }
         .form-grid{ width:100%; margin:12px auto; padding:16px; border-radius:12px; }
       }
-        /* Forzar que la página pueda crecer y scrollear en Y en esta vista */
-:root, html, body, #root {
-  height: auto !important;
-  min-height: 100% !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+
+      /* Forzar que la página pueda crecer y scrollear en Y en esta vista */
+      :root, html, body, #root {
+        height: auto !important;
+        min-height: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+      }
+
+      /* Título del header */
+.header-title{
+  color:#fff;
+  font-weight:600;
+  font-size:20px;   /* móvil */
+}
+
+/* En pantallas grandes lo hacemos más grande */
+@media (min-width:900px){
+  .header-title{
+    font-size:26px; /* web/escritorio */
+  }
+}
+
+/* Link de regresar con texto */
+.back-link{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  color:#fff;
+  text-decoration:none;
+  font-size:14px;
+}
+
+.back-arrow{
+  font-size:18px;
+  line-height:1;
+}
+
+.back-text{
+  font-size:14px;
+}
+
+@media (min-width:900px){
+  .back-text{
+    font-size:16px;
+  }
 }
 
       `}</style>
 
       {/* Header */}
-      <header
-        style={{
-          padding: "12px 20px",
-          background: "#0f0f0f",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* Solo flecha */}
-          <a
-            href="/indexvendedor"
-            aria-label="Regresar"
-            style={{ color: "#fff", textDecoration: "none" }}
-          >
-            ←
-          </a>
-          {/* Logo */}
-          <img
-            src="img/logo.png"
-            alt="CarBid"
-            style={{ height: 36, display: "block" }}
-          />
-        </div>
-        <strong style={{ color: "#fff" }}>Crear publicación</strong>
-        <div />
-      </header>
+     <header
+  style={{
+    padding: "12px 20px",
+    background: "#0f0f0f",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  }}
+>
+  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+    {/* Flecha + texto Regresar */}
+    <a
+      href="/indexvendedor"
+      aria-label="Regresar"
+      className="back-link"
+    >
+      <span className="back-arrow">←</span>
+      <span className="back-text">Regresar</span>
+    </a>
+
+    {/* Logo */}
+    <img
+      src="img/logo.png"
+      alt="CarBid"
+      style={{ height: 36, display: "block" }}
+    />
+  </div>
+
+  {/* Título con clase para tamaño responsive */}
+  <strong className="header-title">Crear publicación</strong>
+
+  <div />
+</header>
+
 
       {/* Formulario */}
       <main className="form-grid">
@@ -270,6 +386,7 @@ export default function CrearPublicacion() {
               value={marca}
               onChange={(e) => setMarca(e.target.value)}
               placeholder="Toyota"
+              maxLength={30}
             />
             <small className="error">{errs.marca || ""}</small>
           </div>
@@ -279,6 +396,7 @@ export default function CrearPublicacion() {
               value={modelo}
               onChange={(e) => setModelo(e.target.value)}
               placeholder="Corolla"
+              maxLength={30}
             />
             <small className="error">{errs.modelo || ""}</small>
           </div>
@@ -320,7 +438,9 @@ export default function CrearPublicacion() {
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
               placeholder="Características, estado, etc."
+              maxLength={50}
             />
+            <small className="error">{errs.descripcion || ""}</small>
           </div>
         </div>
 
@@ -356,10 +476,19 @@ export default function CrearPublicacion() {
         </div>
 
         <div className="actions">
-          <button className="btn btn-ghost" onClick={() => window.history.back()}>
+          <button
+            className="btn btn-cancel"
+            type="button"
+            onClick={() => window.history.back()}
+          >
             Cancelar
           </button>
-          <button className="btn btn-primary" onClick={onCrear}>
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={onCrear}
+            disabled={!formOk}
+          >
             Crear
           </button>
         </div>
