@@ -1,0 +1,332 @@
+/* src/styles/historialpujas.css */
+
+:root {
+  --bg: #1b1b1b;
+  --panel: #0f0f0f;
+  --fg: #fff;
+  --table-bg: #0d0d0d;
+  --table-bd: #2b2b2b;
+  --muted: #cbd5e1;
+  --chip-bg: #020617;
+  --chip-bd: #1f2937;
+  --accent: #2563eb;
+}
+
+/* Reset básico */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ===== Topbar ===== */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 12px 18px;
+  min-height: 56px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--panel);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.back:focus,
+.back:focus-visible,
+.back:active {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.logo {
+  height: 32px;
+}
+
+/* ===== Layout general ===== */
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 26px 14px 60px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1 {
+  text-align: center;
+  margin: 8px 0 24px;
+  font-size: clamp(22px, 3.4vw, 32px);
+}
+
+/* ===== Controles ===== */
+
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+}
+
+.controls label {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.controls input,
+.controls select {
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  outline: none;
+}
+
+.controls input::placeholder {
+  color: #6b7280;
+}
+
+/* ===== Tabla desktop ===== */
+
+.table-wrap {
+  width: 100%;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+thead th {
+  position: sticky;
+  top: 56px;
+  z-index: 1;
+  background: #ef4444;
+  color: #fff;
+  font-weight: 800;
+  padding: 12px;
+  text-align: center;
+  border: 1px solid var(--table-bd);
+  white-space: nowrap;
+  word-break: normal;
+}
+
+tbody td {
+  background: var(--table-bg);
+  color: #e5e7eb;
+  padding: 12px;
+  border: 1px solid var(--table-bd);
+  word-break: break-word;
+}
+
+tbody tr:hover td {
+  background: #121212;
+}
+
+/* Anchos de columnas (4 columnas) */
+th:nth-child(1),
+td:nth-child(1) {
+  width: 34%;
+}
+
+th:nth-child(2),
+td:nth-child(2) {
+  width: 26%;
+}
+
+/* Oferta (Q): header centrado, valores a la derecha */
+th:nth-child(3) {
+  width: 20%;
+}
+
+td:nth-child(3) {
+  width: 20%;
+  text-align: right;
+}
+
+th:nth-child(4),
+td:nth-child(4) {
+  width: 20%;
+}
+
+.vehiculo {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Mensaje de estado */
+.state {
+  color: var(--muted);
+  text-align: center;
+  padding: 18px 8px;
+}
+
+/* ===== Paginador ===== */
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.pager button {
+  background: #4507c0;
+  color: #fff;
+  border: 1px solid #18034e;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pager button[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pager .info {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* ===== Tarjetas móvil ===== */
+
+.cards {
+  display: none;
+}
+
+/* tarjeta con borde de color (sin degradado) */
+.card-item {
+  background: #020617;
+  border: 2px solid var(--accent);
+  border-radius: 20px;
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* encabezado de la tarjeta */
+.ci-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: #0f172a;
+}
+
+.ci-title {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ci-fecha {
+  font-size: 0.9rem;
+  color: #e5e7eb;
+}
+
+/* chips en grid */
+.chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.chip {
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-bd);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  color: #e5e7eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 640px) {
+  .table-wrap {
+    display: none;
+  }
+  .cards {
+    display: block;
+  }
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;              /* flecha + fecha + "Regresar" en blanco por defecto */
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease-in-out; /* animación suave */
+}
+
+/* al pasar el mouse: todo el texto del botón se pone azul */
+.back:hover {
+  color: var(--accent);      /* #2563eb */
+}
+
+.back:focus,
+.back:focus-visible,
+.back:active {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}

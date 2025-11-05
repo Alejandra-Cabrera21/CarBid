@@ -1,0 +1,208 @@
+/* ===== Reset ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  font-family: "Poppins", sans-serif;
+  background: #000;
+  color: #fff;
+  overflow-y: auto; /* scroll en Y en web y móvil */
+}
+
+/* ===== Contenedor principal ===== */
+.register-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* ===== Lado izquierdo (imagen) ===== */
+.image-side {
+  flex: 1;
+  background-color: #111;
+  overflow: hidden;
+}
+
+.image-side img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== Lado derecho (formulario) ===== */
+.form-side {
+  flex: 1;
+  background-color: #0b0b0b;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;   /* empieza arriba */
+  align-items: center;
+  padding: 24px 40px 20px;
+}
+
+/* ===== Encabezado ===== */
+.form-header {
+  text-align: center;
+  margin-top: 6px;
+  margin-bottom: 10px;           /* 🔻 poco espacio debajo del título */
+}
+
+.form-header img {
+  width: 64px;
+  margin-bottom: 4px;
+}
+
+.form-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* ===== Asterisco requerido ===== */
+.required-mark {
+  color: #ff4f4f;
+  margin-left: 3px;
+}
+
+/* ===== Formulario ===== */
+form {
+  width: 100%;
+  max-width: 460px;              /* 🔸 más ancho en X */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;                      /* 🔻 MUY poco espacio entre bloques */
+}
+
+/* ===== Etiquetas ===== */
+label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 0;              /* casi pegadas al input */
+}
+
+/* ===== Campos (inputs blancos) ===== */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 8px 38px 8px 10px;    /* bajamos un poco la altura */
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  color: #000;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+input::placeholder {
+  color: #666;
+}
+
+input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 3px #007bff80;
+}
+
+/* ===== Icono ojo ===== */
+.input-wrapper {
+  position: relative;
+}
+
+.toggle-pass {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.toggle-pass:hover {
+  color: #000;
+}
+
+/* ===== Errores ===== */
+.error {
+  color: #ff4f4f;
+  font-size: 11px;              /* 🔻 texto más pequeño */
+  margin-top: -2px;
+  margin-bottom: 0;
+  height: 10px;                 /* 🔻 muy bajito, solo para mensaje */
+}
+
+/* ===== Checkboxes ===== */
+.checkbox-group {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  align-items: center;
+  margin-top: 2px;
+  margin-bottom: 6px;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+input[type="checkbox"] {
+  accent-color: #007bff;
+  cursor: pointer;
+  transform: scale(1.05);
+}
+
+/* ===== Botón ===== */
+button[type="submit"] {
+  background-color: #1760ff;
+  color: #fff;
+  border: none;
+  padding: 9px 0;
+  font-size: 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 4px;               /* casi pegado a los checkboxes */
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+  background-color: #004de6;
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  background-color: #444;
+  cursor: not-allowed;
+}
+
+/* ===== Responsive (móvil) ===== */
+@media (max-width: 900px) {
+  .register-container {
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .image-side {
+    height: 200px;
+  }
+
+  .form-side {
+    padding: 18px 14px 20px;
+  }
+
+  form {
+    max-width: 100%;
+  }
+}

@@ -12,8 +12,16 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /* ===== Middleware base ===== */
-app.use(cors());
+
+const corsOptions = {
+  origin: "*", // acepta peticiones desde cualquier dominio (por ahora)
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
+
 
 /* ===== Servir imágenes subidas ===== */
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -137,6 +145,19 @@ function closeExpiredAuctionsOnce() {
 }
 
 setInterval(closeExpiredAuctionsOnce, 20000);
+
+/* ===== Pings de prueba ===== */
+app.get('/', (_req, res) => res.status(200).send('OK'));
+app.get('/__ping', async (req, res) => {
+  try {
+    const [rows] = await db.promise().query('SELECT NOW() AS time');
+    res.json({ ok: true, db: true, time: rows[0].time });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+
 
 /* ===== Iniciar servidor ===== */
 httpServer.listen(PORT, () => {

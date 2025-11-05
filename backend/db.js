@@ -1,4 +1,3 @@
-// db.js
 const mysql = require("mysql2");
 require("dotenv").config();
 
@@ -17,10 +16,9 @@ pool.getConnection((err, conn) => {
   if (err) {
     console.error("❌ Error al conectar al pool MySQL:", err);
   } else {
-    console.log("✅ Pool de conexiones MySQL activo");
+    console.log("✅ Conexión exitosa a MySQL (AWS RDS)");
     conn.release();
   }
 });
 
-// ⬅️ Exporta el pool con callbacks (NO .promise())
 module.exports = pool;

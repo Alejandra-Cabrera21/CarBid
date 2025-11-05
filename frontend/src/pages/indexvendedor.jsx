@@ -1,4 +1,3 @@
-// src/pages/indexvendedor.jsx
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Toastify from "toastify-js";
@@ -39,7 +38,6 @@ export default function IndexVendedor() {
   const [userName, setUserName] = useState("...");
   const [userId, setUserId] = useState(null);
 
-  // --- helpers ---
   const putUserInStateAndCache = (user) => {
     if (!user) return;
     localStorage.setItem("usuario", JSON.stringify(user));
@@ -66,7 +64,6 @@ export default function IndexVendedor() {
     const id = localStorage.getItem("userId") || (uObj && uObj.id);
     const name = localStorage.getItem("userName") || (uObj && uObj.nombre);
 
-    // si no hay sesión, a login
     if (!id) {
       navigate("/login");
       return;
@@ -75,13 +72,10 @@ export default function IndexVendedor() {
     setUserId(id);
     setUserName((name && name.trim()) || (uObj && uObj.correo) || "Usuario");
 
-    // marca rol activo
     localStorage.setItem("rolActual", "vendedor");
 
-    // muestra flash si venimos de otra pantalla
     if (flashFromLocalStorage(navigate)) return;
 
-    // ✅ SIEMPRE refrescar datos del backend (antes solo lo hacía si no era vendedor)
     const ensureVendedor = async () => {
       const user = await fetchUser(id);
       if (user) {
@@ -102,14 +96,12 @@ export default function IndexVendedor() {
           setTimeout(() => navigate("/"), 1800);
         }
       } else {
-        // si falla el fetch no expulsamos; mantenemos lo que haya en cache
         console.warn("No se pudo refrescar el usuario");
       }
     };
 
     ensureVendedor();
 
-    // 🔄 Opcional: refresca al volver a ver la pestaña (útil tras editar perfil)
     const onVisible = async () => {
       if (document.visibilityState === "visible") {
         const freshed = await fetchUser(id);
@@ -137,10 +129,13 @@ export default function IndexVendedor() {
         <div className="logo">
           <img src="/img/logo.png" alt="CarBid" />
         </div>
+
         <nav className="menu">
           <Link to="/historial-pujas">Historial Pujas</Link>
           <Link to={`/perfil?id=${encodeURIComponent(userId || "")}`}>Mi perfil</Link>
-          <button onClick={logout} className="linklike">Salir</button>
+          <button onClick={logout} className="linklike">
+            Salir
+          </button>
         </nav>
       </header>
 
