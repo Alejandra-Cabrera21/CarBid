@@ -147,20 +147,16 @@ function closeExpiredAuctionsOnce() {
 setInterval(closeExpiredAuctionsOnce, 20000);
 
 /* ===== Pings de prueba ===== */
-app.get('/__ping', (_req, res) => res.json({ ok: true, where: 'root' }));
-app.get('/api/subastas/__ping', (_req, res) => res.json({ ok: true, where: 'subastas-GET' }));
-app.post('/api/subastas/__ping', (_req, res) => res.json({ ok: true, where: 'subastas-POST' }));
-
-// ✅ Agrega aquí el nuevo /__ping de base de datos
-app.get("/__ping", async (req, res) => {
+app.get('/', (_req, res) => res.status(200).send('OK'));
+app.get('/__ping', async (req, res) => {
   try {
-    const [rows] = await db.promise().query("SELECT NOW() AS time");
+    const [rows] = await db.promise().query('SELECT NOW() AS time');
     res.json({ ok: true, db: true, time: rows[0].time });
   } catch (err) {
-    console.error("❌ Error en /__ping:", err);
     res.status(500).json({ ok: false, error: err.message });
   }
 });
+
 
 
 /* ===== Iniciar servidor ===== */
