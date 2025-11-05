@@ -145,12 +145,8 @@ function closeExpiredAuctionsOnce() {
 }
 
 setInterval(closeExpiredAuctionsOnce, 20000);
-app.get("/", (req, res) => {
-  res.status(200).send("CarBid Backend funcionando correctamente 🚗💨");
-});
 
 /* ===== Iniciar servidor ===== */
 httpServer.listen(PORT, () => {
   console.log(`🚀 HTTP + Socket.IO escuchando en http://localhost:${PORT}`);
 });
-
