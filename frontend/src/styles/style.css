@@ -5,7 +5,9 @@
   padding: 0;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -13,7 +15,7 @@ html, body, #root {
 }
 
 body {
-  font-family: 'Poppins', Arial, sans-serif;
+  font-family: "Poppins", Arial, sans-serif;
 }
 
 /* ===== Navbar (solo escritorio) ===== */
@@ -80,7 +82,7 @@ body {
 .dropdown {
   position: relative;
   display: inline-block;
-  width: fit-content; /* se ajusta al botón */
+  width: fit-content;
 }
 
 .dropdown-content {
@@ -88,14 +90,14 @@ body {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  width: 100%; /* ✅ igual ancho que el botón */
+  width: 100%;
   background-color: #000;
   border-radius: 6px;
   border: 1px solid #333;
   overflow: hidden;
   z-index: 20;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .dropdown-content.active {
@@ -118,77 +120,108 @@ body {
   color: #fff;
 }
 
-.dropdown-content a:visited,
-.dropdown-content a:focus {
-  color: #fff;
-  text-decoration: none;
-}
-
-/* ===== Hero ===== */
+/* ===== Hero (escritorio) ===== */
 .hero {
   position: relative;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  height: calc(100vh - 70px);
+  height: calc(100vh - 70px); /* header de escritorio */
   background-color: #000;
 }
 
+/* Imagen de fondo */
 .hero img.background {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  margin-top: -2px;
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 
 /* ===== Visibilidad ===== */
-.only-desktop { display: flex; }
-.only-mobile { display: none; }
+.only-desktop {
+  display: flex;
+}
+.only-mobile {
+  display: none;
+}
 
-/* ===== Móvil ===== */
+/* =========================================================
+   =======================   MÓVIL   =======================
+   ========================================================= */
 @media (max-width: 768px) {
-  .only-desktop { display: none; }
-  .only-mobile { display: block; }
-
-  .navbar {
+  /* 🔹 Oculta SOLO lo que tenga .only-desktop (la cabecera de la home) */
+  .only-desktop {
     display: none !important;
+    visibility: hidden !important;
   }
 
-  html, body, #root {
+  /* 🔹 Muestra la tarjeta central de la home */
+  .only-mobile {
+    display: block !important;
+  }
+  .only-mobile {
+    display: block !important;
+  }
+
+  html,
+  body,
+  #root {
     height: 100%;
     overflow: hidden;
+    background-color: #000;
   }
 
+  /* 🔥 Hero cubre TODO el viewport SIN dejar espacio arriba */
   .hero {
-    position: relative;
-    height: 100vh;
+    position: fixed;          /* se pega a la ventana, no al flujo */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;            /* alto total de la pantalla */
+    margin: 0 !important;
+    padding: 0 !important;
     background-color: #000;
-    margin-top: 0;
+    z-index: 0;
+  }
+
+  .hero img.background {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    z-index: 0;
   }
 
   .hero::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,.4), rgba(0,0,0,.7));
-    z-index: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7));
+    z-index: 1;
   }
 
   /* Tarjeta centrada */
   .home-overlay-card {
     position: absolute;
     left: 50%;
-    top: 50%;
+    top: 55%;
     transform: translate(-50%, -50%);
     width: 90%;
     max-width: 380px;
-    background: rgba(17,17,17,0.9);
+    background: rgba(17, 17, 17, 0.9);
     color: #fff;
     border-radius: 14px;
     padding: 24px 18px 28px;
-    box-shadow: 0 20px 50px rgba(0,0,0,.25);
-    z-index: 1;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    z-index: 2;
     text-align: center;
   }
 

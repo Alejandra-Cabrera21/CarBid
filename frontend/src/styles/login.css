@@ -292,13 +292,3 @@ body.modal-open { overflow:hidden; }
   border:none !important;
 }
 
-/* 🔹 Elimina la franja negra superior con el logo y menú "Acceder ▼" */
-body > div:first-of-type header,
-body > div:first-of-type nav,
-body > div:first-of-type .topbar,
-body > div:first-of-type .navbar,
-body > div:first-of-type .menu,
-body > div:first-of-type .selector-tipo,
-body > div:first-of-type .welcome-card {
-  display: none !important;
-}

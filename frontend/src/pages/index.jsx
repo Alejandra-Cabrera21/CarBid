@@ -53,6 +53,7 @@ function Dropdown({ label = "Acceder", full = false }) {
 
 export default function Index() {
   const navigate = useNavigate();
+
   React.useEffect(() => {
     document.title = "CarBid";
   }, []);
@@ -62,7 +63,12 @@ export default function Index() {
       {/* ====== Header (solo visible en web) ====== */}
       <header className="navbar only-desktop">
         <div className="logo">
-          <img src="/img/logo.png" alt="CarBid" className="logo-web" width="150" />
+          <img
+            src="/img/logo.png"
+            alt="CarBid"
+            className="logo-web"
+            width="150"
+          />
         </div>
         <div className="menu">
           <Dropdown label="Acceder" />
@@ -77,7 +83,10 @@ export default function Index() {
         <img src="/img/auto.png" alt="Car" className="background" />
 
         {/* ====== Tarjeta central solo en móvil ====== */}
-        <section className="home-overlay-card only-mobile" aria-label="Acciones rápidas">
+        <section
+          className="home-overlay-card only-mobile"
+          aria-label="Acciones rápidas"
+        >
           <h1 className="home-card-title">Bienvenido a CarBid</h1>
 
           <div className="home-actions">
