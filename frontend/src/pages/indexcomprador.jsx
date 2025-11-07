@@ -5,6 +5,8 @@ import { io } from "socket.io-client";
 import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
+const API = API_BASE;
+
 
 const FAST_POLL_MS = 10000;           // notificaciones
 const AUCTION_POLL_MS = 15000;        // ⬅️ polling de subastas (fallback)
@@ -231,28 +233,42 @@ export default function IndexComprador() {
       } catch {}
     }
 
-    (async () => {
-      if (!uObj || uObj.es_comprador !== "S") {
-        try {
-          const r = await fetch(`${API}/usuario/${encodeURIComponent(uid)}`);
-          if (r.ok) {
-            uObj = await r.json();
-            localStorage.setItem("usuario", JSON.stringify(uObj));
-          }
-        } catch {}
+ (async () => {
+  const esComprador = (u) =>
+    u &&
+    (
+      u.es_comprador === "S" ||
+      u.es_comprador === "s" ||
+      u.es_comprador === 1 ||
+      u.es_comprador === "1" ||
+      u.es_comprador === true
+    );
+
+  // 1) Si localStorage no tiene comprador “válido”, refrescamos desde la API
+  if (!esComprador(uObj)) {
+    try {
+      const r = await fetch(`${API}/usuario/${encodeURIComponent(uid)}`);
+      if (r.ok) {
+        uObj = await r.json();
+        localStorage.setItem("usuario", JSON.stringify(uObj));
       }
-      if (!uObj || uObj.es_comprador !== "S") {
-        Toastify({
-          text: "Ya no eres comprador. Te sacamos del panel.",
-          duration: 1800,
-          gravity: "top",
-          position: "right",
-          close: true,
-          style: { background: "#f59e0b", color: "#fff", borderRadius: "10px" },
-        }).showToast();
-        setTimeout(() => navigate("/"), 1800);
-      }
-    })();
+    } catch {}
+  }
+
+  // 2) Volvemos a evaluar con lo que tengamos (local o API)
+  if (!esComprador(uObj)) {
+    Toastify({
+      text: "Ya no eres comprador. Te sacamos del panel.",
+      duration: 1800,
+      gravity: "top",
+      position: "right",
+      close: true,
+      style: { background: "#f59e0b", color: "#fff", borderRadius: "10px" },
+    }).showToast();
+    setTimeout(() => navigate("/"), 1800);
+  }
+})();
+
   }, [navigate]);
 
   /* ===== Carga subastas ===== */

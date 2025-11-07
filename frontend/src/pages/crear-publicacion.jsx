@@ -6,6 +6,7 @@ import "toastify-js/src/toastify.css";
 const API = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 
 
+
 export default function CrearPublicacion() {
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");

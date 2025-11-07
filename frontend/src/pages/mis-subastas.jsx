@@ -6,7 +6,7 @@ import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
 
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
-
+const API = API_BASE;
 
 /* =============== Utils =============== */
 function toast(msg, type = "info") {

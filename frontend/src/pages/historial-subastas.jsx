@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "../styles/historialsubastas.css";
 
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
+const API = API_BASE;
 
 
 export default function HistorialSubastas() {

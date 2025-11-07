@@ -7,6 +7,7 @@ import "../styles/panel-vendedor.css";
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 
 
+
 function flashFromLocalStorage(navigate) {
   const raw = localStorage.getItem("flash");
   if (!raw) return false;
