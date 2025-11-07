@@ -3,7 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/historialsubastas.css";
 
-const API = "http://localhost:3000/api";
+const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
+
 
 export default function HistorialSubastas() {
   const navigate = useNavigate();

@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import "../styles/historialpujas.css";
 
-const API = "http://localhost:3000/api";
+const API = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
+
 
 export default function HistorialPujas() {
   const navigate = useNavigate();
@@ -185,17 +186,17 @@ export default function HistorialPujas() {
       }, 600);
     };
 
-    let socket;
-    try {
-      socket = io("http://localhost:3000", {
-        path: "/socket.io",
-        transports: ["websocket", "polling"],
-      });
-      socket.on("auction:bid", scheduleRefresh);
-      socket.on("auction:won", scheduleRefresh);
-    } catch {
-      console.warn("Socket.IO no disponible; usando polling.");
-    }
+   let socket;
+try {
+  socket = io(HOST, {
+    path: "/socket.io",
+    transports: ["websocket", "polling"],
+  });
+  socket.on("auction:bid", scheduleRefresh);
+  socket.on("auction:won", scheduleRefresh);
+} catch {
+  console.warn("Socket.IO no disponible: usando polling:", e);
+}
 
     const poll = setInterval(scheduleRefresh, 20000);
     return () => {

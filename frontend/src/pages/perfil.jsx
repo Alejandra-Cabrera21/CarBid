@@ -4,7 +4,8 @@ import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
 import "../styles/perfil.css";
 
-const API = "http://localhost:3000/api";
+const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
+
 
 // regex de contraseña fuerte (igual que en register)
 const strongRegex =

@@ -5,7 +5,8 @@ import { io } from "socket.io-client";
 import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
 
-const API = "http://localhost:3000/api";
+const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
+
 
 /* =============== Utils =============== */
 function toast(msg, type = "info") {
@@ -204,21 +205,21 @@ export default function MisSubastas() {
   }, []);
 
   // Socket.IO para refrescar
-  useEffect(() => {
-    let socket;
+ useEffect(() => {
+  let socket;
+  try {
+    socket = io("http://localhost:3000", { transports: ["websocket"] });
+    socket.on("auction:updated", loadMyAuctions);
+    socket.on("auction:bid", () => loadMyAuctions());
+  } catch {
+    console.warn("No se pudo conectar con Socket.IO");
+  }
+  return () => {
     try {
-      socket = io("http://localhost:3000", { transports: ["websocket"] });
-      socket.on("auction:updated", loadMyAuctions);
-      socket.on("auction:bid", () => loadMyAuctions());
-    } catch {
-      console.warn("No se pudo conectar con Socket.IO");
-    }
-    return () => {
-      try {
-        socket && socket.disconnect();
-      } catch {}
-    };
-  }, []);
+      socket && socket.disconnect();
+    } catch {}
+  };
+}, []);
 
   /* ---- Filtro de búsqueda ---- */
   const filteredItems = useMemo(() => {

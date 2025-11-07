@@ -4,8 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
+const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 
-const API = "http://localhost:3000/api";
 const FAST_POLL_MS = 10000;           // notificaciones
 const AUCTION_POLL_MS = 15000;        // ⬅️ polling de subastas (fallback)
 
@@ -21,8 +21,8 @@ function Slider({ imagenes }) {
   const [idx, setIdx] = useState(0);
   const hasImgs = imagenes && imagenes.length > 0;
   const src = hasImgs
-    ? `http://localhost:3000${imagenes[idx].url}`
-    : "img/no-image.png";
+  ? `${HOST}${imagenes[idx].url}`
+  : "img/no-image.png";
 
   if (!hasImgs) {
     return (

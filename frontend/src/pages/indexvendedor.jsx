@@ -4,7 +4,8 @@ import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
 import "../styles/panel-vendedor.css";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000/api";
+const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
+
 
 function flashFromLocalStorage(navigate) {
   const raw = localStorage.getItem("flash");

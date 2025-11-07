@@ -29,7 +29,8 @@ export default function Login() {
   const passValid  = pass.trim().length > 0;
   const canSubmit  = emailValid && passValid;
 
-  const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3000/api";
+const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
+
 
   useEffect(() => {
     document.title = "Iniciar sesión - CarBid";

@@ -53,7 +53,8 @@ export default function Register() {
   // Estado de envío
   const [sending, setSending] = useState(false);
 
-  const API = `${import.meta.env.VITE_API_BASE}/usuario`; // http://localhost:3000/api/usuario
+  const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
+const API = `${API_BASE}/usuario`; // http://localhost:3000/api/usuario
 
   function clearErr() {
     setErr({ correo: "", usuario: "", password: "", confirmar: "" });
