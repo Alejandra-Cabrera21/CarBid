@@ -6,7 +6,10 @@ import "../styles/historialsubastas.css";
 
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 const API = API_BASE;
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "wss://api.carbidp.click";
+
+// Host del backend sin /api
+const HOST = API_BASE.replace(/\/api$/, "");
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || HOST;
 
 export default function HistorialSubastas() {
   const navigate = useNavigate();
@@ -134,9 +137,22 @@ export default function HistorialSubastas() {
   const reload = async (keepPage = false) => {
     try {
       const data = await loadData();
-      setRows(Array.isArray(data) ? data : []);
 
-      if (!data || !data.length) {
+      // ⛔ Evitar duplicados por id_subasta
+      const seen = new Set();
+      const unique = [];
+      for (const row of Array.isArray(data) ? data : []) {
+        const id = row.id_subasta || row.id;
+        if (id) {
+          if (seen.has(id)) continue;
+          seen.add(id);
+        }
+        unique.push(row);
+      }
+
+      setRows(unique);
+
+      if (!unique.length) {
         if (infoRef.current) {
           infoRef.current.style.display = "";
           infoRef.current.textContent = "No hay subastas cerradas aún.";
@@ -150,6 +166,7 @@ export default function HistorialSubastas() {
       refreshLayout();
       if (!keepPage) setPage(1);
     } catch (e) {
+      console.error("Error al cargar historial-subastas:", e);
       if (infoRef.current) {
         infoRef.current.style.display = "";
         infoRef.current.textContent = "Error al cargar el historial.";
@@ -159,6 +176,7 @@ export default function HistorialSubastas() {
 
   /* ===== Socket + polling para tiempo real ===== */
   useEffect(() => {
+    // Carga inicial
     reload();
 
     let refreshTimer = null;
@@ -185,14 +203,18 @@ export default function HistorialSubastas() {
       console.warn("Socket.IO no disponible en historial-subastas:", e?.message || e);
     }
 
-    // polling de respaldo cada 20s
-    const poll = setInterval(() => scheduleRefresh(true), 20000);
+    // Polling de respaldo cada 5s
+    const poll = setInterval(() => scheduleRefresh(true), 5000);
 
     return () => {
       clearInterval(poll);
       try {
         socket && socket.disconnect();
       } catch {}
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+        refreshTimer = null;
+      }
     };
   }, []);
 

@@ -1,14 +1,17 @@
+// routes/historialSubastas.js
 const express = require('express');
 const router = express.Router();
 
 // según tu estructura real de carpetas:
-const db = require('../db');                   
+const db = require('../db');
 const authRequired = require('../middleware/authRequired');
 
 router.get('/', authRequired, async (req, res) => {
   try {
-    const userId = req.user?.id;               // viene del middleware authRequired
-    if (!userId) return res.status(401).json({ error: 'Usuario no autenticado' });
+    const userId = req.user?.id; // viene del middleware authRequired
+    if (!userId) {
+      return res.status(401).json({ error: 'Usuario no autenticado' });
+    }
 
     const sql = `
       /* Subastas CERRADAS en las que el usuario participó */
@@ -82,7 +85,7 @@ router.get('/', authRequired, async (req, res) => {
 
     // Orden de parámetros: (comparación ganador), (mis subastas), (mi mejor oferta)
     const params = [userId, userId, userId];
-   const [rows] = await db.promise().query(sql, params);
+    const [rows] = await db.promise().query(sql, params);
 
     const data = rows.map(r => ({
       id_subasta: r.id_subasta,
