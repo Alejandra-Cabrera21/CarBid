@@ -17,17 +17,48 @@ router.post("/", authRequired, (req, res) => {
   db.query(qSub, [id_subasta], (err, r1) => {
     if (err) return res.status(500).json({ message: "Error DB" });
     if (!r1.length) return res.status(404).json({ message: "Subasta no encontrada" });
-    if (r1[0].estado !== "ABIERTA") return res.status(400).json({ message: "Subasta cerrada" });
+    if (r1[0].estado !== "ABIERTA")
+      return res.status(400).json({ message: "Subasta cerrada" });
 
     const qIns = `INSERT INTO pujas (id_subasta, id_postor, monto) VALUES (?, ?, ?)`;
-    db.query(qIns, [id_subasta, id_postor, monto], (err2) => {
+    db.query(qIns, [id_subasta, id_postor, monto], (err2, result) => {
       if (err2) return res.status(500).json({ message: "Error al registrar puja" });
 
-      // Emitir evento de nueva puja
       const io = req.app.get("io");
-      if (io) io.emit("auction:bid", { id_subasta, monto, id_postor });
+      const newBidId = result.insertId;
 
-      res.json({ message: "Puja registrada correctamente" });
+      // 🔹 Obtener datos completos de la puja recién creada
+      const qData = `
+        SELECT 
+          p.id            AS id_puja,
+          p.id_subasta,
+          p.id_postor,
+          u.nombre        AS nombre_postor,
+          p.monto         AS monto,
+          p.created_at
+        FROM pujas p
+        INNER JOIN usuarios u ON u.id = p.id_postor
+        WHERE p.id = ?;
+      `;
+
+      db.query(qData, [newBidId], (err3, rows) => {
+        if (err3 || !rows.length) {
+          console.error("❌ Error al obtener datos de la nueva puja:", err3);
+          // 🔸 Fallback: comportamiento antiguo
+          if (io) io.emit("auction:bid", { id_subasta, monto, id_postor });
+          return res.json({ message: "Puja registrada correctamente" });
+        }
+
+        const newBid = rows[0];
+
+        // 🔹 Emitir SIEMPRE que alguien puje
+        if (io) io.emit("auction:bid", newBid);
+
+        return res.json({
+          message: "Puja registrada correctamente",
+          ...newBid,
+        });
+      });
     });
   });
 });
@@ -45,7 +76,7 @@ router.post("/ganador/:id", (req, res) => {
 
     const ganador = rows[0];
     const io = req.app.get("io");
-    if (io) io.emit("auction:won", { id_subasta:id, id_postor:ganador.id_postor });
+    if (io) io.emit("auction:won", { id_subasta: id, id_postor: ganador.id_postor });
     res.json({ message: "Notificación enviada al ganador" });
   });
 });
