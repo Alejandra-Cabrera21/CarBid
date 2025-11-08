@@ -7,8 +7,6 @@ import "../styles/perfil.css";
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 const API = API_BASE;
 
-
-
 // regex de contraseña fuerte (igual que en register)
 const strongRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/;
@@ -280,20 +278,6 @@ export default function Perfil() {
           noValidate
           onSubmit={onSubmit}
         >
-          {/* Correo solo lectura */}
-          <div className="perfil-field">
-            <label htmlFor="correo">Correo</label>
-            <div className="perfil-input-wrapper">
-              <input
-                type="email"
-                id="correo"
-                className="perfil-input perfil-input-readonly"
-                value={correo}
-                readOnly
-              />
-            </div>
-          </div>
-
           {/* Usuario */}
           <div className="perfil-field">
             <label htmlFor="nombre">
