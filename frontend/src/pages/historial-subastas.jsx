@@ -53,11 +53,11 @@ export default function HistorialSubastas() {
       resultado: r.resultado || "—",
       estado: r.estado || "CERRADA",
       fecha: d ? fmtDate.format(d) : "",
-      ts: d ? d.getTime() : 0,
+      ts: d ? d.getTime() : 0, // timestamp de cierre
     };
   }
 
-  /* ===== Filtro, orden, paginado ===== */
+  /* ===== Filtro, orden y paginado ===== */
   const view = useMemo(() => {
     const term = q.trim().toLowerCase();
     const mul = sortDir === "asc" ? 1 : -1;
@@ -73,18 +73,11 @@ export default function HistorialSubastas() {
         );
       });
 
-    filtered.sort((a, b) => {
-      if (sortBy === "vehiculo") return a.vehiculo.localeCompare(b.vehiculo) * mul;
-      if (sortBy === "precio") return (a.precio - b.precio) * mul;
-      if (sortBy === "mi") return (a.mi - b.mi) * mul;
-      if (sortBy === "ganadora") return (a.ganadora - b.ganadora) * mul;
-      if (sortBy === "resultado") return a.resultado.localeCompare(b.resultado) * mul;
-      if (sortBy === "estado") return a.estado.localeCompare(b.estado) * mul;
-      return (a.ts - b.ts) * mul; // fecha
-    });
+    // 🔥 Siempre ordenar por fecha de cierre (ts), no por alfabeto
+    filtered.sort((a, b) => (a.ts - b.ts) * mul);
 
     return filtered;
-  }, [rows, q, sortBy, sortDir]);
+  }, [rows, q, sortBy, sortDir]); // dejo sortBy en deps aunque ya no se use, para no tocar más cosas
 
   const total = view.length;
   const pages = Math.max(1, Math.ceil(total / pageSize));
