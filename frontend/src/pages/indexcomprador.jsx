@@ -342,9 +342,8 @@ export default function IndexComprador() {
       return;
     }
     try {
-      const r = await fetch(`${API}/notificaciones?t=${Date.now()}`, {
+       const r = await fetch(`${API}/notificaciones?t=${Date.now()}`, {
         headers: { Authorization: "Bearer " + token },
-        cache: "no-store",
       });
       if (!r.ok) throw new Error("Error al cargar notificaciones");
       const data = await r.json();

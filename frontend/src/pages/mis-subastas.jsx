@@ -116,8 +116,7 @@ export default function MisSubastas() {
 
     try {
       const res = await fetch(`${API}/subastas/mias/listado?ts=${Date.now()}`, {
-        headers: { Authorization: "Bearer " + token, "Cache-Control": "no-store" },
-        cache: "no-store",
+        headers: { Authorization: "Bearer " + token },
       });
       const text = await res.text();
       let data = null;
