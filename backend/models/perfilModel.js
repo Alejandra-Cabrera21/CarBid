@@ -1,7 +1,7 @@
 // backend/models/perfilModel.js
 const db = require('../db');
 
-// 🔎 Traer perfil por ID (los campos que muestra la pantalla)
+//Traer perfil por ID (los campos que muestra la pantalla)
 exports.obtenerPerfilPorId = (id, cb) => {
   const sql = `
     SELECT id, nombre, correo, es_vendedor, es_comprador
@@ -14,7 +14,7 @@ exports.obtenerPerfilPorId = (id, cb) => {
   });
 };
 
-// ✍️ Actualizar perfil (parcial)
+//Actualizar perfil (parcial)
 exports.actualizarPerfil = (id, data, cb) => {
   const campos = [];
   const vals = [];

@@ -20,7 +20,7 @@ const mailer = nodemailer.createTransport({
   },
 });
 
-// 🕒 Suma horas a la fecha actual (para fecha_expiracion)
+//Suma horas a la fecha actual (para fecha_expiracion)
 function sumarHoras(horas) {
   const fecha = new Date();
   fecha.setHours(fecha.getHours() + horas);
@@ -65,7 +65,7 @@ function authRequired(req, res, next) {
 }
 
 /* ======================================================
-   🔹 LOGIN COMPRADOR
+   LOGIN COMPRADOR
 ====================================================== */
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
@@ -75,7 +75,7 @@ router.post("/login", (req, res) => {
   const sql = "SELECT * FROM usuarios WHERE correo = ?";
   db.query(sql, [email], (err, results) => {
     if (err) {
-      console.error("❌ Error DB:", err);
+      console.error("Error DB:", err);
       return res.status(500).json({ message: "Error en el servidor." });
     }
     if (results.length === 0)
@@ -103,7 +103,7 @@ router.post("/login", (req, res) => {
     `;
     db.query(insert, [user.id, token, "N", "S", sumarHoras(2)], (err2) => {
       if (err2) {
-        console.error("❌ Error al registrar sesión:", err2);
+        console.error(" Error al registrar sesión:", err2);
         return res.status(500).json({ message: "Error al registrar sesión." });
       }
 
@@ -118,7 +118,7 @@ router.post("/login", (req, res) => {
 });
 
 /* ======================================================
-   🔹 LOGIN VENDEDOR
+   LOGIN VENDEDOR
 ====================================================== */
 router.post("/login-vendedor", (req, res) => {
   const { email, password } = req.body;
@@ -128,7 +128,7 @@ router.post("/login-vendedor", (req, res) => {
   const sql = "SELECT * FROM usuarios WHERE correo = ?";
   db.query(sql, [email], (err, results) => {
     if (err) {
-      console.error("❌ Error DB:", err);
+      console.error("Error DB:", err);
       return res.status(500).json({ message: "Error en el servidor." });
     }
     if (results.length === 0)
@@ -156,7 +156,7 @@ router.post("/login-vendedor", (req, res) => {
     `;
     db.query(insert, [user.id, token, "S", "N", sumarHoras(2)], (err2) => {
       if (err2) {
-        console.error("❌ Error al registrar sesión:", err2);
+        console.error("Error al registrar sesión:", err2);
         return res.status(500).json({ message: "Error al registrar sesión." });
       }
 
@@ -171,14 +171,14 @@ router.post("/login-vendedor", (req, res) => {
 });
 
 /* ======================================================
-   🔹 PING protegido (para validar sesión en el cliente)
+   PING protegido (para validar sesión en el cliente)
 ====================================================== */
 router.get("/ping", authRequired, (_req, res) => {
   res.json({ ok: true });
 });
 
 /* ======================================================
-   🔹 LOGOUT: expira la sesión en BD de inmediato
+   LOGOUT: expira la sesión en BD de inmediato
 ====================================================== */
 router.post("/logout", authRequired, (req, res) => {
   const q = "UPDATE sesiones SET fecha_expiracion = NOW() WHERE id = ?";
@@ -189,7 +189,7 @@ router.post("/logout", authRequired, (req, res) => {
 });
 
 /* ======================================================
-   🔹 OLVIDÉ MI CONTRASEÑA (solicitar código)
+   OLVIDÉ MI CONTRASEÑA (solicitar código)
    POST /api/auth/forgot  { email }
    - Genera un código de 6 dígitos, válido 15 min
    - En dev devuelve devHint con el código
@@ -243,7 +243,7 @@ router.post("/forgot", (req, res) => {
           text: `Tu código de recuperación es: ${code} (válido 15 minutos)`,
         });
       } catch (mailErr) {
-        console.warn("⚠️ Error enviando correo de reset:", mailErr.message);
+        console.warn("Error enviando correo de reset:", mailErr.message);
       }
 
       const dev = process.env.NODE_ENV !== "production";
@@ -256,7 +256,7 @@ router.post("/forgot", (req, res) => {
 });
 
 /* ======================================================
-   🔹 VERIFICAR CÓDIGO Y CAMBIAR CONTRASEÑA
+   VERIFICAR CÓDIGO Y CAMBIAR CONTRASEÑA
    POST /api/auth/forgot/verify
    body: { email, code, newPassword }
 ====================================================== */

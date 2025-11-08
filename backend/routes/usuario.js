@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const Usuario = require('../models/usuarioModel');
 
-// 🟢 REGISTRO DE USUARIO (permite ambos roles)
+// REGISTRO DE USUARIO (permite ambos roles)
 router.post('/register', (req, res) => {
   let { nombre, correo, contraseña, es_vendedor, es_comprador } = req.body;
 
@@ -46,7 +46,7 @@ router.post('/register', (req, res) => {
   });
 });
 
-// 🔍 VERIFICAR SI UN CORREO YA EXISTE (para validación previa del frontend)
+// VERIFICAR SI UN CORREO YA EXISTE (para validación previa del frontend)
 router.post('/check', (req, res) => {
   const { correo } = req.body;
 

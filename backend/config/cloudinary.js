@@ -1,4 +1,5 @@
-const cloudinary = require("cloudinary").v2;
+// Configuración de Cloudinary para subir imágenes
+ cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 // Configuración segura con variables de entorno (Render las leerá automáticamente)
@@ -8,6 +9,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET || "qXpj1bCu2PGHlnjG2Ipm7QP1ywE",
 });
 
+// Configuración del almacenamiento para Multer
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {

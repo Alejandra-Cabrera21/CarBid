@@ -2,6 +2,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
 const User = require("./User");
 
+// Definición del modelo para las subastas
 const Auction = sequelize.define("Auction", {
   modelo: { type: DataTypes.STRING, allowNull: false },
   descripcion: { type: DataTypes.TEXT, allowNull: true },
@@ -9,7 +10,7 @@ const Auction = sequelize.define("Auction", {
   ofertaGanadora: { type: DataTypes.FLOAT, allowNull: true },
   estado: { type: DataTypes.STRING, defaultValue: "activa" },
   fechaCierre: { type: DataTypes.DATE, allowNull: false },
-  imagen: { type: DataTypes.TEXT, allowNull: true } // 📸 nuevo campo
+  imagen: { type: DataTypes.TEXT, allowNull: true } //nuevo campo
 });
 
 

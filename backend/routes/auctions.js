@@ -156,7 +156,7 @@ router.post("/", authRequired, requireVendedor, (req, res) => {
             VALUES ?
           `;
 
-          // ⚠️ IMPORTANTE: en S3 multer-s3 llena "location" con la URL pública
+          // IMPORTANTE: en S3 multer-s3 llena "location" con la URL pública
           const values = (req.files || []).map((f, idx) => [
             subastaId,
             f.location, // URL completa de S3
@@ -352,7 +352,7 @@ router.get("/", (req, res) => {
 });
 
 /* ========== PUT /api/subastas/:id/estado (abrir/cerrar) ========== */
-/*  🔐 Validación atómica en SQL */
+/* Validación atómica en SQL */
 router.put("/:id/estado", authRequired, requireVendedor, (req, res) => {
   const id = parseInt(req.params.id, 10);
   const { estado } = req.body || {};

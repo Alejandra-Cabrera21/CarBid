@@ -43,15 +43,15 @@ router.post("/", authRequired, (req, res) => {
 
       db.query(qData, [newBidId], (err3, rows) => {
         if (err3 || !rows.length) {
-          console.error("❌ Error al obtener datos de la nueva puja:", err3);
-          // 🔸 Fallback: comportamiento antiguo
+          console.error("Error al obtener datos de la nueva puja:", err3);
+          // Fallback: comportamiento antiguo
           if (io) io.emit("auction:bid", { id_subasta, monto, id_postor });
           return res.json({ message: "Puja registrada correctamente" });
         }
 
         const newBid = rows[0];
 
-        // 🔹 Emitir SIEMPRE que alguien puje
+        // Emitir SIEMPRE que alguien puje
         if (io) io.emit("auction:bid", newBid);
 
         return res.json({

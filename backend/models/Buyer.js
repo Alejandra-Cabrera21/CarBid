@@ -1,6 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
 
+// Definición del modelo para los compradores
 const Buyer = sequelize.define("Buyer", {
   id: {
     type: DataTypes.INTEGER,

@@ -1,3 +1,4 @@
+// Controlador para registrar usuarios
 import { db } from "../backend/db.js";
 import bcrypt from "bcrypt";
 
@@ -18,7 +19,7 @@ export const registrarUsuario = async (req, res) => {
 
     db.query(sql, [correo, usuario, hashed, vendedor, comprador], (err, result) => {
       if (err) {
-        console.error("❌ Error al registrar:", err);
+        console.error("Error al registrar:", err);
         return res.status(500).json({ message: "Error en el servidor" });
       }
       res.status(201).json({ message: "Usuario registrado correctamente" });

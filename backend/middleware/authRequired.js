@@ -1,7 +1,8 @@
-// backend/middleware/authRequired.js
+//para autenticación de rutas protegidas
 const jwt = require("jsonwebtoken");
 const db  = require("../db");
-const SECRET_KEY = process.env.JWT_SECRET || "carbid-secret";
+const SECRET_KEY = process.env.JWT_SECRET || "carbid-secret"; // Clave secreta para verificar JWT
+//JWT es un estándar abierto para transmitir información de forma segura entre partes como un objeto JSON. Se utiliza comúnmente para autenticación y autorización en aplicaciones web.
 
 function authRequired(req, res, next) {
   const auth = req.headers.authorization || "";
