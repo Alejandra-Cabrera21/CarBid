@@ -32,7 +32,7 @@ router.get('/', authRequired, (req, res) => {
 
   db.query(sql, [vendedorId], (err, rows) => {
     if (err) {
-      console.error('❌ Error DB (historial-pujas):', err);
+      console.error('Error DB (historial-pujas):', err);
       return res.status(500).json({ message: 'Error en el servidor' });
     }
     return res.json(rows);

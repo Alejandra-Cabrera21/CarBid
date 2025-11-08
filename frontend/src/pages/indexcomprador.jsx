@@ -7,7 +7,7 @@ import "toastify-js/src/toastify.css";
 
 const API = "http://localhost:3000/api";
 const FAST_POLL_MS = 10000;           // notificaciones
-const AUCTION_POLL_MS = 15000;        // ⬅️ polling de subastas (fallback)
+const AUCTION_POLL_MS = 15000;        // polling de subastas (fallback)
 
 function fmtQ(n) {
   return "Q" + Number(n ?? 0).toLocaleString();
@@ -186,7 +186,7 @@ export default function IndexComprador() {
   const [userId, setUserId] = useState(null);
 
   const [search, setSearch] = useState("");
-  const searchRef = useRef("");                      // ⬅️ guardamos el término actual
+  const searchRef = useRef("");                      // guardamos el término actual
   useEffect(() => { searchRef.current = search; }, [search]);
 
   const [subastas, setSubastas] = useState([]);
@@ -439,7 +439,7 @@ export default function IndexComprador() {
       if (r.ok) {
         toast("Puja registrada correctamente");
         onCloseDialog();
-        loadSubastas(searchRef.current); // ⬅️ refrescar usando el término actual
+        loadSubastas(searchRef.current); // refrescar usando el término actual
       } else toast("⚠️ " + (data.message || "Error desconocido"));
     } catch {
       toast("No se pudo conectar con el servidor.");
@@ -490,8 +490,8 @@ export default function IndexComprador() {
   cursor:pointer;
   background:transparent;
   border:none;
-  outline:none;          /* 👈 quita la orilla */
-  box-shadow:none;       /* 👈 por si algún estilo global le pone sombra */
+  outline:none;          /*  la orilla */
+  box-shadow:none;       /*  por si algún estilo global le pone sombra */
   padding:0;
   display:inline-flex;
   align-items:center;

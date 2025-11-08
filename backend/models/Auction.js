@@ -1,13 +1,15 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../db");
-const User = require("./User");
+//sirve para definir el modelo de datos de una subasta en la base de datos
+const { DataTypes } = require("sequelize"); // Importa los tipos de datos de Sequelize
+const sequelize = require("../db"); // Importa la instancia de Sequelize configurada
+const User = require("./User"); // Importa el modelo de Usuario para establecer relaciones
 
+// Define el modelo de Subasta con sus atributos
 const Auction = sequelize.define("Auction", {
-  modelo: { type: DataTypes.STRING, allowNull: false },
-  descripcion: { type: DataTypes.TEXT, allowNull: true },
-  precioBase: { type: DataTypes.FLOAT, allowNull: false },
-  ofertaGanadora: { type: DataTypes.FLOAT, allowNull: true },
-  estado: { type: DataTypes.STRING, defaultValue: "activa" },
+  modelo: { type: DataTypes.STRING, allowNull: false },  // Modelo del artículo en subasta
+  descripcion: { type: DataTypes.TEXT, allowNull: true }, // Descripción del artículo
+  precioBase: { type: DataTypes.FLOAT, allowNull: false }, // Precio base de la subasta
+  ofertaGanadora: { type: DataTypes.FLOAT, allowNull: true }, // Oferta ganadora actual
+  estado: { type: DataTypes.STRING, defaultValue: "activa" }, // Estado de la subasta
   fechaCierre: { type: DataTypes.DATE, allowNull: false },
   imagen: { type: DataTypes.TEXT, allowNull: true } // 📸 nuevo campo
 });

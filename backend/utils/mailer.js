@@ -1,3 +1,4 @@
+//funcinalidad de enviar correos usando nodemailer para notificaciones y recuperacion de contraseñas
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({

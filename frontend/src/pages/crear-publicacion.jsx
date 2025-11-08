@@ -19,7 +19,7 @@ export default function CrearPublicacion() {
   const [errs, setErrs] = useState({});
   const finMinRef = useRef("");
 
-  // 🔧 Asegura que no quede el body sin scroll si vienes de un modal
+  // Asegura que no quede el body sin scroll si vienes de un modal
   useEffect(() => {
     document.body.classList.remove("modal-open");
   }, []);
@@ -189,7 +189,7 @@ export default function CrearPublicacion() {
         --error:#ff4d4f;
       }
 
-      /* ✅ permite scroll vertical, bloquea horizontal */
+      /* permite scroll vertical, bloquea horizontal */
       html, body {
         margin: 0;
         padding: 0;

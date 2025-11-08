@@ -32,8 +32,8 @@ const authRoutes          = require('./routes/auth');
 const auctionsRoutes      = require('./routes/auctions');
 const bidsRoutes          = require('./routes/bids');
 const notificacionesRoutes = require('./routes/notificaciones');
-const historialPujasRoutes = require('./routes/historialPujas'); // 🆕 nueva ruta
-const perfilRoutes = require('./routes/perfil');   // ⬅️ NUEVO
+const historialPujasRoutes = require('./routes/historialPujas'); //nueva ruta
+const perfilRoutes = require('./routes/perfil');   // NUEVO
 // server.js
 // backend/server.js
 const historialSubastas = require('./routes/historialSubastas');
@@ -44,7 +44,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/subastas', auctionsRoutes);
 app.use('/api/pujas', bidsRoutes);
 app.use('/api/notificaciones', notificacionesRoutes);
-app.use('/api/historial-pujas', historialPujasRoutes); // 🧩 nueva línea añadida
+app.use('/api/historial-pujas', historialPujasRoutes); // nueva línea añadida
 app.use('/api/historial-subastas', historialSubastas);
 
 /* ===== Pings de prueba ===== */
@@ -61,7 +61,7 @@ const io = new Server(httpServer, {
 app.set('io', io);
 
 io.on('connection', (socket) => {
-  console.log('🟢 Cliente conectado a tiempo real');
+  console.log('Cliente conectado a tiempo real');
   socket.emit('hello', { message: 'Conectado a tiempo real' });
 });
 
@@ -79,7 +79,7 @@ function closeExpiredAuctionsOnce() {
 
   db.query(qSel, [], (err, subastas) => {
     if (err) {
-      console.error('❌ Error buscando subastas vencidas:', err);
+      console.error('Error buscando subastas vencidas:', err);
       return;
     }
 
@@ -94,16 +94,16 @@ function closeExpiredAuctionsOnce() {
 
     db.query(qUpd, ids, (err2) => {
       if (err2) {
-        console.error('❌ Error actualizando subastas:', err2);
+        console.error('Error actualizando subastas:', err2);
         return;
       }
 
       const io = app.get('io');
       io.emit('auction:closed', { ids });
-      io.emit('auction:updated', { ids }); // 💡 nuevo evento para refrescar el frontend dinámicamente
-      console.log(`🔒 Subastas cerradas automáticamente: ${ids.join(', ')}`);
+      io.emit('auction:updated', { ids }); //nuevo evento para refrescar el frontend dinámicamente
+      console.log(` cerradas automáticamente: ${ids.join(', ')}`);
 
-      // 🔔 Notificar ganadores automáticamente
+      //Notificar ganadores automáticamente
       ids.forEach(id => {
         const qGanador = `
           SELECT id_postor, monto 
@@ -114,13 +114,13 @@ function closeExpiredAuctionsOnce() {
         `;
         db.query(qGanador, [id], (err3, rows) => {
           if (err3) {
-            console.error(`❌ Error buscando ganador subasta ${id}:`, err3);
+            console.error(`Error buscando ganador subasta ${id}:`, err3);
             return;
           }
       if (rows.length) {
   const ganador = rows[0];
 
-  // 🧠 Guardar en tabla ganadores si aún no existe
+  // guardar en tabla ganadores si aún no existe
   const qInsert = `
     INSERT INTO ganadores (id_subasta, id_postor, monto)
     SELECT ?, ?, ?
@@ -129,13 +129,13 @@ function closeExpiredAuctionsOnce() {
     )
   `;
   db.query(qInsert, [id, ganador.id_postor, ganador.monto, id], (err4) => {
-    if (err4) console.error("⚠️ Error insertando ganador:", err4);
+    if (err4) console.error("Error insertando ganador:", err4);
   });
 
-  // 🔔 Emitir evento al frontend
+  //Emitir evento al frontend
   const io = app.get('io');
   io.emit('auction:won', { id_subasta: id, id_postor: ganador.id_postor });
-  console.log(`🏁 Notificado ganador subasta ${id} → usuario ${ganador.id_postor}`);
+  console.log(`Notificado ganador subasta ${id} → usuario ${ganador.id_postor}`);
 }
 
         });
@@ -161,5 +161,5 @@ app.get('/__ping', async (req, res) => {
 
 /* ===== Iniciar servidor ===== */
 httpServer.listen(PORT, () => {
-  console.log(`🚀 HTTP + Socket.IO escuchando en http://localhost:${PORT}`);
+  console.log(`HTTP + Socket.IO escuchando en http://localhost:${PORT}`);
 });

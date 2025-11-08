@@ -1,6 +1,8 @@
+//sirve para definir el modelo de datos de un comprador en la base de datos
 const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
 
+// Define el modelo de Comprador con sus atributos
 const Buyer = sequelize.define("Buyer", {
   id: {
     type: DataTypes.INTEGER,

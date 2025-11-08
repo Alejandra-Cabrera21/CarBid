@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const Usuario = require('../models/usuarioModel');
 
-// 🟢 REGISTRO DE USUARIO (permite ambos roles)
+// REGISTRO DE USUARIO (permite ambos roles)
 router.post('/register', (req, res) => {
   let { nombre, correo, contraseña, es_vendedor, es_comprador } = req.body;
 

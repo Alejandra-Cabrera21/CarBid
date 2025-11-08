@@ -1,10 +1,12 @@
-const express = require("express");
-const path = require("path");
-const fs = require("fs");
-const multer = require("multer");
-const db = require("../db");
-const authRequired = require("../middleware/authRequired");
+//sirve para manejar las rutas relacionadas con las subastas en la aplicación
+const express = require("express"); // Importa Express para manejar rutas
+const path = require("path"); // Módulo para manejar rutas de archivos
+const fs = require("fs"); // Módulo para manejar el sistema de archivos
+const multer = require("multer"); // Importa Multer para manejo de archivos
+const db = require("../db"); // Importa la instancia de la base de datos
+const authRequired = require("../middleware/authRequired"); // Middleware para autenticación
 
+// Crea un router de Express
 const router = express.Router();
 
 /* ====== Multer: almacenamiento local en /uploads ====== */
@@ -12,12 +14,12 @@ const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     const dest = path.join(__dirname, "..", "uploads");
     fs.mkdirSync(dest, { recursive: true });
-    cb(null, dest);
+    cb(null, dest); // Directorio de destino
   },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     const name = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-    cb(null, name);
+    cb(null, name); // Nombre del archivo
   },
 });
 const upload = multer({
@@ -27,7 +29,7 @@ const upload = multer({
     const ok = /(jpe?g|png)$/i.test(path.extname(file.originalname));
     cb(ok ? null : new Error("Formato no permitido (use JPG/PNG)"), ok);
   },
-});
+}); // Configura Multer para subidas de imágenes
 
 /* ====== Helpers ====== */
 function requireVendedor(req, res, next) {
@@ -44,6 +46,7 @@ function isValidYear(y) {
   return !isNaN(n) && n >= 1900 && n <= current;
 }
 
+//para manejar la creación, cierre y listado de subastas
 /* ========== POST /api/subastas (crear) ========== */
 router.post("/", authRequired, requireVendedor, (req, res) => {
   upload.array("images", 6)(req, res, (multerErr) => {

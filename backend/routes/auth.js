@@ -8,6 +8,10 @@ const nodemailer = require("nodemailer");
 
 // Usa variable de entorno en producción
 const SECRET_KEY = process.env.JWT_SECRET || "carbid-secret";
+//JWT secret key para firmar y verificar tokens(usada en autenticación)
+//como funciona jwt.sign(payload, SECRET_KEY) y jwt.verify(token, SECRET_KEY)
+//la clave secreta debe ser segura y no compartida públicamente
+//la clave se usa para asegurar que el token no ha sido alterado
 
 // === Nodemailer (SMTP) ===
 const mailer = nodemailer.createTransport({
@@ -16,11 +20,11 @@ const mailer = nodemailer.createTransport({
   secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
   auth: {
     user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    pass: process.env.SMTP_PASS, // contraseña del SMTP
   },
 });
 
-// 🕒 Suma horas a la fecha actual (para fecha_expiracion)
+//Suma horas a la fecha actual (para fecha_expiracion)
 function sumarHoras(horas) {
   const fecha = new Date();
   fecha.setHours(fecha.getHours() + horas);
@@ -42,6 +46,7 @@ function authRequired(req, res, next) {
     return res.status(401).json({ message: "Token inválido o expirado" });
   }
 
+  // Verificar sesión en BD
   const q = `
     SELECT id, fecha_expiracion 
     FROM sesiones 
@@ -65,7 +70,7 @@ function authRequired(req, res, next) {
 }
 
 /* ======================================================
-   🔹 LOGIN COMPRADOR
+   LOGIN COMPRADOR
 ====================================================== */
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
@@ -75,7 +80,7 @@ router.post("/login", (req, res) => {
   const sql = "SELECT * FROM usuarios WHERE correo = ?";
   db.query(sql, [email], (err, results) => {
     if (err) {
-      console.error("❌ Error DB:", err);
+      console.error("Error DB:", err);
       return res.status(500).json({ message: "Error en el servidor." });
     }
     if (results.length === 0)
@@ -103,7 +108,7 @@ router.post("/login", (req, res) => {
     `;
     db.query(insert, [user.id, token, "N", "S", sumarHoras(2)], (err2) => {
       if (err2) {
-        console.error("❌ Error al registrar sesión:", err2);
+        console.error("Error al registrar sesión:", err2);
         return res.status(500).json({ message: "Error al registrar sesión." });
       }
 
@@ -118,7 +123,7 @@ router.post("/login", (req, res) => {
 });
 
 /* ======================================================
-   🔹 LOGIN VENDEDOR
+   LOGIN VENDEDOR
 ====================================================== */
 router.post("/login-vendedor", (req, res) => {
   const { email, password } = req.body;
@@ -128,7 +133,7 @@ router.post("/login-vendedor", (req, res) => {
   const sql = "SELECT * FROM usuarios WHERE correo = ?";
   db.query(sql, [email], (err, results) => {
     if (err) {
-      console.error("❌ Error DB:", err);
+      console.error("Error DB:", err);
       return res.status(500).json({ message: "Error en el servidor." });
     }
     if (results.length === 0)
@@ -156,7 +161,7 @@ router.post("/login-vendedor", (req, res) => {
     `;
     db.query(insert, [user.id, token, "S", "N", sumarHoras(2)], (err2) => {
       if (err2) {
-        console.error("❌ Error al registrar sesión:", err2);
+        console.error("Error al registrar sesión:", err2);
         return res.status(500).json({ message: "Error al registrar sesión." });
       }
 
@@ -171,14 +176,14 @@ router.post("/login-vendedor", (req, res) => {
 });
 
 /* ======================================================
-   🔹 PING protegido (para validar sesión en el cliente)
+    PING protegido (para validar sesión en el cliente)
 ====================================================== */
 router.get("/ping", authRequired, (_req, res) => {
   res.json({ ok: true });
 });
 
 /* ======================================================
-   🔹 LOGOUT: expira la sesión en BD de inmediato
+   LOGOUT: expira la sesión en BD de inmediato
 ====================================================== */
 router.post("/logout", authRequired, (req, res) => {
   const q = "UPDATE sesiones SET fecha_expiracion = NOW() WHERE id = ?";
@@ -189,7 +194,7 @@ router.post("/logout", authRequired, (req, res) => {
 });
 
 /* ======================================================
-   🔹 OLVIDÉ MI CONTRASEÑA (solicitar código)
+   OLVIDÉ MI CONTRASEÑA (solicitar código)
    POST /api/auth/forgot  { email }
    - Genera un código de 6 dígitos, válido 15 min
    - En dev devuelve devHint con el código
@@ -256,7 +261,7 @@ router.post("/forgot", (req, res) => {
 });
 
 /* ======================================================
-   🔹 VERIFICAR CÓDIGO Y CAMBIAR CONTRASEÑA
+   VERIFICAR CÓDIGO Y CAMBIAR CONTRASEÑA
    POST /api/auth/forgot/verify
    body: { email, code, newPassword }
 ====================================================== */

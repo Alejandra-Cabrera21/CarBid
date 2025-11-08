@@ -14,9 +14,9 @@ const pool = mysql.createPool({
 
 pool.getConnection((err, conn) => {
   if (err) {
-    console.error("❌ Error al conectar al pool MySQL:", err);
+    console.error("Error al conectar al pool MySQL:", err);
   } else {
-    console.log("✅ Conexión exitosa a MySQL (AWS RDS)");
+    console.log("Conexión exitosa a MySQL (AWS RDS)");
     conn.release();
   }
 });

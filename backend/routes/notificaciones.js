@@ -6,7 +6,7 @@ const authRequired = require("../middleware/authRequired");
 const router = express.Router();
 
 /**
- * 📬 GET /api/notificaciones
+ * GET /api/notificaciones
  * Devuelve las subastas ganadas por el usuario autenticado.
  */
 router.get("/", authRequired, (req, res) => {
@@ -22,7 +22,7 @@ router.get("/", authRequired, (req, res) => {
 
   db.query(q, [userId], (err, rows) => {
     if (err) {
-      console.error("❌ Error DB:", err);
+      console.error("Error DB:", err);
       return res.status(500).json({ message: "Error al consultar ganadores" });
     }
     res.json(rows);
@@ -30,7 +30,7 @@ router.get("/", authRequired, (req, res) => {
 });
 
 /**
- * 🗑️ DELETE /api/notificaciones/:id_subasta
+ * DELETE /api/notificaciones/:id_subasta
  * Elimina la notificación (ganador) para un usuario específico.
  */
 router.delete("/:id_subasta", authRequired, (req, res) => {
@@ -44,7 +44,7 @@ router.delete("/:id_subasta", authRequired, (req, res) => {
 
   db.query(q, [id_subasta, userId], (err, result) => {
     if (err) {
-      console.error("❌ Error al eliminar notificación:", err);
+      console.error("al eliminar notificación:", err);
       return res.status(500).json({ message: "Error al eliminar notificación" });
     }
     if (result.affectedRows === 0) {
