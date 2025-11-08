@@ -24,11 +24,18 @@ function two(n) {
 function Slider({ imagenes }) {
   const [idx, setIdx] = useState(0);
   const hasImgs = imagenes && imagenes.length > 0;
+  const src = hasImgs
+  ? `${HOST}${imagenes[idx].url}`
+  : "img/no-image.png";
 
-  let src = "img/no-image.png";
-  if (hasImgs) {
-    const url = imagenes[idx].url || "";
-    src = url.startsWith("http") ? url : `${HOST}${url}`;
+  if (!hasImgs) {
+    return (
+      <img
+        src={src}
+        alt="Sin imagen"
+        style={{ height: 220, objectFit: "cover", borderRadius: 8, width: "100%" }}
+      />
+    );
   }
 
   const prev = () => setIdx((p) => (p - 1 + imagenes.length) % imagenes.length);
