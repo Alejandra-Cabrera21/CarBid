@@ -198,16 +198,84 @@ router.get("/:id", (req, res) => {
 
 /* ========== GET /api/subastas (listado público) ========== */
 router.get("/", (req, res) => {
-  const estado = (req.query.estado || "ABIERTA").toUpperCase() === "CERRADA" ? "CERRADA" : "ABIERTA";
-  const q = `
-    SELECT id, marca, modelo, anio, precio_base, estado, fin
-    FROM subastas
-    WHERE estado = ?
-    ORDER BY fin ASC
+  const estado =
+    (req.query.estado || "ABIERTA").toUpperCase() === "CERRADA"
+      ? "CERRADA"
+      : "ABIERTA";
+
+  // 1) Subastas + oferta_max en una sola consulta
+  const qSub = `
+    SELECT 
+      s.id,
+      s.marca,
+      s.modelo,
+      s.anio,
+      s.descripcion,
+      s.precio_base,
+      s.estado,
+      s.fin,
+      COALESCE(MAX(p.monto), 0) AS oferta_max
+    FROM subastas s
+    LEFT JOIN pujas p ON p.id_subasta = s.id
+    WHERE s.estado = ?
+    GROUP BY 
+      s.id,
+      s.marca,
+      s.modelo,
+      s.anio,
+      s.descripcion,
+      s.precio_base,
+      s.estado,
+      s.fin
+    ORDER BY s.fin ASC
   `;
-  db.query(q, [estado], (err, rows) => {
-    if (err) return res.status(500).json({ message: "Error DB" });
-    res.json(rows);
+
+  db.query(qSub, [estado], (err, subastas) => {
+    if (err) {
+      console.error("Error DB /api/subastas:", err);
+      return res.status(500).json({ message: "Error DB" });
+    }
+
+    if (!subastas.length) {
+      return res.json([]);
+    }
+
+    // 2) Traer todas las imágenes de esas subastas en una sola consulta
+    const ids = subastas.map((s) => s.id);
+    const qImgs = `
+      SELECT id_subasta, url, es_principal
+      FROM imagenes_subasta
+      WHERE id_subasta IN (?)
+      ORDER BY es_principal DESC, id ASC
+    `;
+
+    db.query(qImgs, [ids], (err2, imgs) => {
+      if (err2) {
+        console.error("Error DB imágenes /api/subastas:", err2);
+        return res.json(
+          subastas.map((s) => ({
+            ...s,
+            imagenes: [],
+          }))
+        );
+      }
+
+      const mapImgs = {};
+      imgs.forEach((img) => {
+        if (!mapImgs[img.id_subasta]) mapImgs[img.id_subasta] = [];
+        mapImgs[img.id_subasta].push({
+          url: img.url,
+          es_principal: img.es_principal,
+        });
+      });
+
+      const result = subastas.map((s) => ({
+        ...s,
+        imagenes: mapImgs[s.id] || [],
+      }));
+
+      res.json(result);
+    });
   });
 });
 

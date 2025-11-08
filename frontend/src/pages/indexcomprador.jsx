@@ -275,50 +275,28 @@ export default function IndexComprador() {
 
   /* ===== Carga subastas ===== */
   // En IndexComprador.jsx
-  const loadSubastas = async (term = "") => {
-
-    let data = [];
-    try {
-      const r = await fetch(`${API}/subastas?estado=ABIERTA`);
-      data = (await r.json()) || [];
-    } catch {
-      data = [];
-    }
+  /* ===== Carga subastas ===== */
+// Ahora el backend ya devuelve imagenes, descripcion y oferta_max
+const loadSubastas = async (term = "") => {
+  try {
+    const r = await fetch(`${API}/subastas?estado=ABIERTA`);
+    let data = (await r.json()) || [];
 
     if (term) {
       const t = term.toLowerCase();
       data = data.filter((s) =>
-        `${s.marca ?? ""} ${s.modelo ?? ""} ${s.descripcion ?? ""}`.toLowerCase().includes(t)
+        `${s.marca ?? ""} ${s.modelo ?? ""} ${s.descripcion ?? ""}`
+          .toLowerCase()
+          .includes(t)
       );
     }
 
-
-    const enriched = await Promise.all(
-      data.map(async (s) => {
-        try {
-          const res = await fetch(`${API}/subastas/${s.id}`);
-          if (!res.ok) throw new Error("detalle 500");
-          const det = await res.json();
-          return {
-            ...s,
-            imagenes: det?.imagenes || [],
-            descripcion: det?.subasta?.descripcion ?? s.descripcion ?? "",
-            oferta_max: det?.oferta_actual ?? s.oferta_max ?? s.oferta ?? 0,
-          };
-        } catch {
-          // Si falla el detalle, igual mostramos la card sin imágenes/desc
-          return {
-            ...s,
-            imagenes: [],
-            descripcion: s.descripcion ?? "",
-            oferta_max: s.oferta_max ?? s.oferta ?? 0,
-          };
-        }
-      })
-    );
-
-    setSubastas(enriched);
-  };
+    setSubastas(data);
+  } catch (e) {
+    console.error("Error cargando subastas:", e);
+    setSubastas([]);
+  }
+};
 
 
   // Carga inicial + polling + focus/visibility refresh
