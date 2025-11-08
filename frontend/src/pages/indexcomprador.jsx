@@ -274,9 +274,16 @@ export default function IndexComprador() {
   }, [navigate]);
 
   /* ===== Carga subastas ===== */
+  // En IndexComprador.jsx
   const loadSubastas = async (term = "") => {
-    const r = await fetch(`${API}/subastas?estado=ABIERTA`);
-    let data = await r.json();
+
+    let data = [];
+    try {
+      const r = await fetch(`${API}/subastas?estado=ABIERTA`);
+      data = (await r.json()) || [];
+    } catch {
+      data = [];
+    }
 
     if (term) {
       const t = term.toLowerCase();
@@ -285,21 +292,34 @@ export default function IndexComprador() {
       );
     }
 
+
     const enriched = await Promise.all(
       data.map(async (s) => {
-        const resImg = await fetch(`${API}/subastas/${s.id}`);
-        const det = await resImg.json();
-        return {
-          ...s,
-          imagenes: det.imagenes || [],
-          descripcion: det.subasta?.descripcion,
-          oferta_max: det.oferta_actual,
-        };
+        try {
+          const res = await fetch(`${API}/subastas/${s.id}`);
+          if (!res.ok) throw new Error("detalle 500");
+          const det = await res.json();
+          return {
+            ...s,
+            imagenes: det?.imagenes || [],
+            descripcion: det?.subasta?.descripcion ?? s.descripcion ?? "",
+            oferta_max: det?.oferta_actual ?? s.oferta_max ?? s.oferta ?? 0,
+          };
+        } catch {
+          // Si falla el detalle, igual mostramos la card sin imágenes/desc
+          return {
+            ...s,
+            imagenes: [],
+            descripcion: s.descripcion ?? "",
+            oferta_max: s.oferta_max ?? s.oferta ?? 0,
+          };
+        }
       })
     );
 
     setSubastas(enriched);
   };
+
 
   // Carga inicial + polling + focus/visibility refresh
   useEffect(() => {
