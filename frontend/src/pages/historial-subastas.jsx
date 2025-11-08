@@ -1,10 +1,12 @@
+// src/pages/historial-subastas.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 import "../styles/historialsubastas.css";
 
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 const API = API_BASE;
-
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "wss://api.carbidp.click";
 
 export default function HistorialSubastas() {
   const navigate = useNavigate();
@@ -139,7 +141,7 @@ export default function HistorialSubastas() {
           infoRef.current.style.display = "";
           infoRef.current.textContent = "No hay subastas cerradas aún.";
         }
-        if (tableWrapRef.current) tableWrapRefRef.current.style.display = "none";
+        if (tableWrapRef.current) tableWrapRef.current.style.display = "none";
         if (cardsWrapRef.current) cardsWrapRef.current.style.display = "none";
         return;
       }
@@ -155,8 +157,43 @@ export default function HistorialSubastas() {
     }
   };
 
+  /* ===== Socket + polling para tiempo real ===== */
   useEffect(() => {
     reload();
+
+    let refreshTimer = null;
+
+    const scheduleRefresh = (keepPage = true) => {
+      if (refreshTimer) return;
+      refreshTimer = setTimeout(async () => {
+        refreshTimer = null;
+        await reload(keepPage);
+      }, 600);
+    };
+
+    let socket;
+    try {
+      socket = io(SOCKET_URL, {
+        path: "/socket.io",
+        transports: ["websocket"],
+      });
+
+      // cuando alguien puja o se marca un ganador, refrescamos
+      socket.on("auction:bid", () => scheduleRefresh(true));
+      socket.on("auction:won", () => scheduleRefresh(true));
+    } catch (e) {
+      console.warn("Socket.IO no disponible en historial-subastas:", e?.message || e);
+    }
+
+    // polling de respaldo cada 20s
+    const poll = setInterval(() => scheduleRefresh(true), 20000);
+
+    return () => {
+      clearInterval(poll);
+      try {
+        socket && socket.disconnect();
+      } catch {}
+    };
   }, []);
 
   return (
