@@ -82,7 +82,7 @@ export default function CrearPublicacion() {
     if (anio) {
       const a = parseInt(anio, 10);
       if (Number.isNaN(a) || a < 1900 || a > 2099)
-        e.anio = "Año inválido (1900–2099)";
+        e.anio = "Año inválido";
     }
 
     if (!precio || Number(precio) <= 0) e.precio = "Debe ser mayor a 0";
