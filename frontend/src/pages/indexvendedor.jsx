@@ -4,10 +4,10 @@ import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
 import "../styles/panel-vendedor.css";
 
+// URL base del backend
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 
-
-
+// Muestra y procesa un posible mensaje guardado en localStorage
 function flashFromLocalStorage(navigate) {
   const raw = localStorage.getItem("flash");
   if (!raw) return false;
@@ -40,6 +40,7 @@ export default function IndexVendedor() {
   const [userName, setUserName] = useState("...");
   const [userId, setUserId] = useState(null);
 
+  // Guarda datos del usuario en estado y en localStorage
   const putUserInStateAndCache = (user) => {
     if (!user) return;
     localStorage.setItem("usuario", JSON.stringify(user));
@@ -47,6 +48,7 @@ export default function IndexVendedor() {
     setUserName(user.nombre || user.correo || "Usuario");
   };
 
+  // Consulta de usuario al backend
   const fetchUser = async (id) => {
     try {
       const r = await fetch(`${API_BASE}/usuario/${encodeURIComponent(id)}`, {
@@ -59,6 +61,7 @@ export default function IndexVendedor() {
     }
   };
 
+  // Validación de sesión, rol vendedor y refresco de usuario
   useEffect(() => {
     const uStr = localStorage.getItem("usuario");
     const uObj = uStr ? JSON.parse(uStr) : null;
@@ -104,6 +107,7 @@ export default function IndexVendedor() {
 
     ensureVendedor();
 
+    // Actualiza datos del usuario al volver a la pestaña
     const onVisible = async () => {
       if (document.visibilityState === "visible") {
         const freshed = await fetchUser(id);
@@ -114,6 +118,7 @@ export default function IndexVendedor() {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [navigate]);
 
+  // Limpia sesión y vuelve al inicio
   const logout = () => {
     localStorage.removeItem("rolActual");
     localStorage.removeItem("userId");
@@ -126,7 +131,7 @@ export default function IndexVendedor() {
 
   return (
     <>
-      {/* Navbar */}
+      {/* Navbar principal del panel vendedor */}
       <header className="navbar">
         <div className="logo">
           <img src="/img/logo.png" alt="CarBid" />
@@ -141,7 +146,7 @@ export default function IndexVendedor() {
         </nav>
       </header>
 
-      {/* Contenido */}
+      {/* Zona central con las acciones principales */}
       <main className="panel-container">
         <h2>
           Bienvenid@ <span id="nombreUsuario">{userName}</span>

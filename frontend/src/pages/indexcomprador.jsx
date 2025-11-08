@@ -4,14 +4,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
+
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 const API = API_BASE;
-
-// Archivos/imagenes estáticas del backend (quita el sufijo /api)
 const HOST = API_BASE.replace(/\/api$/, "");
 
-const FAST_POLL_MS = 10000;           // notificaciones
-const AUCTION_POLL_MS = 15000;        // ⬅️ polling de subastas (fallback)
+const FAST_POLL_MS = 10000;
+const AUCTION_POLL_MS = 15000;
 
 function fmtQ(n) {
   return "Q" + Number(n ?? 0).toLocaleString();
@@ -20,13 +19,11 @@ function two(n) {
   return String(n).padStart(2, "0");
 }
 
-/* ==================== Slider ==================== */
+/* ===== Slider de imágenes ===== */
 function Slider({ imagenes }) {
   const [idx, setIdx] = useState(0);
   const hasImgs = imagenes && imagenes.length > 0;
-  const src = hasImgs
-  ? `${HOST}${imagenes[idx].url}`
-  : "img/no-image.png";
+  const src = hasImgs ? `${HOST}${imagenes[idx].url}` : "img/no-image.png";
 
   if (!hasImgs) {
     return (
@@ -54,7 +51,7 @@ function Slider({ imagenes }) {
   );
 }
 
-/* ==================== Card Subasta ==================== */
+/* ===== Card de subasta ===== */
 function SubastaCard({ sub, onPujar }) {
   const [now, setNow] = useState(Date.now());
 
@@ -121,7 +118,7 @@ function SubastaCard({ sub, onPujar }) {
   );
 }
 
-/* ==================== Notificaciones ==================== */
+/* ===== Panel de notificaciones ===== */
 function NotifPanel({ open, items, onDelete }) {
   if (!open) return null;
   return (
@@ -132,7 +129,11 @@ function NotifPanel({ open, items, onDelete }) {
         items.map((n, i) => (
           <div className="notif-item" key={`${n.id_subasta}-${i}`}>
             <div className="txt" dangerouslySetInnerHTML={{ __html: n.text }} />
-            <button className="notif-del" aria-label="Eliminar notificación" onClick={() => onDelete(i)}>
+            <button
+              className="notif-del"
+              aria-label="Eliminar notificación"
+              onClick={() => onDelete(i)}
+            >
               <svg viewBox="0 0 24 24" strokeWidth="1.8">
                 <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
@@ -146,7 +147,7 @@ function NotifPanel({ open, items, onDelete }) {
   );
 }
 
-/* ==================== Diálogo Puja ==================== */
+/* ===== Diálogo para ingresar puja ===== */
 function DialogPuja({ open, onClose, onAccept }) {
   const [monto, setMonto] = useState("");
   const inputRef = useRef(null);
@@ -161,7 +162,12 @@ function DialogPuja({ open, onClose, onAccept }) {
   if (!open) return null;
 
   return (
-    <div id="dialog" role="dialog" aria-modal="true" onClick={(e) => e.target.id === "dialog" && onClose()}>
+    <div
+      id="dialog"
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => e.target.id === "dialog" && onClose()}
+    >
       <div className="box">
         <h3>Ingresar oferta</h3>
         <input
@@ -184,14 +190,16 @@ function DialogPuja({ open, onClose, onAccept }) {
   );
 }
 
-/* ==================== Página Principal ==================== */
+/* ===== Página principal del comprador ===== */
 export default function IndexComprador() {
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
 
   const [search, setSearch] = useState("");
-  const searchRef = useRef("");                      // ⬅️ guardamos el término actual
-  useEffect(() => { searchRef.current = search; }, [search]);
+  const searchRef = useRef("");
+  useEffect(() => {
+    searchRef.current = search;
+  }, [search]);
 
   const [subastas, setSubastas] = useState([]);
   const [notifs, setNotifs] = useState([]);
@@ -200,7 +208,7 @@ export default function IndexComprador() {
   const bellRef = useRef(null);
   const notifRef = useRef(null);
 
-  /* ===== Guardia de sesión + flash + rol ===== */
+  // validación de sesión y rol
   useEffect(() => {
     const uStr = localStorage.getItem("usuario");
     let uObj = uStr ? JSON.parse(uStr) : null;
@@ -226,7 +234,12 @@ export default function IndexComprador() {
           position: "right",
           close: true,
           style: {
-            background: f.type === "warn" ? "#f59e0b" : f.type === "error" ? "#dc2626" : "#22c55e",
+            background:
+              f.type === "warn"
+                ? "#f59e0b"
+                : f.type === "error"
+                ? "#dc2626"
+                : "#22c55e",
             color: "#fff",
             borderRadius: "10px",
           },
@@ -235,71 +248,62 @@ export default function IndexComprador() {
       } catch {}
     }
 
- (async () => {
-  const esComprador = (u) =>
-    u &&
-    (
-      u.es_comprador === "S" ||
-      u.es_comprador === "s" ||
-      u.es_comprador === 1 ||
-      u.es_comprador === "1" ||
-      u.es_comprador === true
-    );
+    (async () => {
+      const esComprador = (u) =>
+        u &&
+        (u.es_comprador === "S" ||
+          u.es_comprador === "s" ||
+          u.es_comprador === 1 ||
+          u.es_comprador === "1" ||
+          u.es_comprador === true);
 
-  // 1) Si localStorage no tiene comprador “válido”, refrescamos desde la API
-  if (!esComprador(uObj)) {
-    try {
-      const r = await fetch(`${API}/usuario/${encodeURIComponent(uid)}`);
-      if (r.ok) {
-        uObj = await r.json();
-        localStorage.setItem("usuario", JSON.stringify(uObj));
+      if (!esComprador(uObj)) {
+        try {
+          const r = await fetch(`${API}/usuario/${encodeURIComponent(uid)}`);
+          if (r.ok) {
+            uObj = await r.json();
+            localStorage.setItem("usuario", JSON.stringify(uObj));
+          }
+        } catch {}
       }
-    } catch {}
-  }
 
-  // 2) Volvemos a evaluar con lo que tengamos (local o API)
-  if (!esComprador(uObj)) {
-    Toastify({
-      text: "Ya no eres comprador. Te sacamos del panel.",
-      duration: 1800,
-      gravity: "top",
-      position: "right",
-      close: true,
-      style: { background: "#f59e0b", color: "#fff", borderRadius: "10px" },
-    }).showToast();
-    setTimeout(() => navigate("/"), 1800);
-  }
-})();
-
+      if (!esComprador(uObj)) {
+        Toastify({
+          text: "Ya no eres comprador. Te sacamos del panel.",
+          duration: 1800,
+          gravity: "top",
+          position: "right",
+          close: true,
+          style: { background: "#f59e0b", color: "#fff", borderRadius: "10px" },
+        }).showToast();
+        setTimeout(() => navigate("/"), 1800);
+      }
+    })();
   }, [navigate]);
 
-  /* ===== Carga subastas ===== */
-  // En IndexComprador.jsx
-  /* ===== Carga subastas ===== */
-// Ahora el backend ya devuelve imagenes, descripcion y oferta_max
-const loadSubastas = async (term = "") => {
-  try {
-    const r = await fetch(`${API}/subastas?estado=ABIERTA`);
-    let data = (await r.json()) || [];
+  // carga de subastas (con filtro)
+  const loadSubastas = async (term = "") => {
+    try {
+      const r = await fetch(`${API}/subastas?estado=ABIERTA`);
+      let data = (await r.json()) || [];
 
-    if (term) {
-      const t = term.toLowerCase();
-      data = data.filter((s) =>
-        `${s.marca ?? ""} ${s.modelo ?? ""} ${s.descripcion ?? ""}`
-          .toLowerCase()
-          .includes(t)
-      );
+      if (term) {
+        const t = term.toLowerCase();
+        data = data.filter((s) =>
+          `${s.marca ?? ""} ${s.modelo ?? ""} ${s.descripcion ?? ""}`
+            .toLowerCase()
+            .includes(t)
+        );
+      }
+
+      setSubastas(data);
+    } catch (e) {
+      console.error("Error cargando subastas:", e);
+      setSubastas([]);
     }
+  };
 
-    setSubastas(data);
-  } catch (e) {
-    console.error("Error cargando subastas:", e);
-    setSubastas([]);
-  }
-};
-
-
-  // Carga inicial + polling + focus/visibility refresh
+  // carga inicial + polling + refresco por foco/visibilidad
   useEffect(() => {
     let stop = false;
 
@@ -308,12 +312,14 @@ const loadSubastas = async (term = "") => {
       await loadSubastas(searchRef.current);
     };
 
-    refresh(); // inicial
+    refresh();
 
     const poll = setInterval(refresh, AUCTION_POLL_MS);
 
     const onFocus = () => refresh();
-    const onVisibility = () => { if (!document.hidden) refresh(); };
+    const onVisibility = () => {
+      if (!document.hidden) refresh();
+    };
 
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisibility);
@@ -326,7 +332,7 @@ const loadSubastas = async (term = "") => {
     };
   }, []);
 
-  // Debounce por búsqueda (conservado)
+  // debounce para búsqueda
   useEffect(() => {
     const id = setTimeout(() => loadSubastas(search), 250);
     return () => clearTimeout(id);
@@ -340,7 +346,7 @@ const loadSubastas = async (term = "") => {
       return;
     }
     try {
-       const r = await fetch(`${API}/notificaciones?t=${Date.now()}`, {
+      const r = await fetch(`${API}/notificaciones?t=${Date.now()}`, {
         headers: { Authorization: "Bearer " + token },
       });
       if (!r.ok) throw new Error("Error al cargar notificaciones");
@@ -348,11 +354,13 @@ const loadSubastas = async (term = "") => {
       setNotifs(
         data.map((n) => ({
           id_subasta: n.id_subasta,
-          text: ` Ganaste <b>${n.marca} ${n.modelo}</b> por Q${Number(n.monto).toLocaleString()}`,
+          text: ` Ganaste <b>${n.marca} ${n.modelo}</b> por Q${Number(
+            n.monto
+          ).toLocaleString()}`,
         }))
       );
     } catch (e) {
-      // opcional
+      // silencioso
     }
   };
 
@@ -376,6 +384,7 @@ const loadSubastas = async (term = "") => {
     }
   };
 
+  // refresco de notificaciones (polling + foco/visibilidad)
   useEffect(() => {
     loadNotificaciones();
     const i = setInterval(loadNotificaciones, FAST_POLL_MS);
@@ -392,7 +401,7 @@ const loadSubastas = async (term = "") => {
     };
   }, []);
 
-  // Cerrar panel si se hace click afuera o ESC
+  // cerrar panel de notifs al hacer click afuera o con ESC
   useEffect(() => {
     const onClick = (e) => {
       if (!notifRef.current || !bellRef.current) return;
@@ -409,14 +418,13 @@ const loadSubastas = async (term = "") => {
     };
   }, []);
 
-  /* ===== Socket.io ===== */
-  /* ===== Socket.io ===== */
+  /* ===== Socket.io (tiempo real) ===== */
   useEffect(() => {
     const socket = io(
       import.meta.env.VITE_SOCKET_BASE || "wss://api.carbidp.click",
       {
         path: "/socket.io",
-        transports: ["websocket"], // en prod sólo websocket
+        transports: ["websocket"],
         withCredentials: false,
       }
     );
@@ -439,7 +447,6 @@ const loadSubastas = async (term = "") => {
     return () => socket.disconnect();
   }, []);
 
-
   /* ===== Pujar ===== */
   const onPujar = (id) => setIdSubastaActual(id);
   const onCloseDialog = () => setIdSubastaActual(null);
@@ -450,14 +457,17 @@ const loadSubastas = async (term = "") => {
     try {
       const r = await fetch(`${API}/pujas`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
         body: JSON.stringify({ id_subasta: idSubastaActual, monto }),
       });
       const data = await r.json();
       if (r.ok) {
         toast("Puja registrada correctamente");
         onCloseDialog();
-        loadSubastas(searchRef.current); // ⬅️ refrescar usando el término actual
+        loadSubastas(searchRef.current);
       } else toast("⚠️ " + (data.message || "Error desconocido"));
     } catch {
       toast("No se pudo conectar con el servidor.");
@@ -508,8 +518,8 @@ const loadSubastas = async (term = "") => {
   cursor:pointer;
   background:transparent;
   border:none;
-  outline:none;          /* 👈 quita la orilla */
-  box-shadow:none;       /* 👈 por si algún estilo global le pone sombra */
+  outline:none;
+  box-shadow:none;
   padding:0;
   display:inline-flex;
   align-items:center;
@@ -518,7 +528,6 @@ const loadSubastas = async (term = "") => {
   height:28px;
 }
 
-/* fuerza a que en foco tampoco pinte borde */
 #bell:focus,
 #bell:focus-visible,
 #bell:active {
@@ -544,8 +553,8 @@ const loadSubastas = async (term = "") => {
 
    #notif-box{
   position:absolute;
-  right:0;                         /* pegado al borde derecho / campana */
-  top: calc(100% + 18px);           /* justo debajo del header/right */
+  right:0;
+  top: calc(100% + 18px);
   background:#1f2937;
   color:#fff;
   border-radius:10px;
@@ -630,9 +639,7 @@ const loadSubastas = async (term = "") => {
       border-radius:8px;
     }
 
-    /* ===== Botones del diálogo ===== */
-
-    /* Aceptar: se queda con el color general (brand) */
+    /* Botones del diálogo */
     #dialog .box #btnAceptar{
       background:var(--brand);
     }
@@ -640,7 +647,6 @@ const loadSubastas = async (term = "") => {
       background:var(--brand-hover);
     }
 
-    /* Cancelar: rojo */
     #dialog .box button[type="button"]{
       background:#b91c1c;
     }
@@ -673,10 +679,11 @@ const loadSubastas = async (term = "") => {
         </div>
 
         <div className="right" style={{ position: "relative" }}>
-          {/* ⇨ SPA links */}
           <Link to="/historial-subastas">Historial Subastas</Link>
           <Link to={`/perfil?id=${encodeURIComponent(userId || "")}`}>Mi perfil</Link>
-          <Link to="/" onClick={onSalir}>Salir</Link>
+          <Link to="/" onClick={onSalir}>
+            Salir
+          </Link>
 
           <button
             id="bell"
@@ -691,7 +698,6 @@ const loadSubastas = async (term = "") => {
             <span id="notif-count">{bellCount}</span>
           </button>
 
-          {/* Panel */}
           <div ref={notifRef} style={{ position: "relative" }}>
             <NotifPanel open={notifOpen} items={notifs} onDelete={deleteNotif} />
           </div>
@@ -707,20 +713,18 @@ const loadSubastas = async (term = "") => {
         </div>
       </main>
 
-      {/* Diálogo Puja */}
       <DialogPuja
         open={idSubastaActual !== null}
         onClose={onCloseDialog}
         onAccept={onAcceptPuja}
       />
 
-      {/* Fallback toast local */}
       <div id="toast" role="status" aria-live="polite" />
     </>
   );
 }
 
-/* ==================== Mini util toast ==================== */
+/* ===== Utilidad simple para toast ===== */
 function toast(text) {
   if (typeof window !== "undefined" && window.document) {
     try {

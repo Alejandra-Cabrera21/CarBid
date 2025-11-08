@@ -1,4 +1,4 @@
-/* ===== Reset general ===== */
+/* Reset general */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -18,7 +18,7 @@ body {
   font-family: "Poppins", Arial, sans-serif;
 }
 
-/* ===== Navbar (solo escritorio) ===== */
+/* Navbar escritorio */
 .navbar {
   background: #111;
   color: #fff;
@@ -42,7 +42,7 @@ body {
   align-items: center;
 }
 
-/* ===== Botones ===== */
+/* Botones principales */
 .home-btn,
 .dropbtn {
   background: transparent;
@@ -78,7 +78,7 @@ body {
   transform: rotate(180deg);
 }
 
-/* ===== Dropdown ===== */
+/* Dropdown menú */
 .dropdown {
   position: relative;
   display: inline-block;
@@ -120,13 +120,13 @@ body {
   color: #fff;
 }
 
-/* ===== Hero (escritorio) ===== */
+/* Hero escritorio */
 .hero {
   position: relative;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  height: calc(100vh - 70px); /* header de escritorio */
+  height: calc(100vh - 70px);
   background-color: #000;
 }
 
@@ -141,7 +141,7 @@ body {
   border: none;
 }
 
-/* ===== Visibilidad ===== */
+/* Visibilidad desktop/móvil */
 .only-desktop {
   display: flex;
 }
@@ -149,17 +149,13 @@ body {
   display: none;
 }
 
-/* =========================================================
-   =======================   MÓVIL   =======================
-   ========================================================= */
+/* ====================== MÓVIL ====================== */
 @media (max-width: 768px) {
-  /* 🔹 Oculta SOLO lo que tenga .only-desktop (la cabecera de la home) */
   .only-desktop {
     display: none !important;
     visibility: hidden !important;
   }
 
-  /* 🔹 Muestra la tarjeta central de la home */
   .only-mobile {
     display: block !important;
   }
@@ -175,13 +171,13 @@ body {
     background-color: #000;
   }
 
-  /* 🔥 Hero cubre TODO el viewport SIN dejar espacio arriba */
+  /* Hero móvil pantalla completa */
   .hero {
-    position: fixed;          /* se pega a la ventana, no al flujo */
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100vh;            /* alto total de la pantalla */
+    height: 100vh;
     margin: 0 !important;
     padding: 0 !important;
     background-color: #000;
@@ -208,7 +204,7 @@ body {
     z-index: 1;
   }
 
-  /* Tarjeta centrada */
+  /* Tarjeta central home móvil */
   .home-overlay-card {
     position: absolute;
     left: 50%;

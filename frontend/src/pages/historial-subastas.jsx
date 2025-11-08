@@ -14,6 +14,7 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || HOST;
 export default function HistorialSubastas() {
   const navigate = useNavigate();
 
+  // estado principal de la vista
   const [rows, setRows] = useState([]);
   const [q, setQ] = useState("");
   const [sortBy, setSortBy] = useState("fecha"); // fecha | vehiculo | precio | mi | ganadora | resultado | estado
@@ -21,12 +22,13 @@ export default function HistorialSubastas() {
   const [page, setPage] = useState(1);
   const pageSize = 5;
 
+  // refs para mensaje, tabla, cards y paginador
   const infoRef = useRef(null);
   const tableWrapRef = useRef(null);
   const cardsWrapRef = useRef(null);
   const pagerRef = useRef(null);
 
-  /* ===== Formatters ===== */
+  // formatters básicos
   const fmtGTQ = useMemo(
     () => new Intl.NumberFormat("es-GT", { maximumFractionDigits: 0 }),
     []
@@ -41,7 +43,7 @@ export default function HistorialSubastas() {
     []
   );
 
-  /* ===== Normalizador para la vista ===== */
+  // adapta el registro del backend a lo que se muestra en pantalla
   function normalize(r) {
     const d = r.fecha_cierre ? new Date(r.fecha_cierre) : null;
     return {
@@ -53,11 +55,11 @@ export default function HistorialSubastas() {
       resultado: r.resultado || "—",
       estado: r.estado || "CERRADA",
       fecha: d ? fmtDate.format(d) : "",
-      ts: d ? d.getTime() : 0, // timestamp de cierre
+      ts: d ? d.getTime() : 0,
     };
   }
 
-  /* ===== Filtro, orden y paginado ===== */
+  // filtro, orden y página actual
   const view = useMemo(() => {
     const term = q.trim().toLowerCase();
     const mul = sortDir === "asc" ? 1 : -1;
@@ -73,11 +75,11 @@ export default function HistorialSubastas() {
         );
       });
 
-    // 🔥 Siempre ordenar por fecha de cierre (ts), no por alfabeto
+    // ordenar por fecha de cierre (ts)
     filtered.sort((a, b) => (a.ts - b.ts) * mul);
 
     return filtered;
-  }, [rows, q, sortBy, sortDir]); // dejo sortBy en deps aunque ya no se use, para no tocar más cosas
+  }, [rows, q, sortBy, sortDir]); // se deja sortBy en deps aunque no se use para no cambiar más lógica
 
   const total = view.length;
   const pages = Math.max(1, Math.ceil(total / pageSize));
@@ -89,7 +91,7 @@ export default function HistorialSubastas() {
     if (page < 1) setPage(1);
   }, [pages, page]);
 
-  /* ===== Layout (tabla vs cards) ===== */
+  // alterna entre tabla (desktop) y cards (móvil)
   const refreshLayout = () => {
     if (!tableWrapRef.current || !cardsWrapRef.current || !pagerRef.current) return;
     const isMobile = window.matchMedia("(max-width: 640px)").matches;
@@ -116,7 +118,7 @@ export default function HistorialSubastas() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  /* ===== Data ===== */
+  // llamada al backend
   const loadData = async () => {
     const token = localStorage.getItem("token") || "";
     const r = await fetch(`${API}/historial-subastas`, {
@@ -127,11 +129,12 @@ export default function HistorialSubastas() {
     return r.json();
   };
 
+  // recarga datos y maneja estados de la vista
   const reload = async (keepPage = false) => {
     try {
       const data = await loadData();
 
-      // ⛔ Evitar duplicados por id_subasta
+      // evita duplicados por id_subasta
       const seen = new Set();
       const unique = [];
       for (const row of Array.isArray(data) ? data : []) {
@@ -167,9 +170,8 @@ export default function HistorialSubastas() {
     }
   };
 
-  /* ===== Socket + polling para tiempo real ===== */
+  // socket + polling para mantener el historial actualizado
   useEffect(() => {
-    // Carga inicial
     reload();
 
     let refreshTimer = null;
@@ -189,14 +191,12 @@ export default function HistorialSubastas() {
         transports: ["websocket"],
       });
 
-      // cuando alguien puja o se marca un ganador, refrescamos
       socket.on("auction:bid", () => scheduleRefresh(true));
       socket.on("auction:won", () => scheduleRefresh(true));
     } catch (e) {
       console.warn("Socket.IO no disponible en historial-subastas:", e?.message || e);
     }
 
-    // Polling de respaldo cada 5s
     const poll = setInterval(() => scheduleRefresh(true), 5000);
 
     return () => {

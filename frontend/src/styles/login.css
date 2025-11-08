@@ -87,7 +87,7 @@ form label {
 }
 .field input::placeholder { color:#9aa0a6; }
 
-/* 👁 Botón ver/ocultar — fijo adentro a la derecha */
+
 .field .toggle-pass {
   position: absolute;
   top: 50%;

@@ -168,7 +168,7 @@ td:nth-child(2) {
   width: 26%;
 }
 
-/* Oferta (Q): header centrado, valores a la derecha */
+
 th:nth-child(3) {
   width: 20%;
 }
@@ -193,7 +193,6 @@ td:nth-child(4) {
   white-space: nowrap;
 }
 
-/* Mensaje de estado */
 .state {
   color: var(--muted);
   text-align: center;
@@ -306,7 +305,7 @@ td:nth-child(4) {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #fff;              /* flecha + fecha + "Regresar" en blanco por defecto */
+  color: #fff;             
   font-weight: 600;
   background: transparent;
   border: none;
@@ -315,12 +314,11 @@ td:nth-child(4) {
   font: inherit;
   outline: none;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.15s ease-in-out; /* animación suave */
+  transition: color 0.15s ease-in-out; 
 }
 
-/* al pasar el mouse: todo el texto del botón se pone azul */
 .back:hover {
-  color: var(--accent);      /* #2563eb */
+  color: var(--accent);      
 }
 
 .back:focus,

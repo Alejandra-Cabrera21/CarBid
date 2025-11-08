@@ -15,11 +15,11 @@ export default function CrearPublicacion() {
   const [files, setFiles] = useState([]);
   const [thumbs, setThumbs] = useState([]);
 
-  // errores
+  // Estado de errores del formulario
   const [errs, setErrs] = useState({});
   const finMinRef = useRef("");
 
-  // 🔧 Asegura que no quede el body sin scroll si vienes de un modal
+  // Limpia posibles clases del body al entrar a la pantalla
   useEffect(() => {
     document.body.classList.remove("modal-open");
   }, []);
@@ -46,13 +46,11 @@ export default function CrearPublicacion() {
     finMinRef.current = iso;
   }, []);
 
-  // Thumbnails
+  // Thumbnails de imágenes seleccionadas
   useEffect(() => {
-    // revocar urls anteriores
     thumbs.forEach((u) => URL.revokeObjectURL(u));
     const urls = files.slice(0, 6).map((f) => URL.createObjectURL(f));
     setThumbs(urls);
-    // cleanup
     return () => urls.forEach((u) => URL.revokeObjectURL(u));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [files]);
@@ -62,7 +60,7 @@ export default function CrearPublicacion() {
     setFiles(flist);
   };
 
-  // 🔴 Validación reutilizable (con o sin toast)
+  // Validación del formulario
   const validar = (showToast = true) => {
     const e = {};
 
@@ -104,13 +102,13 @@ export default function CrearPublicacion() {
     return Object.keys(e).length === 0;
   };
 
-  // 🆕 Recalcular errores en tiempo real mientras escribe
+  // Actualiza errores en tiempo real mientras se escribe
   useEffect(() => {
-    validar(false); // sin toast, solo llena errs
+    validar(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marca, modelo, descripcion, anio, precio, fin, files]);
 
-  // Para deshabilitar el botón hasta que todo esté correcto
+  // Habilita o deshabilita el botón según la validación
   const formOk = useMemo(() => {
     const marcaTrim = marca.trim();
     const modeloTrim = modelo.trim();
@@ -136,8 +134,8 @@ export default function CrearPublicacion() {
     return true;
   }, [marca, modelo, descripcion, anio, precio, fin, files]);
 
+  // Envío de la publicación al backend
   const onCrear = async () => {
-    // aquí sí queremos toast si hay errores
     if (!validar(true)) return;
 
     const token = localStorage.getItem("token");
@@ -173,7 +171,7 @@ export default function CrearPublicacion() {
       if (res.ok) {
         toast((data && data.message) || "Publicación creada", "success");
         setTimeout(() => {
-          // redirige al panel vendedor (ruta SPA)
+          // redirige al panel vendedor
           window.location.href = "/indexvendedor";
         }, 900);
       } else {
@@ -202,7 +200,7 @@ export default function CrearPublicacion() {
         --error:#ff4d4f;
       }
 
-      /* ✅ permite scroll vertical, bloquea horizontal */
+      /* Scroll vertical y bloqueo horizontal */
       html, body {
         margin: 0;
         padding: 0;
@@ -241,7 +239,7 @@ export default function CrearPublicacion() {
       .thumbs{ display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; max-width:100%; overflow-x:auto }
       .thumbs img{ width:110px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #333 }
 
-      /* 🆕 estilo del texto de error */
+      /* Texto de error */
       .error{
         display:block;
         color:var(--error);
@@ -265,19 +263,17 @@ export default function CrearPublicacion() {
         font-weight:500;
       }
 
-      /* HABILITADO = AZUL */
       .btn-primary{
-        background:#2563eb;   /* azul CarBid */
+        background:#2563eb;
         color:#fff;
       }
 
-      /* DESHABILITADO = CELESTE */
       .btn-primary:disabled,
       .btn-primary[disabled]{
-        background:#67c7d6;   /* celeste clarito */
+        background:#67c7d6;
         color:#0f172a;
         cursor:not-allowed;
-        opacity:1;            /* para que no se vea apagado */
+        opacity:1;
       }
 
       .btn-cancel{
@@ -285,7 +281,7 @@ export default function CrearPublicacion() {
         color:#fff;
       }
 
-      /* ===== Toastify: texto blanco y colores por tipo ===== */
+      /* Toastify */
       .toastify{
         color:#fff !important;
         border-radius:10px !important;
@@ -296,9 +292,9 @@ export default function CrearPublicacion() {
         color:#fff !important;
         opacity:1 !important;
       }
-      .toastify.success{ background:#16a34a !important; } /* verde */
-      .toastify.error  { background:#dc2626 !important; } /* rojo */
-      .toastify.info   { background:#2563eb !important; } /* azul */
+      .toastify.success{ background:#16a34a !important; }
+      .toastify.error  { background:#dc2626 !important; }
+      .toastify.info   { background:#2563eb !important; }
       .toastify:hover{ filter:brightness(.98); }
 
       @media (max-width:900px){
@@ -312,7 +308,7 @@ export default function CrearPublicacion() {
         .form-grid{ width:100%; margin:12px auto; padding:16px; border-radius:12px; }
       }
 
-      /* Forzar que la página pueda crecer y scrollear en Y en esta vista */
+      /* Fuerza que la página crezca y pueda hacer scroll vertical */
       :root, html, body, #root {
         height: auto !important;
         min-height: 100% !important;
@@ -320,21 +316,18 @@ export default function CrearPublicacion() {
         overflow-x: hidden !important;
       }
 
-      /* Título del header */
       .header-title{
         color:#fff;
         font-weight:600;
-        font-size:20px;   /* móvil */
+        font-size:20px;
       }
 
-      /* En pantallas grandes lo hacemos más grande */
       @media (min-width:900px){
         .header-title{
-          font-size:26px; /* web/escritorio */
+          font-size:26px;
         }
       }
 
-      /* Link de regresar con texto */
       .back-link{
         display:flex;
         align-items:center;
@@ -360,7 +353,7 @@ export default function CrearPublicacion() {
       }
       `}</style>
 
-      {/* Header */}
+      {/* Encabezado de la página */}
       <header
         style={{
           padding: "12px 20px",
@@ -372,7 +365,6 @@ export default function CrearPublicacion() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* Flecha + texto Regresar */}
           <a
             href="/indexvendedor"
             aria-label="Regresar"
@@ -382,7 +374,6 @@ export default function CrearPublicacion() {
             <span className="back-text">Regresar</span>
           </a>
 
-          {/* Logo */}
           <img
             src="img/logo.png"
             alt="CarBid"
@@ -390,13 +381,12 @@ export default function CrearPublicacion() {
           />
         </div>
 
-        {/* Título con clase para tamaño responsive */}
         <strong className="header-title">Crear publicación</strong>
 
         <div />
       </header>
 
-      {/* Formulario */}
+      {/* Contenido principal del formulario */}
       <main className="form-grid">
         <div className="row">
           <div>

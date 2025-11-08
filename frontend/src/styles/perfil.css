@@ -1,16 +1,17 @@
+/* Paleta de colores base */
 :root {
-  --bg: #11131a;          /* Fondo más profundo, sin ser negro */
-  --surface: #222a3a;     /* Tarjeta un poco más clara */
-  --surface-2: #2b3550;   /* Sutil degradado más claro */
-  --text: #f2f4f8;        /* Texto más claro para contraste */
-  --muted: #a4acc2;       /* Texto secundario más legible */
-  --brand: #2563eb;       /* Azul limpio */
+  --bg: #11131a;
+  --surface: #222a3a;
+  --surface-2: #2b3550;
+  --text: #f2f4f8;
+  --muted: #a4acc2;
+  --brand: #2563eb;
   --ok: #22c55e;
   --bd: #2f3549;
   --focus: #3b82f6;
 }
 
-/* ===== Layout general ===== */
+/* Layout general de la página de perfil */
 .perfil-page {
   min-height: 100vh;
   display: flex;
@@ -23,7 +24,7 @@
     Arial, sans-serif;
 }
 
-/* ===== Barra superior ===== */
+/* Barra superior */
 .perfil-topbar {
   display: flex;
   align-items: center;
@@ -42,19 +43,18 @@
   align-items: center;
   gap: 8px;
   background: transparent;
-  color: var(--text);          /* flecha + fecha + "Regresar" en blanco */
+  color: var(--text);
   border: none;
   cursor: pointer;
   font-weight: 600;
   font-size: 15px;
   padding: 8px 10px;
   border-radius: 10px;
-  transition: color 0.15s ease-in-out; /* animación suave en el color */
+  transition: color 0.15s ease-in-out;
 }
 
-/* al pasar el mouse: todo el contenido del botón se pone azul */
 .perfil-btn-back:hover {
-  color: var(--brand);         /* #2563eb */
+  color: var(--brand);
   background: transparent;
 }
 
@@ -65,7 +65,6 @@
   background: transparent;
 }
 
-/* Sin cambio visual al pasar el mouse o hacer clic */
 .perfil-btn-back:hover,
 .perfil-btn-back:active,
 .perfil-btn-back:focus-visible {
@@ -73,8 +72,7 @@
   outline: none;
 }
 
-
-/* ===== Contenido ===== */
+/* Contenido principal */
 .perfil-wrapper {
   flex: 1;
   display: flex;
@@ -96,12 +94,12 @@
   margin-bottom: 32px;
 }
 
-/* ===== Tarjeta ===== */
+/* Tarjeta de perfil */
 .perfil-card {
   width: 100%;
   max-width: 720px;
   background: linear-gradient(180deg, var(--surface), var(--surface-2));
-  border: 1px solid #474f66;          /* un poco más claro */
+  border: 1px solid #474f66;
   border-radius: 22px;
   padding: 28px 28px 30px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
@@ -109,7 +107,7 @@
   backdrop-filter: blur(8px);
 }
 
-/* ===== Form ===== */
+/* Formulario y grid */
 #profileForm {
   display: grid;
   gap: 18px;
@@ -125,7 +123,7 @@
   }
 }
 
-/* ===== Campos ===== */
+/* Campos del formulario */
 .perfil-field {
   display: flex;
   flex-direction: column;
@@ -139,19 +137,17 @@
   color: #ff7a7a;
 }
 
-/* wrapper de input */
 .perfil-input-wrapper {
   position: relative;
 }
 
-/* Inputs generales sin iconos a la izquierda */
 .perfil-input {
   width: 100%;
   border: 1px solid #cbd5f5;
   background: #f9fafc;
   color: #111827;
   border-radius: 12px;
-  padding: 10px 16px; /* texto centrado con margen normal */
+  padding: 10px 16px;
   font-size: 14px;
   transition: all 0.15s ease;
 }
@@ -160,12 +156,12 @@
   box-shadow: 0 0 0 3px #2563eb30;
 }
 
-/* Input con ojo (más espacio a la derecha) */
+/* Input contraseña con icono de ojo */
 .perfil-input-with-eye {
   padding-right: 52px;
 }
 
-/* Input solo lectura (correo) */
+/* Campo solo lectura */
 .perfil-input-readonly {
   background: #e5e7eb;
   color: #4b5563;
@@ -176,7 +172,7 @@
   box-shadow: none;
 }
 
-/* ===== Botón del ojo ===== */
+/* Botón del ojo */
 .perfil-toggle-pass {
   position: absolute;
   right: 16px;
@@ -193,24 +189,24 @@
 }
 .perfil-toggle-pass:hover,
 .perfil-toggle-pass:active {
-  background: transparent;   /* sin círculo */
-  color: #111827;           /* solo cambia el color del icono */
+  background: transparent;
+  color: #111827;
 }
 .perfil-toggle-pass:focus,
 .perfil-toggle-pass:focus-visible {
   outline: none;
-  box-shadow: none;         /* sin orilla negra al hacer focus */
+  box-shadow: none;
 }
 
-/* ===== Checkboxes ===== */
+/* Checkboxes */
 .perfil-checkboxes {
   display: flex;
   align-items: center;
-  gap: 40px;                 /* más separados */
+  gap: 40px;
   flex-wrap: wrap;
   padding: 10px 6px;
   border-radius: 12px;
-  background: transparent;   /* mismo color que el fondo de la tarjeta */
+  background: transparent;
   border: none;
 }
 .perfil-chk span {
@@ -218,10 +214,10 @@
   font-size: 14px;
 }
 
-/* ===== Botones ===== */
+/* Botones de acción */
 .perfil-actions {
   display: flex;
-  flex-wrap: nowrap;         /* siempre en la misma línea */
+  flex-wrap: nowrap;
   gap: 12px;
   justify-content: flex-end;
   margin-top: 10px;
@@ -235,7 +231,7 @@
   transition: all 0.2s ease;
   font-size: 14px;
   text-align: center;
-  flex: 1;                   /* mismo ancho para Cancelar y Aceptar */
+  flex: 1;
 }
 .perfil-btn-primary {
   background: var(--brand);
@@ -245,18 +241,15 @@
   background: #004de6;
 }
 .perfil-btn-ghost {
-  background: #e5e7eb;        /* fondo gris claro */
-  color: #111827;             /* texto oscuro */
-  border: 1px solid #cbd5f5;  /* bordecito suave */
+  background: #e5e7eb;
+  color: #111827;
+  border: 1px solid #cbd5f5;
 }
-
 .perfil-btn-ghost:hover {
-  background: #f3f4ff;        /* un poco más claro al pasar el mouse */
+  background: #f3f4ff;
 }
 
-
-
-/* ===== Textos pequeños ===== */
+/* Textos auxiliares */
 .perfil-error {
   color: #ff7676;
   font-size: 12px;
@@ -270,11 +263,12 @@
   color: #ff7676;
 }
 
+/* Botón "Regresar" */
 .back {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #fff;              /* flecha + fecha + "Regresar" en blanco por defecto */
+  color: #fff;
   font-weight: 600;
   background: transparent;
   border: none;
@@ -283,12 +277,11 @@
   font: inherit;
   outline: none;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.15s ease-in-out; /* animación suave */
+  transition: color 0.15s ease-in-out;
 }
 
-/* al pasar el mouse: todo el texto del botón se pone azul */
 .back:hover {
-  color: var(--accent);      /* #2563eb */
+  color: var(--accent);
 }
 
 .back:focus,

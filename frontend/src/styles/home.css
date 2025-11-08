@@ -1,4 +1,4 @@
-/* ======== HOME / PORTADA (index) ======== */
+/* ======== HOME(index) ======== */
 
 body {
   margin: 0;
@@ -51,7 +51,7 @@ body {
   height: 44px;
 }
 
-/* Tarjeta (solo móvil) */
+
 .home-overlay-card {
   display: none;
 }

@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/style.css";
 
+// Dropdown para elegir si entra como comprador o vendedor
 function Dropdown({ label = "Acceder", full = false }) {
   const [open, setOpen] = React.useState(false);
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ function Dropdown({ label = "Acceder", full = false }) {
   );
 }
 
+// Página de inicio
 export default function Index() {
   const navigate = useNavigate();
 
@@ -60,7 +62,7 @@ export default function Index() {
 
   return (
     <div>
-      {/* ====== Header (solo visible en web) ====== */}
+      {/* Header visible solo en escritorio */}
       <header className="navbar only-desktop">
         <div className="logo">
           <img
@@ -78,11 +80,11 @@ export default function Index() {
         </div>
       </header>
 
-      {/* ====== Imagen principal ====== */}
+      {/* Hero con imagen de fondo */}
       <main className="hero">
         <img src="/img/auto.png" alt="Car" className="background" />
 
-        {/* ====== Tarjeta central solo en móvil ====== */}
+        {/* Tarjeta central solo en móvil */}
         <section
           className="home-overlay-card only-mobile"
           aria-label="Acciones rápidas"

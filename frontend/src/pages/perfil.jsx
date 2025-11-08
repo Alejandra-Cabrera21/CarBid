@@ -7,7 +7,7 @@ import "../styles/perfil.css";
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 const API = API_BASE;
 
-// regex de contraseña fuerte (igual que en register)
+// misma regla de contraseña que en registro
 const strongRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/;
 
@@ -15,14 +15,14 @@ export default function Perfil() {
   const navigate = useNavigate();
   const [search] = useSearchParams();
 
-  // ---------- estado del formulario ----------
+  // datos del formulario
   const [correo, setCorreo] = useState("");
   const [nombre, setNombre] = useState("");
   const [password, setPassword] = useState("");
   const [vendedor, setVendedor] = useState(false);
   const [comprador, setComprador] = useState(false);
 
-  // errores (solo para nombre y contraseña)
+  // errores y estado de guardado
   const [errNombre, setErrNombre] = useState("");
   const [errPassword, setErrPassword] = useState("");
   const [saving, setSaving] = useState(false);
@@ -30,7 +30,6 @@ export default function Perfil() {
   const passRef = useRef(null);
   const [showPass, setShowPass] = useState(false);
 
-  // ---------- utils ----------
   const toast = (text, type = "info") =>
     Toastify({
       text,
@@ -41,9 +40,9 @@ export default function Perfil() {
       className: type,
     }).showToast();
 
-  // ---------- validación al enviar ----------
   const correoTrim = correo.trim();
 
+  // validación al enviar
   const validar = () => {
     let ok = true;
     setErrNombre("");
@@ -62,7 +61,6 @@ export default function Perfil() {
       ok = false;
     }
 
-    // Validación de contraseña (solo si la escribe)
     if (password) {
       if (password.length > 30) {
         setErrPassword("La contraseña no puede superar 30 caracteres");
@@ -75,7 +73,6 @@ export default function Perfil() {
       }
     }
 
-    // Validar que al menos haya un rol
     if (!vendedor && !comprador) {
       toast("Selecciona vender o comprar.", "error");
       ok = false;
@@ -84,20 +81,17 @@ export default function Perfil() {
     return ok;
   };
 
-  // ---------- validación en vivo para habilitar botón ----------
+  // cálculo rápido para habilitar el botón
   const nombreTrim = nombre.trim();
-
   const nombreOk = nombreTrim.length >= 3 && nombreTrim.length <= 30;
-
   const passwordOk =
     password === "" ||
     (password.length <= 30 && strongRegex.test(password));
-
-  const rolesOk = vendedor || comprador; // ahora obligatorio al menos uno
+  const rolesOk = vendedor || comprador;
 
   const isFormValid = nombreOk && passwordOk && rolesOk;
 
-  // ---------- detectar panel de origen ----------
+  // de qué panel viene (comprador / vendedor)
   const origen = useMemo(() => {
     const q = (search.get("from") || "").toLowerCase();
     if (q === "vendedor" || q === "comprador") return q;
@@ -109,7 +103,7 @@ export default function Perfil() {
     if (ref.includes("/indexvendedor")) return "vendedor";
     if (ref.includes("/indexcomprador")) return "comprador";
 
-    return "comprador"; // fallback razonable
+    return "comprador";
   }, [search]);
 
   const destinoPanel = useMemo(
@@ -117,7 +111,7 @@ export default function Perfil() {
     [origen]
   );
 
-  // ---------- cargar datos del usuario ----------
+  // carga de datos del usuario
   useEffect(() => {
     (async () => {
       try {
@@ -157,12 +151,12 @@ export default function Perfil() {
     })();
   }, [search]);
 
-  // ---------- toggle de password ----------
+  // mostrar/ocultar contraseña
   useEffect(() => {
     if (passRef.current) passRef.current.type = showPass ? "text" : "password";
   }, [showPass]);
 
-  // ---------- submit ----------
+  // envío del formulario
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!validar()) return;
@@ -184,7 +178,6 @@ export default function Perfil() {
     const nombreTrim2 = nombre.trim();
 
     const payload = {
-      // el correo se manda igual, pero ya no se muestra en el formulario
       correo: correoTrim,
       nombre: nombreTrim2,
       es_vendedor: vendedor ? "S" : "N",
@@ -194,6 +187,7 @@ export default function Perfil() {
 
     setSaving(true);
 
+    // intenta con distintas rutas/métodos por compatibilidad
     const tries = [
       { url: `${API}/usuario/${encodeURIComponent(userId)}`, method: "PUT" },
       { url: `${API}/usuarios/${encodeURIComponent(userId)}`, method: "PUT" },
@@ -226,15 +220,12 @@ export default function Perfil() {
     if (!ok) {
       setSaving(false);
 
-      // intentar parsear JSON para sacar "mensaje"
       let msg = lastText || "No se pudo actualizar";
       try {
         const parsed = JSON.parse(lastText);
         if (parsed.mensaje) msg = parsed.mensaje;
         else if (parsed.message) msg = parsed.message;
-      } catch {
-        // si no es JSON, se queda como está
-      }
+      } catch {}
 
       toast(msg, "error");
       return;
@@ -244,7 +235,7 @@ export default function Perfil() {
     delete newUser.password;
     localStorage.setItem("usuario", JSON.stringify(newUser));
 
-    // 🔵 Solo usamos flash; el toast se mostrará en IndexComprador/IndexVendedor
+    // mensaje para mostrar en el panel al redirigir
     localStorage.setItem(
       "flash",
       JSON.stringify({
@@ -279,9 +270,7 @@ export default function Perfil() {
           noValidate
           onSubmit={onSubmit}
         >
-          {/* ⚠️ Campo de CORREO ELIMINADO */}
-
-          {/* Usuario */}
+          {/* Nombre de usuario */}
           <div className="perfil-field">
             <label htmlFor="nombre">
               Usuario <span className="perfil-required">*</span>
@@ -304,7 +293,7 @@ export default function Perfil() {
             <p className="perfil-hint perfil-hint-red"></p>
           </div>
 
-          {/* Password */}
+          {/* Contraseña nueva (opcional) */}
           <div className="perfil-field perfil-full-row">
             <label htmlFor="password">Nueva contraseña (opcional)</label>
             <div className="perfil-input-wrapper">
@@ -336,7 +325,7 @@ export default function Perfil() {
             </small>
           </div>
 
-          {/* Roles */}
+          {/* Roles de usuario */}
           <div className="perfil-field perfil-full-row">
             <div className="perfil-checkboxes">
               <label className="perfil-chk">
@@ -360,7 +349,7 @@ export default function Perfil() {
             </div>
           </div>
 
-          {/* Botones */}
+          {/* Botones de acción */}
           <div className="perfil-actions perfil-full-row">
             <button
               type="button"

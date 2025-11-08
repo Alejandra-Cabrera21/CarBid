@@ -10,7 +10,6 @@
   --accent: #2563eb;
 }
 
-/* Reset básico */
 * {
   box-sizing: border-box;
 }
@@ -200,7 +199,7 @@ td:nth-child(7) {
   white-space: nowrap;
 }
 
-/* Mensaje de estado */
+
 .state {
   color: var(--muted);
   text-align: center;
@@ -243,7 +242,6 @@ td:nth-child(7) {
   display: none;
 }
 
-/* tarjeta completa con borde de color (sin degradado) */
 .card-item {
   background: #020617;
   border: 2px solid var(--accent);
@@ -255,7 +253,7 @@ td:nth-child(7) {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
 }
 
-/* encabezado de la tarjeta */
+
 .ci-top {
   display: flex;
   align-items: center;
@@ -278,7 +276,7 @@ td:nth-child(7) {
   color: #e5e7eb;
 }
 
-/* chips en grid para que se vean ordenados */
+
 .chips {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -299,7 +297,7 @@ td:nth-child(7) {
   text-align: center;
 }
 
-/* Resultado: Ganaste / Perdí */
+
 .chip-ganaste {
   background: rgba(22, 163, 74, 0.18);
   border-color: #22c55e;
@@ -312,7 +310,7 @@ td:nth-child(7) {
   color: #fecaca;
 }
 
-/* Estado (CERRADA, etc.) */
+
 .chip-estado {
   border-style: dashed;
   opacity: 0.9;
@@ -333,7 +331,7 @@ td:nth-child(7) {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #fff;              /* flecha + fecha + "Regresar" en blanco por defecto */
+  color: #fff;         
   font-weight: 600;
   background: transparent;
   border: none;
@@ -342,12 +340,11 @@ td:nth-child(7) {
   font: inherit;
   outline: none;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.15s ease-in-out; /* animación suave */
+  transition: color 0.15s ease-in-out; 
 }
 
-/* al pasar el mouse: todo el texto del botón se pone azul */
 .back:hover {
-  color: var(--accent);      /* #2563eb */
+  color: var(--accent);      
 }
 
 .back:focus,

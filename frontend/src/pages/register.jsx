@@ -3,7 +3,7 @@ import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
 import "../styles/register.css";
 
-// Helper toast
+// Toast sencillo para mensajes de éxito / error
 const toast = (txt, ok = true) =>
   Toastify({
     text: txt,
@@ -20,7 +20,7 @@ const toast = (txt, ok = true) =>
     },
   }).showToast();
 
-// regex globales
+// Validaciones básicas de correo y contraseña
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const strongRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/;
@@ -38,7 +38,7 @@ export default function Register() {
   const [vendedor, setVendedor] = useState(false);
   const [comprador, setComprador] = useState(false);
 
-  // Errores por campo
+  // Mensajes de error por campo
   const [err, setErr] = useState({
     correo: "",
     usuario: "",
@@ -46,11 +46,11 @@ export default function Register() {
     confirmar: "",
   });
 
-  // Mostrar/ocultar password
+  // Mostrar/ocultar password y confirmación
   const [showPass, setShowPass] = useState(false);
   const [showConf, setShowConf] = useState(false);
 
-  // Estado de envío
+  // Indicador de envío en curso
   const [sending, setSending] = useState(false);
 
   const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
@@ -60,7 +60,7 @@ export default function Register() {
     setErr({ correo: "", usuario: "", password: "", confirmar: "" });
   }
 
-  // 🔴 Validación reutilizable (con o sin toast para el rol)
+  // Validación completa de campos y rol
   function validate(showRoleToast = true) {
     const next = { correo: "", usuario: "", password: "", confirmar: "" };
     let ok = true;
@@ -103,7 +103,7 @@ export default function Register() {
       ok = false;
     }
 
-    // Rol
+    // Rol obligatorio
     if (!vendedor && !comprador) {
       if (showRoleToast) {
         toast("Selecciona vender o comprar", false);
@@ -115,13 +115,13 @@ export default function Register() {
     return ok;
   }
 
-  // 🆕 Validación en vivo para mostrar errores aunque el botón esté deshabilitado
+  // Validación en vivo para ir mostrando errores mientras escribe
   useEffect(() => {
-    validate(false); // sin toast del rol
+    validate(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [correo, usuario, password, confirmar, vendedor, comprador]);
 
-  // Validación en vivo para habilitar/deshabilitar botón
+  // Condiciones para habilitar el botón de enviar
   const emailOk = emailRegex.test(correo) && correo.length <= 50;
   const userTrim = usuario.trim();
   const userOk = userTrim.length >= 3 && userTrim.length <= 30;
@@ -135,10 +135,11 @@ export default function Register() {
 
   const isFormValid = emailOk && userOk && passOk && confirmOk && roleOk;
 
+  // Envío del formulario (registro)
   async function onSubmit(e) {
     e.preventDefault();
     clearErr();
-    // aquí sí queremos mostrar el toast si falta el rol
+
     if (!validate(true)) return;
 
     try {
@@ -171,14 +172,14 @@ export default function Register() {
         return;
       }
 
-      // 2) Registrar usuario
+      // 2) Crear cuenta en el backend
       const res = await fetch(`${API}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nombre: usuario,
           correo,
-          contraseña: password, // tu backend espera 'contraseña'
+          contraseña: password, // el backend espera 'contraseña'
           es_vendedor: vendedor ? "S" : "N",
           es_comprador: comprador ? "S" : "N",
         }),
@@ -196,7 +197,8 @@ export default function Register() {
         setComprador(false);
         setShowPass(false);
         setShowConf(false);
-        // window.location.href = "/login"; // si quieres redirigir
+        // aquí podrías redirigir a login si quieres
+        // window.location.href = "/login";
       } else {
         toast(data.mensaje || "Error al registrar.", false);
       }
@@ -210,10 +212,12 @@ export default function Register() {
 
   return (
     <div className="register-container">
+      {/* Lado izquierdo con imagen */}
       <div className="image-side">
         <img src="/img/auto.png" alt="Fondo CarBid" />
       </div>
 
+      {/* Lado derecho con formulario */}
       <div className="form-side">
         <div className="form-header">
           <img src="/img/logo.png" alt="CarBid" width="70" />
@@ -325,6 +329,7 @@ export default function Register() {
             {err.confirmar}
           </div>
 
+          {/* Selección de roles (vender/comprar) */}
           <div className="checkbox-group">
             <label>
               <input
@@ -348,6 +353,7 @@ export default function Register() {
             </label>
           </div>
 
+          {/* Botón principal; se deshabilita si algo es inválido o está enviando */}
           <button type="submit" disabled={!isFormValid || sending}>
             {sending ? "Guardando..." : "SIGUIENTE"}
           </button>

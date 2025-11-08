@@ -1,4 +1,4 @@
-// src/pages/mis-subastas.jsx 
+// src/pages/mis-subastas.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { io } from "socket.io-client";
@@ -8,7 +8,7 @@ import "toastify-js/src/toastify.css";
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 const API = API_BASE;
 
-/* =============== Utils =============== */
+/* =============== Notificaciones simples =============== */
 function toast(msg, type = "info") {
   try {
     Toastify({
@@ -20,21 +20,25 @@ function toast(msg, type = "info") {
       className: type,
     }).showToast();
   } catch {
-    // Fallback silencioso
+    // fallback silencioso
   }
 }
 
+/* Badge de estado (abierta/cerrada) */
 function Badge({ estado }) {
   const abierta = estado === "ABIERTA";
   return (
     <span className={`badge ${abierta ? "abierta" : "cerrada"}`}>
-      <span className={`icon ${abierta ? "ok" : "err"}`}>{abierta ? "✓" : "✕"}</span>
+      <span className={`icon ${abierta ? "ok" : "err"}`}>
+        {abierta ? "✓" : "✕"}
+      </span>
     </span>
   );
 }
 
-/* =============== Item de subasta =============== */
+/* =============== Item de subasta en la lista =============== */
 function SubastaItem({ subasta, onChangeEstado }) {
+  // verifica si la fecha de cierre ya pasó
   const vencida = useMemo(
     () => subasta.fin && new Date(subasta.fin) <= new Date(),
     [subasta.fin]
@@ -46,7 +50,6 @@ function SubastaItem({ subasta, onChangeEstado }) {
   const onChange = async (e) => {
     const nuevo = e.target.value;
 
-    // Evitar reabrir si ya venció
     if (vencida && nuevo === "ABIERTA") {
       toast("No puedes reabrir una subasta vencida", "error");
       setEstado(subasta.estado);
@@ -70,8 +73,11 @@ function SubastaItem({ subasta, onChangeEstado }) {
         <div className="meta">
           Precio base: Q{Number(subasta.precio_base).toLocaleString("en-US")}
           &nbsp;•&nbsp; Oferta más alta:{" "}
-          <strong>Q{Number(subasta.oferta_max || 0).toLocaleString("en-US")}</strong>
-          &nbsp;•&nbsp; Cierre: {subasta.fin ? new Date(subasta.fin).toLocaleString() : "—"}
+          <strong>
+            Q{Number(subasta.oferta_max || 0).toLocaleString("en-US")}
+          </strong>
+          &nbsp;•&nbsp; Cierre:{" "}
+          {subasta.fin ? new Date(subasta.fin).toLocaleString() : "—"}
         </div>
       </div>
 
@@ -91,7 +97,7 @@ function SubastaItem({ subasta, onChangeEstado }) {
   );
 }
 
-/* =============== Página =============== */
+/* =============== Página: mis subastas (panel vendedor) =============== */
 export default function MisSubastas() {
   const [items, setItems] = useState([]);
   const [q, setQ] = useState("");
@@ -99,12 +105,12 @@ export default function MisSubastas() {
   const pageSize = 5;
   const emptyRef = useRef(null);
 
-  // Por si vienes de una pantalla que bloqueó el scroll (p. ej. un modal)
+  // limpia clases de otras pantallas que bloquean scroll
   useEffect(() => {
     document.body.classList.remove("modal-open", "login-page");
   }, []);
 
-  /* ---- Cargar mis subastas ---- */
+  /* ---- Cargar mis subastas desde el backend ---- */
   const loadMyAuctions = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -129,14 +135,16 @@ export default function MisSubastas() {
       if (res.ok) {
         if (!data || !data.length) {
           setItems([]);
-          if (emptyRef.current) emptyRef.current.textContent = "No tienes subastas aún.";
+          if (emptyRef.current)
+            emptyRef.current.textContent = "No tienes subastas aún.";
           return;
         }
         setItems(data);
       } else {
         setItems([]);
         if (emptyRef.current)
-          emptyRef.current.textContent = data?.message || text || `Error ${res.status}`;
+          emptyRef.current.textContent =
+            data?.message || text || `Error ${res.status}`;
       }
     } catch (e) {
       setItems([]);
@@ -144,7 +152,7 @@ export default function MisSubastas() {
     }
   };
 
-  /* ---- Cambiar estado ---- */
+  /* ---- Cambiar estado (ABIERTA/CERRADA) ---- */
   const changeStatus = async (id, estado) => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -169,7 +177,9 @@ export default function MisSubastas() {
       }
       if (res.ok) {
         toast("Estado actualizado", "success");
-        setItems((arr) => arr.map((s) => (s.id === id ? { ...s, estado } : s)));
+        setItems((arr) =>
+          arr.map((s) => (s.id === id ? { ...s, estado } : s))
+        );
         return true;
       } else {
         toast(data?.message || text || "No se pudo actualizar", "error");
@@ -181,12 +191,12 @@ export default function MisSubastas() {
     }
   };
 
-  /* ---- Ciclo de vida ---- */
+  /* ---- Carga inicial ---- */
   useEffect(() => {
     loadMyAuctions();
   }, []);
 
-  // Refrescar al volver a la pestaña o hacer back/forward cache
+  // refresca al volver a la pestaña o con back/forward cache
   useEffect(() => {
     const onPageShow = (ev) => {
       if (ev.persisted) loadMyAuctions();
@@ -202,7 +212,7 @@ export default function MisSubastas() {
     };
   }, []);
 
-  // Socket.IO para refrescar
+  /* ---- Socket.IO para refrescar la lista en tiempo real ---- */
   useEffect(() => {
     let socket;
     try {
@@ -212,16 +222,14 @@ export default function MisSubastas() {
         withCredentials: false,
       });
 
-      // Escucha eventos desde el backend
       socket.on("auction:updated", loadMyAuctions);
       socket.on("auction:bid", loadMyAuctions);
 
-      console.log("✅ Conectado a Socket.IO en producción");
+      console.log("Conectado a Socket.IO en producción");
     } catch (err) {
-      console.warn("⚠️ No se pudo conectar con Socket.IO:", err.message);
+      console.warn("No se pudo conectar con Socket.IO:", err.message);
     }
 
-    // Limpieza al desmontar el componente
     return () => {
       try {
         socket && socket.disconnect();
@@ -230,8 +238,7 @@ export default function MisSubastas() {
     };
   }, []);
 
-
-  /* ---- Filtro de búsqueda ---- */
+  /* ---- Filtro de búsqueda local ---- */
   const filteredItems = useMemo(() => {
     const term = q.trim().toLowerCase();
     if (!term) return items;
@@ -243,11 +250,12 @@ export default function MisSubastas() {
     });
   }, [q, items]);
 
-  // Resetear página cuando cambie el filtro o el listado
+  // resetea a página 1 cuando cambia filtro o cantidad
   useEffect(() => {
     setCurrentPage(1);
   }, [q, items.length]);
 
+  /* ---- Paginación ---- */
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
   const pagedItems = filteredItems.slice(startIndex, startIndex + pageSize);
@@ -270,10 +278,9 @@ export default function MisSubastas() {
         --fg:#fff;
         --muted:#9ca3af;
         --border:#1f2937;
-        --card-border:#2563eb; /* azul que resalta más */
+        --card-border:#2563eb;
       }
 
-      /* 🔒 Forzamos scroll vertical y bloqueamos horizontal */
       :root, html, body, #root {
         height: auto !important;
         min-height: 100% !important;
@@ -295,7 +302,7 @@ export default function MisSubastas() {
       }
       h1{text-align:center;margin:18px 0 22px}
 
-      /* ===== Barra de búsqueda ===== */
+      /* Barra de búsqueda arriba de la lista */
       .toolbar{
         display:flex;
         justify-content:flex-end;
@@ -311,8 +318,8 @@ export default function MisSubastas() {
         padding:8px 12px 8px 32px;
         border-radius:999px;
         border:1px solid #e5e7eb;
-        background:#ffffff;       /* blanca */
-        color:#111827;            /* texto oscuro */
+        background:#ffffff;
+        color:#111827;
         font-size:.9rem;
         outline:none;
       }
@@ -334,7 +341,7 @@ export default function MisSubastas() {
       .item{
         display:grid;grid-template-columns:1fr auto;align-items:center;gap:18px;
         background:var(--card);
-        border:1px solid var(--card-border); /* borde azul más fuerte */
+        border:1px solid var(--card-border);
         border-radius:12px;
         padding:16px;
         box-shadow:0 0 0 1px rgba(37,99,235,.4);
@@ -375,7 +382,7 @@ export default function MisSubastas() {
       .select.abierta{box-shadow:0 0 0 2px rgba(163,230,53,.25) inset}
       .select.cerrada{box-shadow:0 0 0 2px rgba(239,68,68,.25) inset}
 
-      /* ===== Paginación ===== */
+      /* Paginación inferior */
       .pagination{
         display:flex;
         justify-content:center;
@@ -406,7 +413,9 @@ export default function MisSubastas() {
       `}</style>
 
       <header>
-        <Link to="/indexvendedor" aria-label="Regresar">← Regresar</Link>
+        <Link to="/indexvendedor" aria-label="Regresar">
+          ← Regresar
+        </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <img src="/img/logo.png" alt="CarBid" />
           <strong>Mis subastas</strong>
@@ -417,7 +426,6 @@ export default function MisSubastas() {
       <main className="wrap">
         <h1>Subastas creadas</h1>
 
-        {/* Barra de búsqueda blanca */}
         <div className="toolbar">
           <div className="search-box">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -437,11 +445,15 @@ export default function MisSubastas() {
 
         <section className="list">
           {pagedItems.map((sub) => (
-            <SubastaItem key={sub.id} subasta={sub} onChangeEstado={changeStatus} />
+            <SubastaItem
+              key={sub.id}
+              subasta={sub}
+              onChangeEstado={changeStatus}
+            />
           ))}
         </section>
 
-        {/* Mensaje cuando no hay subastas en absoluto */}
+        {/* mensaje cuando no hay ninguna subasta cargada */}
         <p
           id="empty"
           ref={emptyRef}
@@ -450,7 +462,7 @@ export default function MisSubastas() {
           {!items.length ? "No tienes subastas aún." : ""}
         </p>
 
-        {/* Mensaje cuando sí hay subastas, pero el filtro no encuentra nada */}
+        {/* mensaje cuando sí hay subastas, pero el filtro no encuentra nada */}
         {items.length > 0 && filteredItems.length === 0 && (
           <p
             style={{
@@ -463,7 +475,7 @@ export default function MisSubastas() {
           </p>
         )}
 
-        {/* Paginación: solo si hay más de 5 resultados */}
+        {/* paginación solo si hay más de una página */}
         {filteredItems.length > pageSize && (
           <div className="pagination">
             <button onClick={handlePrev} disabled={currentPage === 1}>
@@ -472,7 +484,10 @@ export default function MisSubastas() {
             <span>
               Página {currentPage} de {totalPages}
             </span>
-            <button onClick={handleNext} disabled={currentPage === totalPages}>
+            <button
+              onClick={handleNext}
+              disabled={currentPage === totalPages}
+            >
               Siguiente
             </button>
           </div>

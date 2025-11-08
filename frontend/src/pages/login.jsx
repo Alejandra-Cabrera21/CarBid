@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Toastify from "toastify-js";
+import "toastify-js/src/toastify.css";
 import "../styles/login.css";
 
 export default function Login() {
   const navigate = useNavigate();
 
-  // ===== estado pantalla =====
+  // Estado principal del login
   const [tipo, setTipo] = useState("comprador"); // "comprador" | "vendedor"
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -14,7 +16,7 @@ export default function Login() {
   const [errEmail, setErrEmail] = useState("");
   const [errPass, setErrPass] = useState("");
 
-  // ===== modal forgot =====
+  // Estado del modal "olvidé mi contraseña"
   const [forgotOpen, setForgotOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [fpEmail, setFpEmail] = useState("");
@@ -24,13 +26,12 @@ export default function Login() {
   const [hint1, setHint1] = useState("");
   const [hint2, setHint2] = useState("");
 
-  // ✅ validaciones en vivo (para habilitar/deshabilitar botón)
+  // Validaciones rápidas para habilitar el botón
   const emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
-  const passValid  = pass.trim().length > 0;
-  const canSubmit  = emailValid && passValid;
+  const passValid = pass.trim().length > 0;
+  const canSubmit = emailValid && passValid;
 
-const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
-
+  const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 
   useEffect(() => {
     document.title = "Iniciar sesión - CarBid";
@@ -38,7 +39,7 @@ const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/ap
     setTipo(t === "vendedor" ? "vendedor" : "comprador");
   }, []);
 
-  // ===== submit login =====
+  // Envío del formulario de login
   async function onSubmit(e) {
     e.preventDefault();
     setErrEmail("");
@@ -96,41 +97,42 @@ const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/ap
     }
   }
 
-  // ===== forgot modal: paso 1 (enviar código) =====
-async function sendCode() {
-  setHint1("");
+  // Recuperar contraseña: paso 1 (envío de código)
+  async function sendCode() {
+    setHint1("");
 
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(fpEmail)) {
-    setHint1("Correo inválido.");
-    return;
-  }
-
-  try {
-    const r = await fetch(`${API_BASE}/auth/forgot`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: fpEmail.trim() }),
-    });
-
-    const data = await r.json().catch(() => ({}));
-
-    console.log("FORGOT STATUS:", r.status);
-    console.log("FORGOT BODY:", data);
-
-    if (r.ok) {
-      setHint1("Si el correo existe, te enviamos un código.");
-      setStep(2);
-    } else {
-      setHint1(`Error ${r.status}: ${data.message || "No se pudo enviar el código."}`);
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(fpEmail)) {
+      setHint1("Correo inválido.");
+      return;
     }
-  } catch (e) {
-    console.error("FORGOT ERROR:", e);
-    setHint1("Error de conexión.");
+
+    try {
+      const r = await fetch(`${API_BASE}/auth/forgot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: fpEmail.trim() }),
+      });
+
+      const data = await r.json().catch(() => ({}));
+
+      console.log("FORGOT STATUS:", r.status);
+      console.log("FORGOT BODY:", data);
+
+      if (r.ok) {
+        setHint1("Si el correo existe, te enviamos un código.");
+        setStep(2);
+      } else {
+        setHint1(
+          `Error ${r.status}: ${data.message || "No se pudo enviar el código."}`
+        );
+      }
+    } catch (e) {
+      console.error("FORGOT ERROR:", e);
+      setHint1("Error de conexión.");
+    }
   }
-}
 
-
-  // ===== forgot modal: paso 2 (cambiar contraseña) =====
+  // Recuperar contraseña: paso 2 (cambio de contraseña)
   async function resetPass() {
     setHint2("");
     if (!/^\d{6}$/.test(fpCode)) {
@@ -168,6 +170,7 @@ async function sendCode() {
     }
   }
 
+  // Abre el modal de "olvidé mi contraseña"
   function openForgot() {
     setFpEmail("");
     setFpCode("");
@@ -182,12 +185,12 @@ async function sendCode() {
   return (
     <>
       <div className="register-container">
-        {/* Lado izquierdo con imagen */}
+        {/* Lado izquierdo con imagen de fondo */}
         <div className="image-side">
           <img src="/img/auto.png" alt="Fondo CarBid" />
         </div>
 
-        {/* Lado derecho con formulario */}
+        {/* Lado derecho con formulario de acceso */}
         <div className="form-side">
           <div className="form-header">
             <img src="/img/logo.png" alt="CarBid" width="70" />
@@ -200,7 +203,6 @@ async function sendCode() {
 
           <form onSubmit={onSubmit} noValidate id="loginForm">
             <label htmlFor="email">Correo electrónico:</label>
-            {/* CAMBIO: campo con flex (sin absolute) */}
             <div className="field">
               <span className="icon" aria-hidden="true">
                 <i className="fa-solid fa-user" />
@@ -224,7 +226,6 @@ async function sendCode() {
             </div>
 
             <label htmlFor="password">Contraseña:</label>
-            {/* CAMBIO: campo con flex (ícono izq + botón ojo der) */}
             <div className="field">
               <span className="icon" aria-hidden="true">
                 <i className="fa-solid fa-lock" />
@@ -245,14 +246,18 @@ async function sendCode() {
                 aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
                 onClick={() => setShowPass((s) => !s)}
               >
-                <i className={`fa-solid ${showPass ? "fa-eye-slash" : "fa-eye"}`} />
+                <i
+                  className={`fa-solid ${
+                    showPass ? "fa-eye-slash" : "fa-eye"
+                  }`}
+                />
               </button>
             </div>
             <div id="error-password" className="error" aria-live="polite">
               {pass && !passValid ? "Ingresa tu contraseña." : errPass}
             </div>
 
-            {/* 👇 deshabilitado hasta que email y pass sean válidos */}
+            {/* Botón habilitado sólo si el correo y la contraseña son válidos */}
             <button type="submit" disabled={!canSubmit} aria-disabled={!canSubmit}>
               INGRESAR
             </button>
@@ -276,7 +281,7 @@ async function sendCode() {
         </div>
       </div>
 
-      {/* ===== Modal Olvidé mi contraseña ===== */}
+      {/* Modal para recuperar contraseña */}
       {forgotOpen && (
         <div
           className="modal-backdrop"
@@ -305,96 +310,142 @@ async function sendCode() {
                   id="fpEmail"
                   placeholder="tu@correo.com"
                   value={fpEmail}
-                  onChange={(e)=>setFpEmail(e.target.value)}
+                  onChange={(e) => setFpEmail(e.target.value)}
                   spellCheck={false}
                   autoCorrect="off"
                   autoCapitalize="none"
                   inputMode="email"
                   autoComplete="email"
                 />
-                <div className="hint" aria-live="polite">{hint1}</div>
+                <div className="hint" aria-live="polite">
+                  {hint1}
+                </div>
                 <div className="actions">
-                  <button className="btn secondary" type="button" onClick={()=>setForgotOpen(false)}>Cancelar</button>
-                  <button className="btn" type="button" onClick={sendCode}>Enviar código</button>
+                  <button
+                    className="btn secondary"
+                    type="button"
+                    onClick={() => setForgotOpen(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button className="btn" type="button" onClick={sendCode}>
+                    Enviar código
+                  </button>
                 </div>
               </div>
             )}
 
-            {step === 2 && (() => {
-              // ===== Validaciones en vivo =====
-              const codeOK      = /^\d{6}$/.test(fpCode.trim());
-              const passLenOK   = fpPass.length >= 6;         // mínimo 6 (como tu backend)
-              const passUpperOK = /[A-Z]/.test(fpPass);
-              const passLowerOK = /[a-z]/.test(fpPass);
-              const passDigitOK = /\d/.test(fpPass);
-              const passMatchOK = fpPass.length > 0 && fpPass === fpPass2;
+            {step === 2 &&
+              (() => {
+                // Reglas en vivo para la nueva contraseña
+                const codeOK = /^\d{6}$/.test(fpCode.trim());
+                const passLenOK = fpPass.length >= 6;
+                const passUpperOK = /[A-Z]/.test(fpPass);
+                const passLowerOK = /[a-z]/.test(fpPass);
+                const passDigitOK = /\d/.test(fpPass);
+                const passMatchOK =
+                  fpPass.length > 0 && fpPass === fpPass2;
 
-              const allOK = codeOK && passLenOK && passUpperOK && passLowerOK && passDigitOK && passMatchOK;
+                const allOK =
+                  codeOK &&
+                  passLenOK &&
+                  passUpperOK &&
+                  passLowerOK &&
+                  passDigitOK &&
+                  passMatchOK;
 
-              const bullet = (ok, text) => (
-                <li style={{color: ok ? "#16a34a" : "#6b7280"}}>
-                  {ok ? "✓ " : "• "}{text}
-                </li>
-              );
+                const bullet = (ok, text) => (
+                  <li style={{ color: ok ? "#16a34a" : "#6b7280" }}>
+                    {ok ? "✓ " : "• "}
+                    {text}
+                  </li>
+                );
 
-              return (
-                <div id="step2">
-                  <label htmlFor="fpCode">Código de verificación (6 dígitos)</label>
-                  <input
-                    type="text"
-                    id="fpCode"
-                    maxLength={6}
-                    value={fpCode}
-                    onChange={(e)=>setFpCode(e.target.value)}
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                  />
+                return (
+                  <div id="step2">
+                    <label htmlFor="fpCode">
+                      Código de verificación (6 dígitos)
+                    </label>
+                    <input
+                      type="text"
+                      id="fpCode"
+                      maxLength={6}
+                      value={fpCode}
+                      onChange={(e) => setFpCode(e.target.value)}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                    />
 
-                  <label htmlFor="fpPass" style={{marginTop:8}}>Nueva contraseña</label>
-                  <input
-                    type="password"
-                    id="fpPass"
-                    value={fpPass}
-                    onChange={(e)=>setFpPass(e.target.value)}
-                    autoComplete="new-password"
-                  />
+                    <label htmlFor="fpPass" style={{ marginTop: 8 }}>
+                      Nueva contraseña
+                    </label>
+                    <input
+                      type="password"
+                      id="fpPass"
+                      value={fpPass}
+                      onChange={(e) => setFpPass(e.target.value)}
+                      autoComplete="new-password"
+                    />
 
-                  <label htmlFor="fpPass2" style={{marginTop:8}}>Confirmar contraseña</label>
-                  <input
-                    type="password"
-                    id="fpPass2"
-                    value={fpPass2}
-                    onChange={(e)=>setFpPass2(e.target.value)}
-                    autoComplete="new-password"
-                  />
+                    <label htmlFor="fpPass2" style={{ marginTop: 8 }}>
+                      Confirmar contraseña
+                    </label>
+                    <input
+                      type="password"
+                      id="fpPass2"
+                      value={fpPass2}
+                      onChange={(e) => setFpPass2(e.target.value)}
+                      autoComplete="new-password"
+                    />
 
-                  {/* Reglas en vivo (como en crear cuenta) */}
-                  <ul style={{marginTop:8, marginBottom:4, paddingLeft:18, lineHeight:1.4}}>
-                    {bullet(passLenOK,   "Mínimo 8 caracteres")}
-                    {bullet(passUpperOK, "Al menos 1 mayúscula (A-Z)")}
-                    {bullet(passLowerOK, "Al menos 1 minúscula (a-z)")}
-                    {bullet(passDigitOK, "Al menos 1 número (0-9)")}
-                    {bullet(passMatchOK, "Ambas contraseñas coinciden")}
-                  </ul>
-
-                  <div className="hint" aria-live="polite">{hint2}</div>
-
-                  <div className="actions">
-                    <button className="btn secondary" type="button" onClick={()=>setStep(1)}>Atrás</button>
-                    <button
-                      className="btn"
-                      type="button"
-                      onClick={resetPass}
-                      disabled={!allOK}
-                      aria-disabled={!allOK}
-                      title={!allOK ? "Completa los requisitos para continuar" : "Cambiar contraseña"}
+                    <ul
+                      style={{
+                        marginTop: 8,
+                        marginBottom: 4,
+                        paddingLeft: 18,
+                        lineHeight: 1.4,
+                      }}
                     >
-                      Cambiar contraseña
-                    </button>
+                      {bullet(passLenOK, "Mínimo 8 caracteres")}
+                      {bullet(passUpperOK, "Al menos 1 mayúscula (A-Z)")}
+                      {bullet(passLowerOK, "Al menos 1 minúscula (a-z)")}
+                      {bullet(passDigitOK, "Al menos 1 número (0-9)")}
+                      {bullet(
+                        passMatchOK,
+                        "Ambas contraseñas coinciden"
+                      )}
+                    </ul>
+
+                    <div className="hint" aria-live="polite">
+                      {hint2}
+                    </div>
+
+                    <div className="actions">
+                      <button
+                        className="btn secondary"
+                        type="button"
+                        onClick={() => setStep(1)}
+                      >
+                        Atrás
+                      </button>
+                      <button
+                        className="btn"
+                        type="button"
+                        onClick={resetPass}
+                        disabled={!allOK}
+                        aria-disabled={!allOK}
+                        title={
+                          !allOK
+                            ? "Completa los requisitos para continuar"
+                            : "Cambiar contraseña"
+                        }
+                      >
+                        Cambiar contraseña
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })()}
+                );
+              })()}
           </div>
         </div>
       )}

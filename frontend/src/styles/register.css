@@ -1,4 +1,4 @@
-/* ===== Reset ===== */
+/* Reset básico */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -13,17 +13,17 @@ body,
   font-family: "Poppins", sans-serif;
   background: #000;
   color: #fff;
-  overflow-y: auto; /* scroll en Y en web y móvil */
+  overflow-y: auto;
 }
 
-/* ===== Contenedor principal ===== */
+/* Layout principal de registro */
 .register-container {
   display: flex;
   min-height: 100vh;
   width: 100%;
 }
 
-/* ===== Lado izquierdo (imagen) ===== */
+/* Lado izquierdo (imagen) */
 .image-side {
   flex: 1;
   background-color: #111;
@@ -36,22 +36,22 @@ body,
   object-fit: cover;
 }
 
-/* ===== Lado derecho (formulario) ===== */
+/* Lado derecho (formulario) */
 .form-side {
   flex: 1;
   background-color: #0b0b0b;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;   /* empieza arriba */
+  justify-content: flex-start;
   align-items: center;
   padding: 24px 40px 20px;
 }
 
-/* ===== Encabezado ===== */
+/* Encabezado */
 .form-header {
   text-align: center;
   margin-top: 6px;
-  margin-bottom: 10px;           /* 🔻 poco espacio debajo del título */
+  margin-bottom: 10px;
 }
 
 .form-header img {
@@ -65,34 +65,34 @@ body,
   letter-spacing: 1px;
 }
 
-/* ===== Asterisco requerido ===== */
+/* Asterisco requerido */
 .required-mark {
   color: #ff4f4f;
   margin-left: 3px;
 }
 
-/* ===== Formulario ===== */
+/* Formulario y estructura */
 form {
   width: 100%;
-  max-width: 460px;              /* 🔸 más ancho en X */
+  max-width: 460px;
   display: flex;
   flex-direction: column;
-  gap: 4px;                      /* 🔻 MUY poco espacio entre bloques */
+  gap: 4px;
 }
 
-/* ===== Etiquetas ===== */
+/* Etiquetas */
 label {
   font-size: 13px;
   font-weight: 600;
-  margin-bottom: 0;              /* casi pegadas al input */
+  margin-bottom: 0;
 }
 
-/* ===== Campos (inputs blancos) ===== */
+/* Campos de texto */
 input[type="text"],
 input[type="email"],
 input[type="password"] {
   width: 100%;
-  padding: 8px 38px 8px 10px;    /* bajamos un poco la altura */
+  padding: 8px 38px 8px 10px;
   background-color: #ffffff;
   border: 1px solid #cccccc;
   border-radius: 8px;
@@ -111,7 +111,7 @@ input:focus {
   box-shadow: 0 0 3px #007bff80;
 }
 
-/* ===== Icono ojo ===== */
+/* Icono ojo contraseña */
 .input-wrapper {
   position: relative;
 }
@@ -130,16 +130,16 @@ input:focus {
   color: #000;
 }
 
-/* ===== Errores ===== */
+/* Mensajes de error */
 .error {
   color: #ff4f4f;
-  font-size: 11px;              /* 🔻 texto más pequeño */
+  font-size: 11px;
   margin-top: -2px;
   margin-bottom: 0;
-  height: 10px;                 /* 🔻 muy bajito, solo para mensaje */
+  height: 10px;
 }
 
-/* ===== Checkboxes ===== */
+/* Checkboxes */
 .checkbox-group {
   display: flex;
   justify-content: center;
@@ -163,7 +163,7 @@ input[type="checkbox"] {
   transform: scale(1.05);
 }
 
-/* ===== Botón ===== */
+/* Botón principal */
 button[type="submit"] {
   background-color: #1760ff;
   color: #fff;
@@ -173,7 +173,7 @@ button[type="submit"] {
   border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
-  margin-top: 4px;               /* casi pegado a los checkboxes */
+  margin-top: 4px;
   transition: background 0.2s ease, transform 0.1s ease;
 }
 
@@ -187,7 +187,7 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* ===== Responsive (móvil) ===== */
+/* Responsive (móvil) */
 @media (max-width: 900px) {
   .register-container {
     flex-direction: column;
