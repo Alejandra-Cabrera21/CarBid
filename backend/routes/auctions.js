@@ -1,28 +1,36 @@
+// routes/auctions.js
 const express = require("express");
 const path = require("path");
-const fs = require("fs");
 const multer = require("multer");
+const multerS3 = require("multer-s3");
+const AWS = require("aws-sdk");
 const db = require("../db");
 const authRequired = require("../middleware/authRequired");
 
-// ⬅️ NUEVO: ruta compartida para /uploads
-const { UPLOADS_DIR } = require("../configUploads");
-
 const router = express.Router();
 
-/* ====== Multer: almacenamiento local en /uploads ====== */
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    // ⬅️ AHORA usamos siempre UPLOADS_DIR
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-    cb(null, UPLOADS_DIR);
-  },
-  filename: (_req, file, cb) => {
+/* ====== Config S3 ====== */
+// Nombre del bucket (ponlo también en las variables de entorno si quieres)
+const S3_BUCKET = process.env.S3_BUCKET || "carbidp-uploads";
+// Región de tu bucket (la misma donde lo creaste; en tu caso us-east-1)
+const S3_REGION = process.env.AWS_REGION || "us-east-1";
+
+AWS.config.update({ region: S3_REGION });
+const s3 = new AWS.S3();
+
+/* ====== Multer: almacenamiento en S3 ====== */
+const storage = multerS3({
+  s3,
+  bucket: S3_BUCKET,
+  acl: "public-read",                        // archivos públicos
+  contentType: multerS3.AUTO_CONTENT_TYPE,  // pone el Content-Type correcto
+  key: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     const name = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-    cb(null, name);
+    cb(null, name); // este será el "key" en S3
   },
 });
+
 const upload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
@@ -34,11 +42,18 @@ const upload = multer({
 
 /* ====== Helpers ====== */
 function requireVendedor(req, res, next) {
-  if (!req.session?.vendedor) return res.status(403).json({ message: "Requiere rol vendedor" });
+  if (!req.session?.vendedor)
+    return res.status(403).json({ message: "Requiere rol vendedor" });
   next();
 }
-function toMySQLDateTime(s) { if (!s) return s; return s.replace("T", " ").padEnd(19, ":00"); }
-function isValidFutureDatetime(s) { const d = new Date(s); return s && !isNaN(d) && d > new Date(); }
+function toMySQLDateTime(s) {
+  if (!s) return s;
+  return s.replace("T", " ").padEnd(19, ":00");
+}
+function isValidFutureDatetime(s) {
+  const d = new Date(s);
+  return s && !isNaN(d) && d > new Date();
+}
 /** Año válido: >=1900 y <= año actual (si viene informado) */
 function isValidYear(y) {
   if (y === undefined || y === null || y === "") return true; // opcional
@@ -49,11 +64,14 @@ function isValidYear(y) {
 
 /* ========== POST /api/subastas (crear) ========== */
 router.post("/", authRequired, requireVendedor, (req, res) => {
+  // ahora sube directamente a S3
   upload.array("images", 6)(req, res, (multerErr) => {
     if (multerErr) {
       const msg = /File too large/i.test(multerErr.message)
         ? "Imagen supera 2MB"
-        : /Formato/i.test(multerErr.message) ? "Formato no permitido (usa JPG/PNG)" : "Error al procesar imágenes";
+        : /Formato/i.test(multerErr.message)
+        ? "Formato no permitido (usa JPG/PNG)"
+        : "Error al procesar imágenes";
       return res.status(400).json({ message: msg });
     }
 
@@ -61,23 +79,40 @@ router.post("/", authRequired, requireVendedor, (req, res) => {
       const { marca, modelo, anio, descripcion, precio_base } = req.body;
       let { fin } = req.body;
 
-      if (!marca || !modelo) return res.status(400).json({ message: "Marca y modelo son obligatorios" });
+      if (!marca || !modelo)
+        return res
+          .status(400)
+          .json({ message: "Marca y modelo son obligatorios" });
 
       const precio = Number(precio_base);
-      if (!(precio > 0)) return res.status(400).json({ message: "El precio base debe ser mayor a 0" });
+      if (!(precio > 0))
+        return res
+          .status(400)
+          .json({ message: "El precio base debe ser mayor a 0" });
 
       // Fin > ahora
       fin = toMySQLDateTime(fin);
-      if (!isValidFutureDatetime(fin)) return res.status(400).json({ message: "La fecha de cierre debe ser posterior a ahora" });
+      if (!isValidFutureDatetime(fin))
+        return res.status(400).json({
+          message: "La fecha de cierre debe ser posterior a ahora",
+        });
 
       // Año <= actual
       const currentYear = new Date().getFullYear();
-      if (!isValidYear(anio)) return res.status(400).json({ message: `Año inválido (1900–${currentYear})` });
+      if (!isValidYear(anio))
+        return res
+          .status(400)
+          .json({ message: `Año inválido (1900–${currentYear})` });
       if (anio && parseInt(anio, 10) > currentYear) {
-        return res.status(400).json({ message: "El año del modelo no puede ser superior al año actual" });
+        return res.status(400).json({
+          message: "El año del modelo no puede ser superior al año actual",
+        });
       }
 
-      if (!req.files?.length) return res.status(400).json({ message: "Debes subir al menos una imagen" });
+      if (!req.files?.length)
+        return res
+          .status(400)
+          .json({ message: "Debes subir al menos una imagen" });
 
       const qSub = `
         INSERT INTO subastas
@@ -86,37 +121,65 @@ router.post("/", authRequired, requireVendedor, (req, res) => {
       `;
       const anioNum = anio ? parseInt(anio, 10) : null;
 
-      db.query(qSub, [req.user.id, marca, modelo, anioNum, descripcion || null, precio, fin], (err, result) => {
-        if (err) {
-          console.error("Error insert subasta:", err);
-          return res.status(500).json({ message: "Error al crear subasta" });
-        }
-        const subastaId = result.insertId;
+      db.query(
+        qSub,
+        [req.user.id, marca, modelo, anioNum, descripcion || null, precio, fin],
+        (err, result) => {
+          if (err) {
+            console.error("Error insert subasta:", err);
+            return res
+              .status(500)
+              .json({ message: "Error al crear subasta" });
+          }
+          const subastaId = result.insertId;
 
-        // EMITIR evento de creación
-        const io = req.app.get('io');
-        if (io) {
-          io.emit('auction:created', {
-            id: subastaId, marca, modelo, anio: anioNum, precio_base: precio, estado: 'ABIERTA', fin
+          // EMITIR evento de creación
+          const io = req.app.get("io");
+          if (io) {
+            io.emit("auction:created", {
+              id: subastaId,
+              marca,
+              modelo,
+              anio: anioNum,
+              precio_base: precio,
+              estado: "ABIERTA",
+              fin,
+            });
+          }
+
+          const principalIdx = Number.isInteger(Number(req.query.principal))
+            ? parseInt(req.query.principal, 10)
+            : 0;
+
+          const qImg = `
+            INSERT INTO imagenes_subasta (id_subasta, url, es_principal, size_bytes, mime)
+            VALUES ?
+          `;
+
+          // ⚠️ IMPORTANTE: en S3 multer-s3 llena "location" con la URL pública
+          const values = (req.files || []).map((f, idx) => [
+            subastaId,
+            f.location, // URL completa de S3
+            idx === principalIdx ? 1 : 0,
+            f.size,
+            f.mimetype,
+          ]);
+
+          if (!values.length)
+            return res.status(201).json({
+              message: "Publicación creada",
+              id_subasta: subastaId,
+            });
+
+          db.query(qImg, [values], (err2) => {
+            if (err2) console.error("Error insert imágenes:", err2);
+            return res.status(201).json({
+              message: "Publicación creada",
+              id_subasta: subastaId,
+            });
           });
         }
-
-        const principalIdx = Number.isInteger(Number(req.query.principal)) ? parseInt(req.query.principal, 10) : 0;
-        const qImg = `
-          INSERT INTO imagenes_subasta (id_subasta, url, es_principal, size_bytes, mime)
-          VALUES ?
-        `;
-        const values = (req.files || []).map((f, idx) => [
-          subastaId, `/uploads/${f.filename}`, idx === principalIdx ? 1 : 0, f.size, f.mimetype,
-        ]);
-
-        if (!values.length) return res.status(201).json({ message: "Publicación creada", id_subasta: subastaId });
-
-        db.query(qImg, [values], (err2) => {
-          if (err2) console.error("Error insert imágenes:", err2);
-          return res.status(201).json({ message: "Publicación creada", id_subasta: subastaId });
-        });
-      });
+      );
     } catch (e) {
       console.error(e);
       return res.status(500).json({ message: "Error al crear publicación" });
@@ -133,14 +196,16 @@ router.patch("/:id/cerrar", authRequired, requireVendedor, (req, res) => {
     if (e) return res.status(500).json({ message: "Error DB" });
     if (!r.length) return res.status(404).json({ message: "No encontrada" });
     const sub = r[0];
-    if (sub.estado === 'CERRADA') return res.json({ message: "Ya estaba cerrada" });
+    if (sub.estado === "CERRADA")
+      return res.json({ message: "Ya estaba cerrada" });
 
-    const qUpd = "UPDATE subastas SET estado='CERRADA', fin=IF(fin<NOW(), fin, NOW()), updated_at=NOW() WHERE id=?";
+    const qUpd =
+      "UPDATE subastas SET estado='CERRADA', fin=IF(fin<NOW(), fin, NOW()), updated_at=NOW() WHERE id=?";
     db.query(qUpd, [id], (e2) => {
       if (e2) return res.status(500).json({ message: "Error al cerrar" });
 
-      const io = req.app.get('io');
-      if (io) io.emit('auction:closed', { ids: [id] });
+      const io = req.app.get("io");
+      if (io) io.emit("auction:closed", { ids: [id] });
 
       res.json({ message: "Subasta cerrada", id });
     });
@@ -193,7 +258,11 @@ router.get("/:id", (req, res) => {
 
       db.query(qTop, [id], (e3, top) => {
         if (e3) return res.status(500).json({ message: "Error DB" });
-        res.json({ subasta: sub, imagenes: imgs, oferta_actual: top.length ? top[0].monto : null });
+        res.json({
+          subasta: sub,
+          imagenes: imgs,
+          oferta_actual: top.length ? top[0].monto : null,
+        });
       });
     });
   });
@@ -283,8 +352,7 @@ router.get("/", (req, res) => {
 });
 
 /* ========== PUT /api/subastas/:id/estado (abrir/cerrar) ========== */
-/*  🔐 FIX: Validación atómica en SQL: si fin <= NOW() y se quiere 'ABIERTA',
-    el UPDATE no hace nada (affectedRows=0) y devolvemos 400. */
+/*  🔐 Validación atómica en SQL */
 router.put("/:id/estado", authRequired, requireVendedor, (req, res) => {
   const id = parseInt(req.params.id, 10);
   const { estado } = req.body || {};
@@ -308,11 +376,11 @@ router.put("/:id/estado", authRequired, requireVendedor, (req, res) => {
     }
 
     if (result.affectedRows === 0) {
-      // Si intentaba abrir y no se pudo, probablemente vencida.
-      if (estado === 'ABIERTA') {
-        return res.status(400).json({ message: "No puedes reabrir una subasta vencida." });
+      if (estado === "ABIERTA") {
+        return res
+          .status(400)
+          .json({ message: "No puedes reabrir una subasta vencida." });
       }
-      // También puede ser que no exista o no sea del vendedor
       return res.status(404).json({ message: "Subasta no encontrada" });
     }
 
