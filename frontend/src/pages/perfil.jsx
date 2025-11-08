@@ -43,7 +43,6 @@ export default function Perfil() {
 
   // ---------- validación al enviar ----------
   const correoTrim = correo.trim();
-  const [correoState, _setCorreoState] = useState(correoTrim); // opcional si lo necesitas
 
   const validar = () => {
     let ok = true;
@@ -182,10 +181,12 @@ export default function Perfil() {
       return;
     }
 
+    const nombreTrim2 = nombre.trim();
+
     const payload = {
-      // el correo va igual, solo lectura (no se puede cambiar en el front)
+      // el correo se manda igual, pero ya no se muestra en el formulario
       correo: correoTrim,
-      nombre: nombreTrim,
+      nombre: nombreTrim2,
       es_vendedor: vendedor ? "S" : "N",
       es_comprador: comprador ? "S" : "N",
       ...(password ? { password } : {}),
@@ -278,6 +279,8 @@ export default function Perfil() {
           noValidate
           onSubmit={onSubmit}
         >
+          {/* ⚠️ Campo de CORREO ELIMINADO */}
+
           {/* Usuario */}
           <div className="perfil-field">
             <label htmlFor="nombre">
