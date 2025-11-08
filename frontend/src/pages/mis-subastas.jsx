@@ -157,7 +157,6 @@ export default function MisSubastas() {
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + token,
-          "Cache-Control": "no-store",
         },
         body: JSON.stringify({ estado }),
       });

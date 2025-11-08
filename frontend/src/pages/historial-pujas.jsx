@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import "../styles/historialpujas.css";
 
 const API = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
-
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "wss://api.carbidp.click";
 
 export default function HistorialPujas() {
   const navigate = useNavigate();
@@ -140,9 +140,8 @@ export default function HistorialPujas() {
   }, []);
 
   const fetchData = async () => {
-    const res = await fetch(`${API}/historial-pujas`, {
-      headers: { Authorization: token ? `Bearer ${token}` : "" },
-    });
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await fetch(`${API}/historial-pujas`, { headers });
     if (!res.ok) throw new Error("HTTP " + res.status);
     return res.json();
   };
@@ -175,38 +174,37 @@ export default function HistorialPujas() {
   };
 
   useEffect(() => {
-    reloadData();
+  reloadData();
 
-    let refreshTimer = null;
-    const scheduleRefresh = () => {
-      if (refreshTimer) return;
-      refreshTimer = setTimeout(async () => {
-        refreshTimer = null;
-        await reloadData(true);
-      }, 600);
-    };
+  let refreshTimer = null;
+  const scheduleRefresh = () => {
+    if (refreshTimer) return;
+    refreshTimer = setTimeout(async () => {
+      refreshTimer = null;
+      await reloadData(true);
+    }, 600);
+  };
 
-   let socket;
-try {
-  socket = io(HOST, {
-    path: "/socket.io",
-    transports: ["websocket", "polling"],
-  });
-  socket.on("auction:bid", scheduleRefresh);
-  socket.on("auction:won", scheduleRefresh);
-} catch {
-  console.warn("Socket.IO no disponible: usando polling:", e);
-}
+  let socket;
+  try {
+    const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "wss://api.carbidp.click";
+    socket = io(SOCKET_URL, {
+      path: "/socket.io",
+      transports: ["websocket"],
+    });
+    socket.on("auction:bid", scheduleRefresh);
+    socket.on("auction:won", scheduleRefresh);
+  } catch (e) {
+    console.warn("Socket.IO no disponible: usando polling:", e?.message || e);
+  }
 
-    const poll = setInterval(scheduleRefresh, 20000);
-    return () => {
-      clearInterval(poll);
-      try {
-        socket && socket.disconnect();
-      } catch {}
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const poll = setInterval(scheduleRefresh, 20000);
+  return () => {
+    clearInterval(poll);
+    try { socket && socket.disconnect(); } catch {}
+  };
   }, []);
+
 
   return (
     <>
@@ -218,7 +216,7 @@ try {
         >
           ← Regresar
         </button>
-        <img className="logo" src="img/logo.png" alt="CarBid" />
+        <img className="logo" src="/img/logo.png" alt="CarBid" />
       </div>
 
       <div className="wrap">
