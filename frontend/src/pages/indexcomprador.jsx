@@ -7,6 +7,8 @@ import "toastify-js/src/toastify.css";
 const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 const API = API_BASE;
 
+// Archivos/imagenes estáticas del backend (quita el sufijo /api)
+const HOST = API_BASE.replace(/\/api$/, "");
 
 const FAST_POLL_MS = 10000;           // notificaciones
 const AUCTION_POLL_MS = 15000;        // ⬅️ polling de subastas (fallback)
@@ -411,12 +413,16 @@ export default function IndexComprador() {
   }, []);
 
   /* ===== Socket.io ===== */
+  /* ===== Socket.io ===== */
   useEffect(() => {
-    const socket = io("http://localhost:3000", {
-      path: "/socket.io",
-      transports: ["websocket", "polling"],
-      withCredentials: false,
-    });
+    const socket = io(
+      import.meta.env.VITE_SOCKET_BASE || "wss://api.carbidp.click",
+      {
+        path: "/socket.io",
+        transports: ["websocket"], // en prod sólo websocket
+        withCredentials: false,
+      }
+    );
 
     const refresh = () => loadSubastas(searchRef.current);
 
@@ -433,10 +439,9 @@ export default function IndexComprador() {
       refresh();
     });
 
-    return () => {
-      socket.disconnect();
-    };
+    return () => socket.disconnect();
   }, []);
+
 
   /* ===== Pujar ===== */
   const onPujar = (id) => setIdSubastaActual(id);
