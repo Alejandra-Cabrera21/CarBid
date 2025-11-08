@@ -54,13 +54,14 @@ export default function Register() {
   const [sending, setSending] = useState(false);
 
   const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
-const API = `${API_BASE}/usuario`; 
+  const API = `${API_BASE}/usuario`;
 
   function clearErr() {
     setErr({ correo: "", usuario: "", password: "", confirmar: "" });
   }
 
-  function validate() {
+  // 🔴 Validación reutilizable (con o sin toast para el rol)
+  function validate(showRoleToast = true) {
     const next = { correo: "", usuario: "", password: "", confirmar: "" };
     let ok = true;
 
@@ -104,13 +105,21 @@ const API = `${API_BASE}/usuario`;
 
     // Rol
     if (!vendedor && !comprador) {
-      toast("Selecciona vender o comprar", false);
+      if (showRoleToast) {
+        toast("Selecciona vender o comprar", false);
+      }
       ok = false;
     }
 
     setErr(next);
     return ok;
   }
+
+  // 🆕 Validación en vivo para mostrar errores aunque el botón esté deshabilitado
+  useEffect(() => {
+    validate(false); // sin toast del rol
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [correo, usuario, password, confirmar, vendedor, comprador]);
 
   // Validación en vivo para habilitar/deshabilitar botón
   const emailOk = emailRegex.test(correo) && correo.length <= 50;
@@ -129,7 +138,8 @@ const API = `${API_BASE}/usuario`;
   async function onSubmit(e) {
     e.preventDefault();
     clearErr();
-    if (!validate()) return;
+    // aquí sí queremos mostrar el toast si falta el rol
+    if (!validate(true)) return;
 
     try {
       setSending(true);
