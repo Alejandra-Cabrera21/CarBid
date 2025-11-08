@@ -5,8 +5,6 @@ import "toastify-js/src/toastify.css";
 
 const API = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/api").replace(/\/$/, "");
 
-
-
 export default function CrearPublicacion() {
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");
@@ -64,7 +62,8 @@ export default function CrearPublicacion() {
     setFiles(flist);
   };
 
-  const validar = () => {
+  // 🔴 Validación reutilizable (con o sin toast)
+  const validar = (showToast = true) => {
     const e = {};
 
     const marcaTrim = marca.trim();
@@ -85,6 +84,7 @@ export default function CrearPublicacion() {
       if (Number.isNaN(a) || a < 1900 || a > 2099)
         e.anio = "Año inválido (1900–2099)";
     }
+
     if (!precio || Number(precio) <= 0) e.precio = "Debe ser mayor a 0";
 
     if (!fin) e.fin = "Define fecha/hora";
@@ -96,9 +96,19 @@ export default function CrearPublicacion() {
     if (!files.length) e.images = "Sube al menos 1 imagen";
 
     setErrs(e);
-    if (Object.keys(e).length) toast("Revisa los campos marcados", "error");
+
+    if (showToast && Object.keys(e).length) {
+      toast("Revisa los campos marcados", "error");
+    }
+
     return Object.keys(e).length === 0;
   };
+
+  // 🆕 Recalcular errores en tiempo real mientras escribe
+  useEffect(() => {
+    validar(false); // sin toast, solo llena errs
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marca, modelo, descripcion, anio, precio, fin, files]);
 
   // Para deshabilitar el botón hasta que todo esté correcto
   const formOk = useMemo(() => {
@@ -127,7 +137,8 @@ export default function CrearPublicacion() {
   }, [marca, modelo, descripcion, anio, precio, fin, files]);
 
   const onCrear = async () => {
-    if (!validar()) return;
+    // aquí sí queremos toast si hay errores
+    if (!validar(true)) return;
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -230,41 +241,49 @@ export default function CrearPublicacion() {
       .thumbs{ display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; max-width:100%; overflow-x:auto }
       .thumbs img{ width:110px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #333 }
 
+      /* 🆕 estilo del texto de error */
+      .error{
+        display:block;
+        color:var(--error);
+        font-size:12px;
+        margin-top:4px;
+        min-height:16px;
+      }
+
       .actions{
-  display:flex;
-  gap:12px;
-  justify-content:flex-end;
-  margin-top:20px;
-}
+        display:flex;
+        gap:12px;
+        justify-content:flex-end;
+        margin-top:20px;
+      }
 
-.btn{
-  padding:10px 16px;
-  border-radius:10px;
-  border:none;
-  cursor:pointer;
-  font-weight:500;
-}
+      .btn{
+        padding:10px 16px;
+        border-radius:10px;
+        border:none;
+        cursor:pointer;
+        font-weight:500;
+      }
 
-/* HABILITADO = AZUL */
-.btn-primary{
-  background:#2563eb;   /* azul CarBid */
-  color:#fff;
-}
+      /* HABILITADO = AZUL */
+      .btn-primary{
+        background:#2563eb;   /* azul CarBid */
+        color:#fff;
+      }
 
-/* DESHABILITADO = CELESTE */
-.btn-primary:disabled,
-.btn-primary[disabled]{
-  background:#67c7d6;   /* celeste clarito */
-  color:#0f172a;
-  cursor:not-allowed;
-  opacity:1;            /* para que no se vea apagado */
-}
+      /* DESHABILITADO = CELESTE */
+      .btn-primary:disabled,
+      .btn-primary[disabled]{
+        background:#67c7d6;   /* celeste clarito */
+        color:#0f172a;
+        cursor:not-allowed;
+        opacity:1;            /* para que no se vea apagado */
+      }
 
-.btn-cancel{
-  background:#dc2626;
-  color:#fff;
-}
-
+      .btn-cancel{
+        background:#dc2626;
+        color:#fff;
+      }
 
       /* ===== Toastify: texto blanco y colores por tipo ===== */
       .toastify{
@@ -302,82 +321,80 @@ export default function CrearPublicacion() {
       }
 
       /* Título del header */
-.header-title{
-  color:#fff;
-  font-weight:600;
-  font-size:20px;   /* móvil */
-}
+      .header-title{
+        color:#fff;
+        font-weight:600;
+        font-size:20px;   /* móvil */
+      }
 
-/* En pantallas grandes lo hacemos más grande */
-@media (min-width:900px){
-  .header-title{
-    font-size:26px; /* web/escritorio */
-  }
-}
+      /* En pantallas grandes lo hacemos más grande */
+      @media (min-width:900px){
+        .header-title{
+          font-size:26px; /* web/escritorio */
+        }
+      }
 
-/* Link de regresar con texto */
-.back-link{
-  display:flex;
-  align-items:center;
-  gap:4px;
-  color:#fff;
-  text-decoration:none;
-  font-size:14px;
-}
+      /* Link de regresar con texto */
+      .back-link{
+        display:flex;
+        align-items:center;
+        gap:4px;
+        color:#fff;
+        text-decoration:none;
+        font-size:14px;
+      }
 
-.back-arrow{
-  font-size:18px;
-  line-height:1;
-}
+      .back-arrow{
+        font-size:18px;
+        line-height:1;
+      }
 
-.back-text{
-  font-size:14px;
-}
+      .back-text{
+        font-size:14px;
+      }
 
-@media (min-width:900px){
-  .back-text{
-    font-size:16px;
-  }
-}
-
+      @media (min-width:900px){
+        .back-text{
+          font-size:16px;
+        }
+      }
       `}</style>
 
       {/* Header */}
-     <header
-  style={{
-    padding: "12px 20px",
-    background: "#0f0f0f",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  }}
->
-  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-    {/* Flecha + texto Regresar */}
-    <a
-      href="/indexvendedor"
-      aria-label="Regresar"
-      className="back-link"
-    >
-      <span className="back-arrow">←</span>
-      <span className="back-text">Regresar</span>
-    </a>
+      <header
+        style={{
+          padding: "12px 20px",
+          background: "#0f0f0f",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {/* Flecha + texto Regresar */}
+          <a
+            href="/indexvendedor"
+            aria-label="Regresar"
+            className="back-link"
+          >
+            <span className="back-arrow">←</span>
+            <span className="back-text">Regresar</span>
+          </a>
 
-    {/* Logo */}
-    <img
-      src="img/logo.png"
-      alt="CarBid"
-      style={{ height: 36, display: "block" }}
-    />
-  </div>
+          {/* Logo */}
+          <img
+            src="img/logo.png"
+            alt="CarBid"
+            style={{ height: 36, display: "block" }}
+          />
+        </div>
 
-  {/* Título con clase para tamaño responsive */}
-  <strong className="header-title">Crear publicación</strong>
+        {/* Título con clase para tamaño responsive */}
+        <strong className="header-title">Crear publicación</strong>
 
-  <div />
-</header>
-
+        <div />
+      </header>
 
       {/* Formulario */}
       <main className="form-grid">
