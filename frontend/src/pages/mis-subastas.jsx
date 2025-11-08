@@ -205,21 +205,33 @@ export default function MisSubastas() {
   }, []);
 
   // Socket.IO para refrescar
- useEffect(() => {
-  let socket;
-  try {
-    socket = io("http://localhost:3000", { transports: ["websocket"] });
-    socket.on("auction:updated", loadMyAuctions);
-    socket.on("auction:bid", () => loadMyAuctions());
-  } catch {
-    console.warn("No se pudo conectar con Socket.IO");
-  }
-  return () => {
+  useEffect(() => {
+    let socket;
     try {
-      socket && socket.disconnect();
-    } catch {}
-  };
-}, []);
+      socket = io("wss://api.carbidp.click", {
+        path: "/socket.io",
+        transports: ["websocket"],
+        withCredentials: false,
+      });
+
+      // Escucha eventos desde el backend
+      socket.on("auction:updated", loadMyAuctions);
+      socket.on("auction:bid", loadMyAuctions);
+
+      console.log("✅ Conectado a Socket.IO en producción");
+    } catch (err) {
+      console.warn("⚠️ No se pudo conectar con Socket.IO:", err.message);
+    }
+
+    // Limpieza al desmontar el componente
+    return () => {
+      try {
+        socket && socket.disconnect();
+        console.log("🔌 Socket desconectado");
+      } catch {}
+    };
+  }, []);
+
 
   /* ---- Filtro de búsqueda ---- */
   const filteredItems = useMemo(() => {
