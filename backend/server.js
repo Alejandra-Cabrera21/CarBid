@@ -2,13 +2,14 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');                 // NUEVO: para listar archivos
 require('dotenv').config();
 
 const http = require('http');
 const { Server } = require('socket.io');
 const db = require('./db');
 
-// ⬅️ NUEVO: ruta centralizada para /uploads
+// NUEVO: ruta centralizada para /uploads
 const { UPLOADS_DIR } = require('./configUploads');
 
 const app = express();
@@ -26,7 +27,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 /* ===== Servir imágenes subidas ===== */
-// 🔁 USANDO LA RUTA COMPARTIDA
+// USANDO LA RUTA COMPARTIDA
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 /* ===== Rutas API ===== */
@@ -37,7 +38,6 @@ const bidsRoutes          = require('./routes/bids');
 const notificacionesRoutes = require('./routes/notificaciones');
 const historialPujasRoutes = require('./routes/historialPujas'); // 🆕 nueva ruta
 const perfilRoutes = require('./routes/perfil');   // ⬅️ NUEVO
-// server.js
 // backend/server.js
 const historialSubastas = require('./routes/historialSubastas');
 
@@ -53,6 +53,25 @@ app.use('/api/historial-subastas', historialSubastas);
 app.get('/__ping', (_req, res) => res.json({ ok: true, where: 'root' }));
 app.get('/api/subastas/__ping', (_req, res) => res.json({ ok: true, where: 'subastas-GET' }));
 app.post('/api/subastas/__ping', (_req, res) => res.json({ ok: true, where: 'subastas-POST' }));
+
+/* ===== RUTA DE DEBUG PARA VER /uploads ===== */
+// NUEVO: para comprobar qué archivos ve el servidor en la carpeta uploads
+app.get('/__uploads', (req, res) => {
+  fs.readdir(UPLOADS_DIR, (err, files) => {
+    if (err) {
+      return res.status(500).json({
+        ok: false,
+        error: err.message,
+        dir: UPLOADS_DIR,
+      });
+    }
+    res.json({
+      ok: true,
+      dir: UPLOADS_DIR,
+      files,
+    });
+  });
+});
 
 /* ===== Socket.IO ===== */
 const httpServer = http.createServer(app);
