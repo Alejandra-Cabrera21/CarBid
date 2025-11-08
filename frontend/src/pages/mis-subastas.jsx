@@ -410,7 +410,7 @@ export default function MisSubastas() {
       <header>
         <Link to="/indexvendedor" aria-label="Regresar">← Regresar</Link>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <img src="img/logo.png" alt="CarBid" />
+          <img src="/img/logo.png" alt="CarBid" />
           <strong>Mis subastas</strong>
         </div>
         <div />

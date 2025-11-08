@@ -265,7 +265,7 @@ export default function Perfil() {
         <button className="perfil-btn-back" onClick={() => navigate(-1)}>
           <i className="fa fa-arrow-left" /> Regresar
         </button>
-        <img src="img/logo.png" alt="CarBid" />
+        <img src="/img/logo.png" alt="CarBid" />
       </header>
 
       <main className="perfil-wrapper">

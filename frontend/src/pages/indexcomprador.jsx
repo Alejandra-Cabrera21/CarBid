@@ -665,7 +665,7 @@ export default function IndexComprador() {
 
       <header>
         <div className="left">
-          <img src="img/logo.png" alt="CarBid" />
+          <img src="/img/logo.png" alt="CarBid" />
           <input
             type="text"
             placeholder="Buscar..."
