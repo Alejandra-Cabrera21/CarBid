@@ -97,29 +97,38 @@ const API_BASE = (import.meta.env.VITE_API_BASE || "https://api.carbidp.click/ap
   }
 
   // ===== forgot modal: paso 1 (enviar código) =====
-  async function sendCode() {
-    setHint1("");
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(fpEmail)) {
-      setHint1("Correo inválido.");
-      return;
-    }
-    try {
-      const r = await fetch(`${API_BASE}/auth/forgot`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: fpEmail.trim() }),
-      });
-      await r.json().catch(() => ({}));
-      if (r.ok) {
-        setHint1("Si el correo existe, te enviamos un código.");
-        setStep(2);
-      } else {
-        setHint1("No se pudo enviar el código.");
-      }
-    } catch {
-      setHint1("Error de conexión.");
-    }
+async function sendCode() {
+  setHint1("");
+
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(fpEmail)) {
+    setHint1("Correo inválido.");
+    return;
   }
+
+  try {
+    const r = await fetch(`${API_BASE}/auth/forgot`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: fpEmail.trim() }),
+    });
+
+    const data = await r.json().catch(() => ({}));
+
+    console.log("FORGOT STATUS:", r.status);
+    console.log("FORGOT BODY:", data);
+
+    if (r.ok) {
+      setHint1("Si el correo existe, te enviamos un código.");
+      setStep(2);
+    } else {
+      setHint1(`Error ${r.status}: ${data.message || "No se pudo enviar el código."}`);
+    }
+  } catch (e) {
+    console.error("FORGOT ERROR:", e);
+    setHint1("Error de conexión.");
+  }
+}
+
 
   // ===== forgot modal: paso 2 (cambiar contraseña) =====
   async function resetPass() {
