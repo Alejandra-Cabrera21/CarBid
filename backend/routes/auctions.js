@@ -5,14 +5,17 @@ const multer = require("multer");
 const db = require("../db");
 const authRequired = require("../middleware/authRequired");
 
+// ⬅️ NUEVO: ruta compartida para /uploads
+const { UPLOADS_DIR } = require("../configUploads");
+
 const router = express.Router();
 
 /* ====== Multer: almacenamiento local en /uploads ====== */
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    const dest = path.join(__dirname, "..", "uploads");
-    fs.mkdirSync(dest, { recursive: true });
-    cb(null, dest);
+    // ⬅️ AHORA usamos siempre UPLOADS_DIR
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    cb(null, UPLOADS_DIR);
   },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();

@@ -8,6 +8,9 @@ const http = require('http');
 const { Server } = require('socket.io');
 const db = require('./db');
 
+// ⬅️ NUEVO: ruta centralizada para /uploads
+const { UPLOADS_DIR } = require('./configUploads');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -22,9 +25,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-
 /* ===== Servir imágenes subidas ===== */
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// 🔁 USANDO LA RUTA COMPARTIDA
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 /* ===== Rutas API ===== */
 const usuarioRoutes       = require('./routes/usuario');
@@ -37,7 +40,6 @@ const perfilRoutes = require('./routes/perfil');   // ⬅️ NUEVO
 // server.js
 // backend/server.js
 const historialSubastas = require('./routes/historialSubastas');
-
 
 app.use('/api/usuario', usuarioRoutes);
 app.use('/api/auth', authRoutes);
@@ -117,27 +119,26 @@ function closeExpiredAuctionsOnce() {
             console.error(`❌ Error buscando ganador subasta ${id}:`, err3);
             return;
           }
-      if (rows.length) {
-  const ganador = rows[0];
+          if (rows.length) {
+            const ganador = rows[0];
 
-  // 🧠 Guardar en tabla ganadores si aún no existe
-  const qInsert = `
-    INSERT INTO ganadores (id_subasta, id_postor, monto)
-    SELECT ?, ?, ?
-    WHERE NOT EXISTS (
-      SELECT 1 FROM ganadores WHERE id_subasta = ?
-    )
-  `;
-  db.query(qInsert, [id, ganador.id_postor, ganador.monto, id], (err4) => {
-    if (err4) console.error("⚠️ Error insertando ganador:", err4);
-  });
+            // 🧠 Guardar en tabla ganadores si aún no existe
+            const qInsert = `
+              INSERT INTO ganadores (id_subasta, id_postor, monto)
+              SELECT ?, ?, ?
+              WHERE NOT EXISTS (
+                SELECT 1 FROM ganadores WHERE id_subasta = ?
+              )
+            `;
+            db.query(qInsert, [id, ganador.id_postor, ganador.monto, id], (err4) => {
+              if (err4) console.error("⚠️ Error insertando ganador:", err4);
+            });
 
-  // 🔔 Emitir evento al frontend
-  const io = app.get('io');
-  io.emit('auction:won', { id_subasta: id, id_postor: ganador.id_postor });
-  console.log(`🏁 Notificado ganador subasta ${id} → usuario ${ganador.id_postor}`);
-}
-
+            // 🔔 Emitir evento al frontend
+            const io = app.get('io');
+            io.emit('auction:won', { id_subasta: id, id_postor: ganador.id_postor });
+            console.log(`🏁 Notificado ganador subasta ${id} → usuario ${ganador.id_postor}`);
+          }
         });
       });
     });
@@ -156,8 +157,6 @@ app.get('/__ping', async (req, res) => {
     res.status(500).json({ ok: false, error: err.message });
   }
 });
-
-
 
 /* ===== Iniciar servidor ===== */
 httpServer.listen(PORT, () => {
